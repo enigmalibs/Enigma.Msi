@@ -44,7 +44,10 @@ instead, same intent, confirmed with the maintainer.
 
 ## PHASE02 — Guides & index
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE02.md`. Five guides rather than the suggested four:
+validation was split out of `model.md` (the plan's "adjust the set to the code as built"). The snippet
+gate was run as a compile-and-execute harness; one prose mismatch found and fixed, two CLI snippets
+recorded as unexecuted.
 **Branch:** `feature/feature-5f00-phase02-guides`
 
 1. `docs/guides/` — one guide per real capability area (count follows the library, not a target): suggested set — `model.md` (MsiPackage reference: every field, defaults, `.msipkg.json` example), `building.md` (client API: `IMsiBuildService`, preflight, cancellation, worker discovery), `worker-cli.md` (headless `build <file.msipkg.json>`, exit codes 0/1/2, CI usage), `desktop-app.md` (the Avalonia app workflow). Adjust the set to the code as built.

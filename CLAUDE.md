@@ -18,10 +18,12 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > client looks for it, and the Avalonia desktop app over the same model. The first release
 > (`FEATURE-5F00`) is under way: `PHASE01` is done — the library is packable, and `dotnet pack` produces a
 > complete nupkg (`lib/` for all three TFMs, the `tools/worker/` payload, `build/Enigma.Msi.targets`,
-> README, LICENSE). Still to come: the guides (`PHASE02`), the real README + release notes (`PHASE03`), the
-> desktop app's MSI profile and dogfood build (`PHASE04`), and the release runbook (`PHASE05`) — see
-> `docs/plan/FEATURE-5F00.md`. `README.md` and `RELEASENOTES.md` are deliberately still placeholders until
-> `PHASE03`, so the package must not be pushed before then.
+> README, LICENSE) — and so is `PHASE02`: the five per-category guides plus their index live in
+> `docs/guides/`, every snippet in them compiled and asserted against the real assembly. Still to come:
+> the real README + release notes (`PHASE03`), the desktop app's MSI profile and dogfood build
+> (`PHASE04`), and the release runbook (`PHASE05`) — see `docs/plan/FEATURE-5F00.md`. `README.md` and
+> `RELEASENOTES.md` are deliberately still placeholders until `PHASE03`, so the package must not be pushed
+> before then.
 
 ## Architecture
 
@@ -79,7 +81,8 @@ tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
 tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite (the only one that uses NSubstitute)
-docs/                                Guides, samples, and the dev-workflow tracking artifacts
+docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
+docs/guides/                         Per-category guides + index (repo-only — never packed, so relative links are fine)
 ```
 
 A project that hosts the worker imports `build/CopyWorkerOutput.targets` **and** declares its own
