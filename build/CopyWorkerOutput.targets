@@ -1,0 +1,82 @@
+<Project>
+
+  <!--
+    In-repository counterpart of build/Enigma.Msi.targets: the same worker/ layout, produced from a
+    project's build output instead of from a package payload. Imported by solution projects that host
+    the worker — the Desktop app, and the library test suite (which hosts a stub worker so the build
+    client can be tested against a real child process).
+
+    Package consumers never see this file; it is not packed.
+
+    Importing project's contract — set the properties BEFORE the Import, and declare the build-order
+    reference yourself, because the source project differs per host:
+
+      <PropertyGroup>
+        <EnigmaMsiWorkerSourceDir>...</EnigmaMsiWorkerSourceDir>   (optional)
+        <EnigmaMsiWorkerFolderName>...</EnigmaMsiWorkerFolderName> (optional)
+      </PropertyGroup>
+      <ItemGroup>
+        <ProjectReference Include="..\..\src\Enigma.Msi.Worker\Enigma.Msi.Worker.csproj"
+                          ReferenceOutputAssembly="false"
+                          SkipGetTargetFrameworkProperties="true"
+                          UndefineProperties="TargetFramework" />
+      </ItemGroup>
+      <Import Project="..\..\build\CopyWorkerOutput.targets" />
+
+    All three ProjectReference attributes are load-bearing. ReferenceOutputAssembly="false" keeps the
+    worker off the host's compile references (nothing links against it — it is discovered on disk).
+    SkipGetTargetFrameworkProperties="true" stops the host from negotiating a TFM with a project whose
+    framework is fixed. UndefineProperties="TargetFramework" stops the host's own TargetFramework from
+    flowing down as a global property, which otherwise fails the build with NETSDK1005 ("assets file
+    doesn't have a target for ...") as soon as the host multi-targets or targets anything but net472.
+
+    Both the build and the publish pipeline are hooked: an AfterTargets="Build" copy alone lands in
+    $(OutDir) and never reaches $(PublishDir), which is the gap the predecessor project shipped with.
+  -->
+
+  <PropertyGroup>
+    <!-- Default source: the repository's own net472 worker output for the configuration being built. -->
+    <EnigmaMsiWorkerSourceDir Condition="'$(EnigmaMsiWorkerSourceDir)' == ''">$(MSBuildThisFileDirectory)../src/Enigma.Msi.Worker/bin/$(Configuration)/net472/</EnigmaMsiWorkerSourceDir>
+    <!-- Must match what MsiBuildService discovers, or MsiBuildServiceOptions.WorkerPath. -->
+    <EnigmaMsiWorkerFolderName Condition="'$(EnigmaMsiWorkerFolderName)' == ''">worker</EnigmaMsiWorkerFolderName>
+  </PropertyGroup>
+
+  <!--
+    Collected inside a target, not at evaluation time: on a clean build the source directory does not
+    exist yet — the ProjectReference that produces it has not run when the project is evaluated.
+  -->
+  <Target Name="CollectEnigmaMsiWorkerFiles">
+    <ItemGroup>
+      <EnigmaMsiWorkerFile Include="$(EnigmaMsiWorkerSourceDir)**/*" />
+    </ItemGroup>
+
+    <Error Condition="'@(EnigmaMsiWorkerFile)' == ''"
+           Text="No worker files were found under '$(EnigmaMsiWorkerSourceDir)'. Check EnigmaMsiWorkerSourceDir, and that the importing project has a build-order ProjectReference to the project that produces the worker." />
+  </Target>
+
+  <!-- Incrementality is left to Copy's SkipUnchangedFiles rather than target Inputs/Outputs: the file
+       set is discovered at execution time, so a target-level up-to-date check would have to re-glob
+       anyway, and per-file comparison is what actually matters here. -->
+  <!-- The '$(TargetFramework)' != '' condition on both copy targets guards the outer pass of a
+       multi-targeting host. That pass imports Microsoft.Common.CrossTargeting.targets, which does not
+       define $(OutDir)/$(PublishDir) — so without the guard the copy resolves to a relative path and
+       writes the worker into the project directory instead of into the build output. -->
+  <Target Name="CopyEnigmaMsiWorkerToOutput"
+          AfterTargets="Build"
+          DependsOnTargets="CollectEnigmaMsiWorkerFiles"
+          Condition="'$(TargetFramework)' != ''">
+    <Copy SourceFiles="@(EnigmaMsiWorkerFile)"
+          DestinationFiles="@(EnigmaMsiWorkerFile->'$(OutDir)$(EnigmaMsiWorkerFolderName)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyEnigmaMsiWorkerToPublish"
+          AfterTargets="Publish"
+          DependsOnTargets="CollectEnigmaMsiWorkerFiles"
+          Condition="'$(TargetFramework)' != ''">
+    <Copy SourceFiles="@(EnigmaMsiWorkerFile)"
+          DestinationFiles="@(EnigmaMsiWorkerFile->'$(PublishDir)$(EnigmaMsiWorkerFolderName)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

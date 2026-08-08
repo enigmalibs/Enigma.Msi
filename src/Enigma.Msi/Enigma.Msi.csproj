@@ -1,0 +1,110 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <!-- TFM deviation from the house default (netstandard2.0 alone): netstandard2.0 is required so
+         the net472 worker (Enigma.Msi.Worker — WixSharp_wix4 is .NET Framework-only) can consume the
+         very same MsiPackage model assembly as modern consumers, keeping one declarative model
+         instead of a mirrored DTO layer. net8.0/net10.0 are the two currently-supported LTS
+         releases, so modern consumers get a first-class target rather than the compatibility one. -->
+    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <!-- NuGet packaging metadata. GeneratePackageOnBuild is deliberately absent (i.e. off): a published
+       library is packed explicitly by the release step, never on every local build. IncludeSymbols is
+       absent too — no symbol package, the family default. -->
+  <PropertyGroup>
+    <PackageId>Enigma.Msi</PackageId>
+    <Version>1.0.0</Version>
+    <Title>Enigma.Msi — declarative Windows MSI builder</Title>
+    <Description>Builds Windows MSI installers from a single declarative model. Describe the package once — app identity, install scope, source folder, shortcuts, control-panel info, compression, managed-UI dialogs — as an MsiPackage, validate it, save it as a .msipkg.json profile, and build the .msi through IMsiBuildService. WixSharp (WiX v4) is driven by a bundled out-of-process net472 worker, so modern .NET consumers never take a .NET Framework dependency; the worker also has a headless CLI for CI. Building an MSI requires Windows and the wix global tool.</Description>
+    <PackageTags>msi windows-installer wix wixsharp installer setup packaging deployment</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/enigmalibs/Enigma.Msi</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/enigmalibs/Enigma.Msi</PackageProjectUrl>
+    <PackageReleaseNotes>First public release. A single declarative MsiPackage model drives everything: IMsiPackageValidator reports every violation at once, MsiPackageJson saves it as a .msipkg.json profile, and IMsiBuildService builds the .msi out of process — WixSharp (WiX v4) stays inside the bundled net472 worker and never appears on the public API, so modern .NET consumers take no .NET Framework dependency. The worker also runs headless (Enigma.Msi.Worker.exe build &lt;file.msipkg.json&gt;) for CI. Building an MSI requires Windows and the wix global tool. See RELEASENOTES.md for the full details.</PackageReleaseNotes>
+  </PropertyGroup>
+  <!-- PackageReadmeFile/PackageLicenseFile only name the files; these items are what pack them. -->
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../LICENSE.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+  <!-- LangVersion / Nullable / ImplicitUsings / TreatWarningsAsErrors are deliberately absent:
+       they come from Directory.Build.props and must never be repeated per-project. No Version
+       attributes either — versions live in Directory.Packages.props (CPM). -->
+  <!-- System.Buffers (Span/Memory/ArrayPool support) is framework-provided on net8.0+; it is only
+       needed as an explicit package on netstandard2.0. Referencing it on net8.0/net10.0 would raise
+       NU1510 and fail the zero-warnings build. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Buffers" />
+  </ItemGroup>
+  <!-- PolySharp: polyfills modern C# on netstandard2.0. Compile-only (PrivateAssets=all). -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="PolySharp" PrivateAssets="all" />
+  </ItemGroup>
+  <!-- System.Text.Json backs the .msipkg.json profile format and the worker handshake. It ships in
+       the shared framework on net8.0+, so referencing the package there would raise NU1510 and fail
+       the zero-warnings build; only netstandard2.0 (the target the net472 worker consumes) needs it. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+  <!-- Packaging plumbing. build/Enigma.Msi.targets is auto-imported by every consuming project (NuGet
+       imports build/<PackageId>.targets) and copies the tools/worker/ payload below into the consumer's
+       output, where MsiBuildService discovers it. -->
+  <ItemGroup>
+    <None Include="../../build/Enigma.Msi.targets" Pack="true" PackagePath="build/" Visible="false" />
+  </ItemGroup>
+  <!--
+    tools/worker/ — the net472 worker plus its whole dependency closure (WixSharp, the WixToolset
+    assemblies, System.Text.Json and friends), harvested verbatim from the worker's build output. Packed
+    unfiltered on purpose: a consumer must end up with byte-for-byte what build/CopyWorkerOutput.targets
+    puts next to the in-repo hosts, so the packaged worker cannot behave differently from the local one.
+
+    Why a target and not a ProjectReference: the worker already references this project (it consumes the
+    same model assembly through its netstandard2.0 face), so a build-order ProjectReference back to it
+    would close a cycle and fail restore with MSB4006 — ReferenceOutputAssembly="false" does not break
+    it. Invoking the worker's build through the MSBuild task keeps the graph acyclic while still making
+    `dotnet pack` on a clean tree produce a populated tools/worker/.
+
+    The restore is separate, conditional, and carries ExcludeRestorePackageImports: on a clean tree the
+    worker has no assets file of its own, because nothing references it — but Restore and Build must not
+    share one project instance, or the build runs against the evaluation from before the assets existed.
+    That showed up here as MSB3277 assembly-version conflicts in the worker's reference resolution, i.e.
+    a packed worker built from a different reference set than the solution build produces. The property
+    is the same one NuGet's own Restore target puts on its recursive walk, and it is what makes the two
+    invocations distinct evaluations. RemoveProperties="TargetFramework" stops this project's TFM from
+    flowing down as a global property into a project whose framework is fixed (NETSDK1005), the same
+    contract build/CopyWorkerOutput.targets documents for the in-repo worker hosts.
+
+    _GetPackageFiles is where pack collects Pack="true" items, and it runs once in the outer build of a
+    multi-targeting project — which is what makes an in-target ItemGroup the right hook: the glob has to
+    be evaluated after the worker is built, not when this project is evaluated.
+  -->
+  <PropertyGroup>
+    <_EnigmaMsiWorkerDir>$(MSBuildThisFileDirectory)../Enigma.Msi.Worker/</_EnigmaMsiWorkerDir>
+    <_EnigmaMsiWorkerProject>$(_EnigmaMsiWorkerDir)Enigma.Msi.Worker.csproj</_EnigmaMsiWorkerProject>
+    <_EnigmaMsiWorkerOutputDir>$(_EnigmaMsiWorkerDir)bin/$(Configuration)/net472/</_EnigmaMsiWorkerOutputDir>
+  </PropertyGroup>
+  <Target Name="PackEnigmaMsiWorkerPayload" BeforeTargets="_GetPackageFiles">
+    <MSBuild Projects="$(_EnigmaMsiWorkerProject)"
+             Targets="Restore"
+             Properties="Configuration=$(Configuration);ExcludeRestorePackageImports=true"
+             RemoveProperties="TargetFramework"
+             Condition="!Exists('$(_EnigmaMsiWorkerDir)obj/project.assets.json')" />
+    <MSBuild Projects="$(_EnigmaMsiWorkerProject)"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)"
+             RemoveProperties="TargetFramework" />
+    <!-- Fail loudly rather than publish a package whose worker folder is empty: every BuildAsync call
+         in every consuming project would fail with "the MSI worker was not found". -->
+    <Error Condition="!Exists('$(_EnigmaMsiWorkerOutputDir)Enigma.Msi.Worker.exe')"
+           Text="Cannot pack $(PackageId): no worker payload under '$(_EnigmaMsiWorkerOutputDir)'. Build the solution in this configuration first (dotnet build Enigma.Msi.slnx -c $(Configuration))." />
+    <ItemGroup>
+      <None Include="$(_EnigmaMsiWorkerOutputDir)**/*"
+            Pack="true"
+            PackagePath="tools/worker/%(RecursiveDir)"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
+</Project>

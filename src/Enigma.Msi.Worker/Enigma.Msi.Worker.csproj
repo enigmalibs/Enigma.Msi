@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- TFM deviation from the house default for apps (net10.0): WixSharp_wix4 is .NET
+         Framework-only, so the one process in the solution that touches WixSharp must be net472.
+         That constraint is the reason the whole out-of-process worker exists; everything else stays
+         on modern .NET and talks to this exe over the request/result JSON protocol. -->
+    <TargetFramework>net472</TargetFramework>
+    <!-- The worker is discovered on disk, never referenced as a library, so it needs no XML docs
+         file; public members are still documented because the test project is its only consumer. -->
+    <!-- Packages that flow in transitively (System.Text.Json and its dependency closure, through the
+         netstandard2.0 face of Enigma.Msi) ship assembly versions that differ from what the compiler
+         binds against, which on .NET Framework needs binding redirects in the .exe.config. -->
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <!-- bin/$(Configuration)/net472/ is a contract, not an implementation detail: both
+         build/CopyWorkerOutput.targets and the library's PackEnigmaMsiWorkerPayload target glob that
+         exact path. A host that publishes RID-specifically (the Desktop app's release payload is
+         `dotnet publish -r win-x64`) flows its RuntimeIdentifier down here, which would otherwise
+         append it to the output path and leave both of them globbing an empty directory. Undefining
+         the property on the reference is not an alternative: NuGet's restore graph walk ignores
+         UndefineProperties, so restore would resolve win-x64 while the build fell back to this
+         project's own inferred win-x86, failing with NETSDK1047. -->
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WixSharp_wix4 only: WixSharp_wix4.bin (the assemblies) is already its dependency, and naming
+         both is the redundant reference the predecessor project carried. -->
+    <PackageReference Include="WixSharp_wix4" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The same MsiPackage model assembly modern consumers use, via its netstandard2.0 target —
+         this is what keeps the model single-sourced instead of mirrored into worker-side DTOs. -->
+    <ProjectReference Include="../Enigma.Msi/Enigma.Msi.csproj" />
+  </ItemGroup>
+</Project>

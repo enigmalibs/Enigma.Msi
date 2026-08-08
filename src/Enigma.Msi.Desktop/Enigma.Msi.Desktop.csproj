@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Plain net10.0, no -windows suffix: Avalonia needs none, and the app's Windows-only nature
+         comes from what it drives (the net472 worker and the WiX CLI), not from its TFM. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- The app versions independently of the library; the two simply coincide at 1.0.0 for the first
+         release. This value is what msiProfiles/Enigma.Msi.Desktop.<version>.msipkg.json mirrors — bump
+         both together, and clone the profile per the rule in docs/RELEASE.md. -->
+    <Version>1.0.0</Version>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!-- Debug-only: the condition keeps the dev-tools assemblies out of a Release build's output. -->
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Enigma.Avalonia.Desktop" />
+    <PackageReference Include="Enigma.Icons.Avalonia" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="NLog" />
+    <PackageReference Include="NLog.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Enigma.Msi/Enigma.Msi.csproj" />
+    <!-- Build-order only — the worker is never linked against, it is discovered on disk beside the
+         app. All three attributes are load-bearing; build/CopyWorkerOutput.targets documents why.
+         RuntimeIdentifier is deliberately *not* undefined here — the release payload is a RID-specific
+         publish (-r win-x64), and the worker keeps its output path stable under that through its own
+         AppendRuntimeIdentifierToOutputPath=false. -->
+    <ProjectReference Include="../Enigma.Msi.Worker/Enigma.Msi.Worker.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      UndefineProperties="TargetFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- PHASE04's copy target, applied: the net472 worker lands in $(OutDir)worker/ and $(PublishDir)worker/,
+       which is exactly where MsiBuildService looks for it. Defaults cover source dir and folder name. -->
+  <Import Project="$(MSBuildThisFileDirectory)../../build/CopyWorkerOutput.targets" />
+  <!-- The Skia and HarfBuzz native packages ship their platform debug symbols (libSkiaSharp.pdb alone
+       is 80 MB) as ordinary native assets, so they land in the publish output — which is what the MSI
+       packages. An installer has no use for them: dropping the two files takes the installed footprint
+       from ~150 MB to ~49 MB. Only *native* symbols go; the managed .pdb files are small and keep
+       support stack traces readable, so they stay. -->
+  <Target Name="TrimNativeSymbolsFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <_EnigmaNativeSymbol Include="@(ResolvedFileToPublish)"
+                           Condition="'%(ResolvedFileToPublish.AssetType)' == 'native' AND '%(Extension)' == '.pdb'" />
+      <ResolvedFileToPublish Remove="@(_EnigmaNativeSymbol)" />
+    </ItemGroup>
+  </Target>
+</Project>
