@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Enigma.Msi/Enigma.Msi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Enigma.Msi.UnitTests/Enigma.Msi.UnitTests.csproj" />
+  </Folder>
+</Solution>

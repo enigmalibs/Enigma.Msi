@@ -1,6 +1,6 @@
 # FEATURE-43A9 — MSI builder library, worker & Avalonia app
 
-**Status:** TODO (multi-phase)
+**Status:** IN PROGRESS (multi-phase)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-43a9-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 
@@ -110,7 +110,7 @@ The translation layer lives in the worker project as testable public-in-assembly
 
 ## PHASE01 — Repository & solution bootstrap
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase01-bootstrap`
 
 Follow the house bootstrap checklist in order (git init already done during planning):

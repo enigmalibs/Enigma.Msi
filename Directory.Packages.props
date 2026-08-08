@@ -1,0 +1,28 @@
+<Project>
+
+  <!-- Central Package Management: every PackageReference version in the solution is pinned here so
+       shared dependencies cannot drift between projects (in particular between the modern library
+       and the net472 worker, which consume the same model assembly). Projects reference packages
+       WITHOUT a Version attribute (<PackageReference Include="Foo" />); the version comes from the
+       matching <PackageVersion> below. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Core library (Enigma.Msi). System.Text.Json is the model's serializer, pinned here ahead of
+       PHASE02 which introduces it; it is framework-provided on net8.0+, so the library references it
+       only under netstandard2.0. PolySharp and System.Buffers are the netstandard2.0-support pair
+       backing the conditional PackageReferences in src/Enigma.Msi/Enigma.Msi.csproj. -->
+  <ItemGroup>
+    <PackageVersion Include="System.Text.Json" Version="10.0.10" />
+    <PackageVersion Include="System.Buffers" Version="4.6.1" />
+    <PackageVersion Include="PolySharp" Version="1.16.0" />
+  </ItemGroup>
+
+  <!-- Tests (MTP-native: xunit.v3 only; coverlet.collector for coverage). No Microsoft.NET.Test.Sdk. -->
+  <ItemGroup>
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+  </ItemGroup>
+
+</Project>
