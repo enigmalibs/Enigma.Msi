@@ -147,7 +147,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE03 — net472 worker: WixSharp translation & CLI
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase03-worker`
 
 1. `src/Enigma.Msi.Worker` (net472, `OutputType=Exe`, references `Enigma.Msi` + `WixSharp_wix4` 2.14.1 only — no `.bin`).

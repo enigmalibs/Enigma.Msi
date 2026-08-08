@@ -10,12 +10,13 @@ Guidance for Claude Code (and other AI agents) working in this repository.
 shortcuts, control-panel info, compression, managed-UI dialogs — as an `MsiPackage`, and the library
 turns it into an `.msi`. A companion Avalonia desktop app drives the same model through a UI.
 
-> **Build state.** The library's declarative surface is in place (`FEATURE-43A9-PHASE02`): the
-> `MsiPackage` model with its WixSharp-free enum mirrors, the `.msipkg.json` serialization contract,
-> and the aggregating validator. Still to come: the net472 worker (PHASE03), the build client and
-> packaging plumbing (PHASE04), and the Avalonia desktop app (PHASE05) — see
-> `docs/plan/FEATURE-43A9.md`. Types referenced below that those phases deliver
-> (`IMsiBuildService`, the worker exe) do not exist yet.
+> **Build state.** The library's declarative surface (`FEATURE-43A9-PHASE02`) and the net472 worker
+> (`FEATURE-43A9-PHASE03`) are in place: the `MsiPackage` model with its WixSharp-free enum mirrors,
+> the `.msipkg.json` serialization contract, the aggregating validator, and the worker that translates
+> a package to WixSharp and builds the MSI — usable on its own through `Enigma.Msi.Worker.exe build
+> <file.msipkg.json>`. Still to come: the build client and packaging plumbing (PHASE04), and the
+> Avalonia desktop app (PHASE05) — see `docs/plan/FEATURE-43A9.md`. Types referenced below that those
+> phases deliver (`IMsiBuildService`, the worker-copy targets) do not exist yet.
 
 ## Architecture
 
@@ -65,10 +66,10 @@ Directory.Packages.props             Central Package Management (all package ver
 .editorconfig                        Code style + analyzer severities
 global.json                          SDK 10.0.100 (latestFeature); test runner = Microsoft.Testing.Platform
 src/Enigma.Msi/                      The library — the only public/packable one (model, validation, JSON, build client)
-src/Enigma.Msi.Worker/               net472 console exe — WixSharp translation + the actual MSI build   (PHASE03)
+src/Enigma.Msi.Worker/               net472 console exe — WixSharp translation + the actual MSI build
 src/Enigma.Msi.Desktop/              Avalonia desktop app                                               (PHASE05)
 tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
-tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards                 (PHASE03)
+tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite                                                    (PHASE05)
 docs/                                Guides, samples, and the dev-workflow tracking artifacts
 ```
