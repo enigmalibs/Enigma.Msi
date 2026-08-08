@@ -26,4 +26,10 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="PolySharp" PrivateAssets="all" />
   </ItemGroup>
+  <!-- System.Text.Json backs the .msipkg.json profile format and the worker handshake. It ships in
+       the shared framework on net8.0+, so referencing the package there would raise NU1510 and fail
+       the zero-warnings build; only netstandard2.0 (the target the net472 worker consumes) needs it. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
 </Project>

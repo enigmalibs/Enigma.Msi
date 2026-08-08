@@ -10,9 +10,12 @@ Guidance for Claude Code (and other AI agents) working in this repository.
 shortcuts, control-panel info, compression, managed-UI dialogs — as an `MsiPackage`, and the library
 turns it into an `.msi`. A companion Avalonia desktop app drives the same model through a UI.
 
-> **Bootstrap state.** Only the solution skeleton exists so far (`FEATURE-43A9-PHASE01`). The model,
-> the worker, the build client and the desktop app land in PHASE02–PHASE05 — see
-> `docs/plan/FEATURE-43A9.md`.
+> **Build state.** The library's declarative surface is in place (`FEATURE-43A9-PHASE02`): the
+> `MsiPackage` model with its WixSharp-free enum mirrors, the `.msipkg.json` serialization contract,
+> and the aggregating validator. Still to come: the net472 worker (PHASE03), the build client and
+> packaging plumbing (PHASE04), and the Avalonia desktop app (PHASE05) — see
+> `docs/plan/FEATURE-43A9.md`. Types referenced below that those phases deliver
+> (`IMsiBuildService`, the worker exe) do not exist yet.
 
 ## Architecture
 

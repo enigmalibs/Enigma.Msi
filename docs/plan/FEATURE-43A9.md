@@ -132,7 +132,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE02 — MsiPackage model, validation & serialization
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase02-model`
 
 1. Model types in `src/Enigma.Msi` (folder `Model/` or similar; one type per file): `MsiPackage`, `InstallSettings`, `OutputSettings`, `ControlPanelInfo`, `Shortcut`, `UiSettings`, enums `InstallScope`, `CompressionLevel`, `Wui`, `Dialog` — plus **`MsiBuildResult`** (`{ bool Success, string? MsiPath, IReadOnlyList<string> Errors }`), which PHASE03's worker already needs to serialize to the result file. XML docs on every public member.

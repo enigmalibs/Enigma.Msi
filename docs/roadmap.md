@@ -6,7 +6,7 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 |--------------|-------------------------------------------------------------|-------------|---------------------------|
 | FEATURE-43A9 | MSI builder library, worker & Avalonia app                  | IN PROGRESS | docs/plan/FEATURE-43A9.md |
 | - PHASE01    | Repository & solution bootstrap                             | DONE        | (in FEATURE-43A9.md)      |
-| - PHASE02    | MsiPackage model, validation & serialization                | TODO        | (in FEATURE-43A9.md)      |
+| - PHASE02    | MsiPackage model, validation & serialization                | DONE        | (in FEATURE-43A9.md)      |
 | - PHASE03    | net472 worker: WixSharp translation & CLI                   | TODO        | (in FEATURE-43A9.md)      |
 | - PHASE04    | Build client, interop & packaging plumbing                  | TODO        | (in FEATURE-43A9.md)      |
 | - PHASE05    | Avalonia desktop app                                        | TODO        | (in FEATURE-43A9.md)      |
