@@ -23,8 +23,7 @@
     <RepositoryUrl>https://github.com/enigmalibs/Enigma.Msi</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/enigmalibs/Enigma.Msi</PackageProjectUrl>
-    <!-- Placeholder: PHASE03 finalizes this against the authored RELEASENOTES.md. -->
-    <PackageReleaseNotes>First release. See RELEASENOTES.md for the full details.</PackageReleaseNotes>
+    <PackageReleaseNotes>First public release. A single declarative MsiPackage model drives everything: IMsiPackageValidator reports every violation at once, MsiPackageJson saves it as a .msipkg.json profile, and IMsiBuildService builds the .msi out of process — WixSharp (WiX v4) stays inside the bundled net472 worker and never appears on the public API, so modern .NET consumers take no .NET Framework dependency. The worker also runs headless (Enigma.Msi.Worker.exe build &lt;file.msipkg.json&gt;) for CI. Building an MSI requires Windows and the wix global tool. See RELEASENOTES.md for the full details.</PackageReleaseNotes>
   </PropertyGroup>
   <!-- PackageReadmeFile/PackageLicenseFile only name the files; these items are what pack them. -->
   <ItemGroup>

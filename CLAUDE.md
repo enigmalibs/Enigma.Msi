@@ -18,12 +18,14 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > client looks for it, and the Avalonia desktop app over the same model. The first release
 > (`FEATURE-5F00`) is under way: `PHASE01` is done — the library is packable, and `dotnet pack` produces a
 > complete nupkg (`lib/` for all three TFMs, the `tools/worker/` payload, `build/Enigma.Msi.targets`,
-> README, LICENSE) — and so is `PHASE02`: the five per-category guides plus their index live in
-> `docs/guides/`, every snippet in them compiled and asserted against the real assembly. Still to come:
-> the real README + release notes (`PHASE03`), the desktop app's MSI profile and dogfood build
-> (`PHASE04`), and the release runbook (`PHASE05`) — see `docs/plan/FEATURE-5F00.md`. `README.md` and
-> `RELEASENOTES.md` are deliberately still placeholders until `PHASE03`, so the package must not be pushed
-> before then.
+> README, LICENSE) — `PHASE02`: the five per-category guides plus their index live in `docs/guides/`,
+> every snippet in them compiled and asserted against the real assembly — and `PHASE03`: the packed
+> `README.md`, `RELEASENOTES.md` (covering both the library and the desktop app at 1.0.0) and
+> `SECURITY.md` are authored, and `<PackageReleaseNotes>` is finalized. Still to come: the desktop app's
+> MSI profile and dogfood build (`PHASE04`), and the release runbook with its pack-verify (`PHASE05`) —
+> see `docs/plan/FEATURE-5F00.md`. **Do not push the package before `PHASE05`**: nothing has confirmed
+> yet that the authored README and metadata actually land in the nupkg, and the release runbook (tag,
+> pack, push) is that phase's deliverable.
 
 ## Architecture
 

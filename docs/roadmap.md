@@ -13,6 +13,6 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-5F00 | First release: Enigma.Msi 1.0.0 (NuGet) & Desktop app (MSI) | IN PROGRESS | docs/plan/FEATURE-5F00.md |
 | - PHASE01    | Package metadata, packaging layout & license audit          | DONE        | (in FEATURE-5F00.md)      |
 | - PHASE02    | Guides & index                                              | DONE        | (in FEATURE-5F00.md)      |
-| - PHASE03    | README, release notes & community files                     | TODO        | (in FEATURE-5F00.md)      |
+| - PHASE03    | README, release notes & community files                     | DONE        | (in FEATURE-5F00.md)      |
 | - PHASE04    | Desktop app release prep (MSI profile & dogfood build)      | TODO        | (in FEATURE-5F00.md)      |
 | - PHASE05    | Release runbook, pre-flight & pack-verify                   | TODO        | (in FEATURE-5F00.md)      |

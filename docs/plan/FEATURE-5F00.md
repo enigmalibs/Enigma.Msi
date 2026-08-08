@@ -60,7 +60,10 @@ recorded as unexecuted.
 
 ## PHASE03 — README, release notes & community files
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE03.md`. `RELEASENOTES.md` covers the Desktop app
+1.0.0 in prose as planned, but the app's `<Version>` property itself is still PHASE04's step 1; the notes
+are therefore ahead of the csproj until that phase lands. The README quick-start gate was run as a
+compile-and-execute harness and found two prose mismatches in `RELEASENOTES.md`, both fixed.
 **Branch:** `feature/feature-5f00-phase03-docs`
 
 1. Root `README.md` (packed — nuget.org landing page): title, exactly the two house badges (NuGet version + MIT license), intro, what's-new callout, Features, Installation (`dotnet add package Enigma.Msi` + supported TFMs line), Quick start (one compiling sample: build a minimal `MsiPackage` and `BuildAsync` it), Documentation section pointing at `docs/guides/` **in prose only** (no relative `docs/` links — dead on nuget.org), License. Mention the `wix` global-tool prerequisite and Windows requirement prominently.
