@@ -24,10 +24,16 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > `SECURITY.md` are authored, and `<PackageReleaseNotes>` is finalized — and `PHASE04`: the desktop app
 > is releasable (explicit `<Version>` 1.0.0, an application icon, and `msiProfiles/` holding its own
 > `.msipkg.json`), and **the dogfood loop is closed** — the worker built the app's 17 MB installer from
-> that profile, which is also `FEATURE-43A9`'s manual end-to-end acceptance step, performed. Still to
-> come: the release runbook with its pack-verify (`PHASE05`) — see `docs/plan/FEATURE-5F00.md`. **Do not
-> push the package before `PHASE05`**: nothing has confirmed yet that the authored README and metadata
-> actually land in the nupkg, and the release runbook (tag, pack, push) is that phase's deliverable.
+> that profile, which is also `FEATURE-43A9`'s manual end-to-end acceptance step, performed — and
+> `PHASE05`: `docs/RELEASE.md` is the release runbook, and the pack-verify confirmed from a real
+> `dotnet pack` that the nupkg carries what it should (three `lib/` TFMs with their XML docs, the 23-file
+> `tools/worker/` payload byte-identical to the worker's build output, `build/Enigma.Msi.targets`, an
+> embedded non-empty README and LICENSE, the intended dependency floors).
+>
+> **`FEATURE-5F00` is complete; 1.0.0 is prepared but not published.** What remains is the maintainer's and
+> is deliberately outside the repo: this repository still has **no git remote and no tags**, so
+> `github.com/enigmalibs/Enigma.Msi` must be created and `main` pushed before the runbook's tag/pack/push
+> steps mean anything. Nothing here ever runs an outward-facing command — follow `docs/RELEASE.md`.
 
 ## Architecture
 
@@ -87,6 +93,7 @@ tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite (the only one that uses NSubstitute)
 msiProfiles/                         Release profiles for MSIs this repo builds of itself (currently the desktop app)
 docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
+docs/RELEASE.md                      The release runbook: pre-flight, tag, pack, push, and the app-MSI build
 docs/guides/                         Per-category guides + index (repo-only — never packed, so relative links are fine)
 ```
 

@@ -1,6 +1,6 @@
 # FEATURE-5F00 — First release: Enigma.Msi 1.0.0 (NuGet) & Desktop app (MSI)
 
-**Status:** IN PROGRESS (multi-phase)
+**Status:** DONE (multi-phase — all five phases complete)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-5f00-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-43A9 fully DONE (all five phases).
@@ -99,7 +99,12 @@ inspected, but not installed — install/launch/uninstall stays with the maintai
 
 ## PHASE05 — Release runbook, pre-flight & pack-verify
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE05.md`. The pack-verify confirmed the family-unusual
+content (`tools/worker/` byte-identical to the worker's build output, `build/Enigma.Msi.targets`) survives
+a real `dotnet pack`. Three template deviations, all repo-specific: `dotnet test` needs `--solution` in MTP
+mode, the pack step is preceded by an explicit Release build, and a whole app-MSI section (§7) was added.
+The repo still has **no remote and no tags**, so §2/§3 are written as planned but unverified against a real
+`origin` — the maintainer must create the repository before publishing.
 **Branch:** `feature/feature-5f00-phase05-runbook`
 
 1. `docs/RELEASE.md` from the house template, all five placeholders filled (PackageId Enigma.Msi, solution Enigma.Msi.slnx, lib csproj `src/Enigma.Msi/Enigma.Msi.csproj`, lib dir `src/Enigma.Msi`, default branch main) — extended with the app-MSI step (profile clone rule: keep `upgradeCode`, new `productId`, bump version) and an explicit note that the solution Release build is a **hard prerequisite of the pack step** (`tools/worker/` is harvested from the worker's build output). **Carried in from PHASE04:** the app-MSI step is `dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r win-x64 --self-contained false` **then** `…\worker\Enigma.Msi.Worker.exe build msiProfiles\<name>.msipkg.json`, run **from the repository root** — the profile's paths are all repo-root-relative, and the publish is what the profile packages.
