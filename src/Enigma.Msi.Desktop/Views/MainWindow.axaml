@@ -12,15 +12,10 @@
         x:Class="Enigma.Msi.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
+        Icon="/Assets/appicon.ico"
         Width="1200" Height="800"
         MinWidth="900" MinHeight="600"
         Background="{DynamicResource EnigmaBackgroundBrush}">
-  <!-- TODO (owner: maintainer, unblocks FEATURE-5F00-PHASE04): no Assets/appicon.ico exists yet — the
-       artwork is user-owned. Drop one in and uncomment this, together with <ApplicationIcon> in the
-       .csproj.
-       Icon="/Assets/appicon.ico"
-  -->
-
   <Window.Resources>
     <!-- One template, used for both dialog sequences: an ordered list with add/remove/reorder, because
          the sequences are ordered and the order is not the enum's. -->

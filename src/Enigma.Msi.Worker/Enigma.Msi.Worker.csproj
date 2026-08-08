@@ -13,6 +13,15 @@
          binds against, which on .NET Framework needs binding redirects in the .exe.config. -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <!-- bin/$(Configuration)/net472/ is a contract, not an implementation detail: both
+         build/CopyWorkerOutput.targets and the library's PackEnigmaMsiWorkerPayload target glob that
+         exact path. A host that publishes RID-specifically (the Desktop app's release payload is
+         `dotnet publish -r win-x64`) flows its RuntimeIdentifier down here, which would otherwise
+         append it to the output path and leave both of them globbing an empty directory. Undefining
+         the property on the reference is not an alternative: NuGet's restore graph walk ignores
+         UndefineProperties, so restore would resolve win-x64 while the build fell back to this
+         project's own inferred win-x86, failing with NETSDK1047. -->
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <!-- WixSharp_wix4 only: WixSharp_wix4.bin (the assemblies) is already its dependency, and naming

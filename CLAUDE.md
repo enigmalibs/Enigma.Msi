@@ -21,11 +21,13 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > README, LICENSE) — `PHASE02`: the five per-category guides plus their index live in `docs/guides/`,
 > every snippet in them compiled and asserted against the real assembly — and `PHASE03`: the packed
 > `README.md`, `RELEASENOTES.md` (covering both the library and the desktop app at 1.0.0) and
-> `SECURITY.md` are authored, and `<PackageReleaseNotes>` is finalized. Still to come: the desktop app's
-> MSI profile and dogfood build (`PHASE04`), and the release runbook with its pack-verify (`PHASE05`) —
-> see `docs/plan/FEATURE-5F00.md`. **Do not push the package before `PHASE05`**: nothing has confirmed
-> yet that the authored README and metadata actually land in the nupkg, and the release runbook (tag,
-> pack, push) is that phase's deliverable.
+> `SECURITY.md` are authored, and `<PackageReleaseNotes>` is finalized — and `PHASE04`: the desktop app
+> is releasable (explicit `<Version>` 1.0.0, an application icon, and `msiProfiles/` holding its own
+> `.msipkg.json`), and **the dogfood loop is closed** — the worker built the app's 17 MB installer from
+> that profile, which is also `FEATURE-43A9`'s manual end-to-end acceptance step, performed. Still to
+> come: the release runbook with its pack-verify (`PHASE05`) — see `docs/plan/FEATURE-5F00.md`. **Do not
+> push the package before `PHASE05`**: nothing has confirmed yet that the authored README and metadata
+> actually land in the nupkg, and the release runbook (tag, pack, push) is that phase's deliverable.
 
 ## Architecture
 
@@ -83,6 +85,7 @@ tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
 tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite (the only one that uses NSubstitute)
+msiProfiles/                         Release profiles for MSIs this repo builds of itself (currently the desktop app)
 docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
 docs/guides/                         Per-category guides + index (repo-only — never packed, so relative links are fine)
 ```
@@ -92,6 +95,15 @@ build-order `ProjectReference` to `src/Enigma.Msi.Worker` with all three of
 `ReferenceOutputAssembly="false"`, `SkipGetTargetFrameworkProperties="true"` and
 `UndefineProperties="TargetFramework"` — the last one is not optional, without it the host's TFM flows
 down as a global property and the build fails with NETSDK1005. The targets file documents the contract.
+
+**`bin/$(Configuration)/net472/` is the other half of that contract**, and the worker guarantees it with
+`<AppendRuntimeIdentifierToOutputPath>false</…>`: both `CopyWorkerOutput.targets` and the library's pack
+target glob that exact path, and a host that publishes RID-specifically (`dotnet publish -r win-x64`,
+which is how the desktop app's release payload is produced) flows its `RuntimeIdentifier` down here.
+Without the property the worker lands in a RID-suffixed folder and both globs come up empty — or worse,
+copy a stale worker. Do **not** "fix" this by adding `RuntimeIdentifier` to `UndefineProperties`: NuGet's
+restore graph walk ignores `UndefineProperties`, so restore resolves the host's RID while the build falls
+back to the worker's own inferred `win-x86`, and it fails with NETSDK1047.
 
 **`src/Enigma.Msi` is the one worker host that cannot use that contract.** The worker references the
 library, so a `ProjectReference` back to the worker — even build-order-only — closes a cycle and fails
