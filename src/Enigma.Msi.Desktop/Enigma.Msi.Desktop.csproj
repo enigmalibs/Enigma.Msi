@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Plain net10.0, no -windows suffix: Avalonia needs none, and the app's Windows-only nature
+         comes from what it drives (the net472 worker and the WiX CLI), not from its TFM. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- TODO (owner: maintainer, unblocks FEATURE-5F00-PHASE04): no Assets/appicon.ico exists yet —
+         the artwork is user-owned. Drop one in and uncomment both this and MainWindow's Icon="…".
+    <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
+    -->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!-- Debug-only: the condition keeps the dev-tools assemblies out of a Release build's output. -->
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Enigma.Avalonia.Desktop" />
+    <PackageReference Include="Enigma.Icons.Avalonia" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="NLog" />
+    <PackageReference Include="NLog.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Enigma.Msi/Enigma.Msi.csproj" />
+    <!-- Build-order only — the worker is never linked against, it is discovered on disk beside the
+         app. All three attributes are load-bearing; build/CopyWorkerOutput.targets documents why. -->
+    <ProjectReference Include="../Enigma.Msi.Worker/Enigma.Msi.Worker.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      UndefineProperties="TargetFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- PHASE04's copy target, applied: the net472 worker lands in $(OutDir)worker/ and $(PublishDir)worker/,
+       which is exactly where MsiBuildService looks for it. Defaults cover source dir and folder name. -->
+  <Import Project="$(MSBuildThisFileDirectory)../../build/CopyWorkerOutput.targets" />
+</Project>

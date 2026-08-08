@@ -10,14 +10,15 @@ Guidance for Claude Code (and other AI agents) working in this repository.
 shortcuts, control-panel info, compression, managed-UI dialogs — as an `MsiPackage`, and the library
 turns it into an `.msi`. A companion Avalonia desktop app drives the same model through a UI.
 
-> **Build state.** The library is complete and works end to end (`FEATURE-43A9-PHASE02`…`PHASE04`): the
+> **Build state.** `FEATURE-43A9` is complete (`PHASE01`…`PHASE05`) and works end to end: the
 > `MsiPackage` model with its WixSharp-free enum mirrors, the `.msipkg.json` serialization contract, the
 > aggregating validator, the net472 worker that translates a package to WixSharp and builds the MSI —
-> usable on its own through `Enigma.Msi.Worker.exe build <file.msipkg.json>` — and the
-> `IMsiBuildService` build client that drives it out of process, with the MSBuild plumbing that puts the
-> worker where the client looks for it. Still to come: the Avalonia desktop app (PHASE05) and the first
-> release (`FEATURE-5F00`, which populates the nupkg's `tools/worker/` payload) — see
-> `docs/plan/FEATURE-43A9.md`. Types referenced below that those phases deliver do not exist yet.
+> usable on its own through `Enigma.Msi.Worker.exe build <file.msipkg.json>` — the `IMsiBuildService`
+> build client that drives it out of process with the MSBuild plumbing that puts the worker where the
+> client looks for it, and the Avalonia desktop app over the same model. Still to come: the first release
+> (`FEATURE-5F00`), which adds the pack metadata, the packed README and guides, and populates the nupkg's
+> `tools/worker/` payload — see `docs/plan/FEATURE-5F00.md`. `README.md` and `RELEASENOTES.md` are
+> deliberately still placeholders until then.
 
 ## Architecture
 
@@ -70,11 +71,11 @@ build/Enigma.Msi.targets             Packed into the nupkg's build/ — copies t
 build/CopyWorkerOutput.targets       In-repo counterpart — same layout, from a project's build output (imported by worker hosts)
 src/Enigma.Msi/                      The library — the only public/packable one (model, validation, JSON, build client)
 src/Enigma.Msi.Worker/               net472 console exe — WixSharp translation + the actual MSI build
-src/Enigma.Msi.Desktop/              Avalonia desktop app                                               (PHASE05)
+src/Enigma.Msi.Desktop/              Avalonia desktop app — the UI over the same MsiPackage (WinExe, hosts the worker)
 tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
 tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
-tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite                                                    (PHASE05)
+tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite (the only one that uses NSubstitute)
 docs/                                Guides, samples, and the dev-workflow tracking artifacts
 ```
 
@@ -91,7 +92,16 @@ down as a global property and the build fails with NETSDK1005. The targets file 
   consumers. `net8.0`/`net10.0` are the two currently-supported LTS releases.
 - **`src/Enigma.Msi.Worker`** is **`net472`**, forced by WixSharp being .NET Framework-only; its test
   project mirrors that TFM. This is a documented deviation from the house `net10.0` app default.
-- **`src/Enigma.Msi.Desktop`** is `net10.0` (Avalonia; plain TFM, no `-windows` suffix).
+- **`src/Enigma.Msi.Desktop`** is `net10.0` `WinExe` (Avalonia; plain TFM, no `-windows` suffix — the
+  app's Windows-only nature comes from what it drives, not from its TFM). Its UI stack is a **coupled
+  set** pinned together: Avalonia **12.1.1** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`),
+  `Enigma.Avalonia.Desktop` **1.0.0** and `Enigma.Icons.Avalonia` **1.0.0** — the latter two are built
+  against Avalonia 12.1.x, so bump all four or none. `AvaloniaUI.DiagnosticsSupport` is Debug-only via a
+  conditional `IncludeAssets`/`PrivateAssets`. Beware two API details: `Enigma.Avalonia.Desktop`'s
+  editors derive from `TextBox`, whose `Watermark` Avalonia 12 obsoletes — use `PlaceholderText`, or the
+  XAML compiler's `AVLN5001` fails the zero-warnings build; and its picker services' path-returning
+  overloads are C# 14 `extension` members, so they cannot be substituted in a test (which is why the app
+  puts its own `IPathPickerService` in front of them).
 - `System.Buffers` and **PolySharp** (compile-only, `PrivateAssets=all`) are referenced on
   **netstandard2.0 only** — they are framework-provided or unnecessary on net8.0+, and an
   unconditional reference raises NU1510 and fails the zero-warnings build.

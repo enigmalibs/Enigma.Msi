@@ -1,6 +1,6 @@
 # FEATURE-43A9 — MSI builder library, worker & Avalonia app
 
-**Status:** IN PROGRESS (multi-phase)
+**Status:** DONE (multi-phase)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-43a9-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 
@@ -178,7 +178,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE05 — Avalonia desktop app
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase05-desktop`
 
 1. `src/Enigma.Msi.Desktop` (net10.0, `WinExe`, compiled bindings default): Avalonia 12.1.1 set (Avalonia, Desktop, Themes.Fluent, Fonts.Inter, AvaloniaUI.DiagnosticsSupport Debug-only), Enigma.Avalonia.Desktop 1.0.0, Enigma.Icons.Avalonia 1.0.0, CommunityToolkit.Mvvm, Microsoft.Extensions.Hosting, NLog + NLog.Extensions.Logging.

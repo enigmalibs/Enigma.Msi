@@ -1,9 +1,11 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Enigma.Msi/Enigma.Msi.csproj" />
+    <Project Path="src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj" />
     <Project Path="src/Enigma.Msi.Worker/Enigma.Msi.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Enigma.Msi.Desktop.UnitTests/Enigma.Msi.Desktop.UnitTests.csproj" />
     <Project Path="tests/Enigma.Msi.StubWorker/Enigma.Msi.StubWorker.csproj" />
     <Project Path="tests/Enigma.Msi.UnitTests/Enigma.Msi.UnitTests.csproj" />
     <Project Path="tests/Enigma.Msi.Worker.UnitTests/Enigma.Msi.Worker.UnitTests.csproj" />

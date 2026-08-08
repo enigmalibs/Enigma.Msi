@@ -1,0 +1,368 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:enigma="using:Enigma.Avalonia.Desktop.Controls"
+        xmlns:editors="using:Enigma.Avalonia.Desktop.Controls.Editors"
+        xmlns:contentDialog="using:Enigma.Avalonia.Desktop.Controls.ContentDialog"
+        xmlns:infoBar="using:Enigma.Avalonia.Desktop.Controls.InfoBar"
+        xmlns:ei="https://github.com/josueclement/Enigma.Icons"
+        xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="Enigma.Msi.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Width="1200" Height="800"
+        MinWidth="900" MinHeight="600"
+        Background="{DynamicResource EnigmaBackgroundBrush}">
+  <!-- TODO (owner: maintainer, unblocks FEATURE-5F00-PHASE04): no Assets/appicon.ico exists yet — the
+       artwork is user-owned. Drop one in and uncomment this, together with <ApplicationIcon> in the
+       .csproj.
+       Icon="/Assets/appicon.ico"
+  -->
+
+  <Window.Resources>
+    <!-- One template, used for both dialog sequences: an ordered list with add/remove/reorder, because
+         the sequences are ordered and the order is not the enum's. -->
+    <DataTemplate x:Key="DialogSequenceTemplate" x:DataType="vm:DialogSequenceViewModel">
+      <StackPanel Spacing="8">
+        <ListBox ItemsSource="{Binding Dialogs}"
+                 SelectedIndex="{Binding SelectedIndex}"
+                 MaxHeight="180" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ComboBox ItemsSource="{Binding AvailableDialogs}"
+                    SelectedItem="{Binding DialogToAdd}"
+                    MinWidth="160" />
+          <Button Command="{Binding AddCommand}" ToolTip.Tip="Append the selected dialog">
+            <ei:Icon Kind="Plus" />
+          </Button>
+          <Button Command="{Binding RemoveCommand}" ToolTip.Tip="Remove the selected dialog">
+            <ei:Icon Kind="Trash" />
+          </Button>
+          <Button Command="{Binding MoveUpCommand}" ToolTip.Tip="Move the selected dialog earlier">
+            <ei:Icon Kind="ArrowUp" />
+          </Button>
+          <Button Command="{Binding MoveDownCommand}" ToolTip.Tip="Move the selected dialog later">
+            <ei:Icon Kind="ArrowDown" />
+          </Button>
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+  </Window.Resources>
+
+  <Panel>
+    <Grid RowDefinitions="Auto,*,Auto">
+
+      <!-- Commands -->
+      <Border Grid.Row="0" Padding="12,10" BorderThickness="0,0,0,1"
+              BorderBrush="{DynamicResource EnigmaBorderBrush}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Command="{Binding NewCommand}" ToolTip.Tip="Start a new package">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="FilePlus" />
+              <TextBlock Text="New" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding OpenCommand}" ToolTip.Tip="Open a .msipkg.json profile">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="FolderOpen" />
+              <TextBlock Text="Open" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding SaveCommand}" ToolTip.Tip="Save the profile">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="FloppyDisk" />
+              <TextBlock Text="Save" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding SaveAsCommand}" ToolTip.Tip="Save the profile under a new name">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="FloppyDiskBack" />
+              <TextBlock Text="Save as…" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <Rectangle Width="1" Margin="4,2" Fill="{DynamicResource EnigmaBorderBrush}" />
+
+          <Button Command="{Binding ValidateCommand}" ToolTip.Tip="Report every problem with the package">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="ShieldCheck" />
+              <TextBlock Text="Validate" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding BuildCommand}" Classes="accent" ToolTip.Tip="Build the MSI">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="Hammer" />
+              <TextBlock Text="Build" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding CancelBuildCommand}" ToolTip.Tip="Cancel the running build">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ei:Icon Kind="Stop" />
+              <TextBlock Text="Cancel" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <!-- Build is gated on validity, so say why it is disabled instead of leaving it dead. -->
+          <TextBlock Text="Package incomplete — press Validate for details."
+                     VerticalAlignment="Center"
+                     Opacity="0.7"
+                     IsVisible="{Binding !IsPackageValid}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Form | log -->
+      <Grid Grid.Row="1" ColumnDefinitions="*,Auto,2*">
+
+        <ScrollViewer Grid.Column="0">
+          <StackPanel Margin="16" Spacing="12">
+
+            <enigma:SettingsCardExpander Header="Product"
+                                         Description="Identity shown by the installer and in Control Panel"
+                                         IsExpanded="True">
+              <StackPanel Spacing="12">
+                <editors:TextEditor Title="Application name"
+                                    Text="{Binding Package.AppName}"
+                                    PlaceholderText="Contoso Widget" />
+                <editors:TextEditor Title="Version"
+                                    Text="{Binding Package.Version}"
+                                    PlaceholderText="1.0.0" />
+                <editors:TextEditor Title="Manufacturer"
+                                    Text="{Binding Package.Manufacturer}"
+                                    PlaceholderText="Contoso AG" />
+                <editors:TextEditor Title="Product ID"
+                                    Text="{Binding Package.ProductId}"
+                                    PlaceholderText="GUID of this exact version">
+                  <editors:TextEditor.ActionContent>
+                    <Button Command="{Binding Package.NewProductIdCommand}"
+                            Padding="4,2"
+                            ToolTip.Tip="Generate a new GUID">
+                      <ei:Icon Kind="ArrowsClockwise" />
+                    </Button>
+                  </editors:TextEditor.ActionContent>
+                </editors:TextEditor>
+                <editors:TextEditor Title="Upgrade code"
+                                    Text="{Binding Package.UpgradeCode}"
+                                    PlaceholderText="GUID of the product line — keep it constant">
+                  <editors:TextEditor.ActionContent>
+                    <Button Command="{Binding Package.NewUpgradeCodeCommand}"
+                            Padding="4,2"
+                            ToolTip.Tip="Generate a new GUID">
+                      <ei:Icon Kind="ArrowsClockwise" />
+                    </Button>
+                  </editors:TextEditor.ActionContent>
+                </editors:TextEditor>
+                <enigma:SettingsCard Header="Install scope"
+                                     Description="Per-machine needs elevation; per-user does not">
+                  <ComboBox ItemsSource="{Binding Package.AvailableScopes}"
+                            SelectedItem="{Binding Package.Scope}"
+                            MinWidth="180" />
+                </enigma:SettingsCard>
+                <enigma:SettingsCard Header="Compression"
+                                     Description="Cabinet compression applied to the packaged files">
+                  <ComboBox ItemsSource="{Binding Package.AvailableCompressionLevels}"
+                            SelectedItem="{Binding Package.Compression}"
+                            MinWidth="180" />
+                </enigma:SettingsCard>
+              </StackPanel>
+            </enigma:SettingsCardExpander>
+
+            <enigma:SettingsCardExpander Header="Install and output"
+                                         Description="What is packaged, where it installs, where the MSI is written"
+                                         IsExpanded="True">
+              <StackPanel Spacing="12">
+                <editors:TextEditor Title="Install path"
+                                    Text="{Binding Package.InstallPath}"
+                                    PlaceholderText="%ProgramFiles%\Contoso\Widget" />
+                <editors:TextEditor Title="Release folder"
+                                    Text="{Binding Package.ReleasePath}"
+                                    PlaceholderText="The folder whose contents are packaged">
+                  <editors:TextEditor.ActionContent>
+                    <Button Content="Browse…"
+                            Command="{Binding Package.BrowseReleasePathCommand}"
+                            Padding="4,2" />
+                  </editors:TextEditor.ActionContent>
+                </editors:TextEditor>
+                <editors:TextEditor Title="Output folder"
+                                    Text="{Binding Package.OutputPath}"
+                                    PlaceholderText="Where the .msi is written">
+                  <editors:TextEditor.ActionContent>
+                    <Button Content="Browse…"
+                            Command="{Binding Package.BrowseOutputPathCommand}"
+                            Padding="4,2" />
+                  </editors:TextEditor.ActionContent>
+                </editors:TextEditor>
+                <editors:TextEditor Title="MSI file name"
+                                    Text="{Binding Package.MsiFilename}"
+                                    PlaceholderText="ContosoWidget"
+                                    Unit=".msi" />
+              </StackPanel>
+            </enigma:SettingsCardExpander>
+
+            <enigma:SettingsCardExpander Header="Control Panel information"
+                                         Description="Optional — shown in Apps &amp; features">
+              <StackPanel Spacing="12">
+                <enigma:SettingsCard Header="Include this section"
+                                     Description="Off leaves every value at the MSI default">
+                  <ToggleSwitch IsChecked="{Binding Package.HasControlPanelInfo}" />
+                </enigma:SettingsCard>
+                <StackPanel Spacing="12" IsEnabled="{Binding Package.HasControlPanelInfo}">
+                  <editors:TextEditor Title="Product icon"
+                                      Text="{Binding Package.ProductIcon}"
+                                      PlaceholderText="Path to an .ico file">
+                    <editors:TextEditor.ActionContent>
+                      <Button Content="Browse…"
+                              Command="{Binding Package.BrowseProductIconCommand}"
+                              Padding="4,2" />
+                    </editors:TextEditor.ActionContent>
+                  </editors:TextEditor>
+                  <editors:MultiLineTextEditor Title="Comments"
+                                               Text="{Binding Package.Comments}"
+                                               Height="80"
+                                               PlaceholderText="Free-text comments" />
+                  <editors:TextEditor Title="Contact"
+                                      Text="{Binding Package.Contact}"
+                                      PlaceholderText="support@contoso.example" />
+                  <editors:TextEditor Title="Help link"
+                                      Text="{Binding Package.HelpLink}"
+                                      PlaceholderText="https://contoso.example/support" />
+                  <editors:TextEditor Title="About URL"
+                                      Text="{Binding Package.UrlInfoAbout}"
+                                      PlaceholderText="https://contoso.example/widget" />
+                </StackPanel>
+              </StackPanel>
+            </enigma:SettingsCardExpander>
+
+            <enigma:SettingsCardExpander Header="Shortcuts"
+                                         Description="Shortcuts the installer creates">
+              <StackPanel Spacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Command="{Binding Package.AddShortcutCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ei:Icon Kind="Plus" />
+                      <TextBlock Text="Add" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding Package.RemoveShortcutCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ei:Icon Kind="Trash" />
+                      <TextBlock Text="Remove selected" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+                <TextBlock Text="No shortcuts. The installer will create none."
+                           Opacity="0.7"
+                           IsVisible="{Binding !Package.HasShortcuts}" />
+                <ListBox ItemsSource="{Binding Package.Shortcuts}"
+                         SelectedItem="{Binding Package.SelectedShortcut}"
+                         MaxHeight="420">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ShortcutViewModel">
+                      <StackPanel Spacing="8" Margin="0,6">
+                        <editors:TextEditor Title="Location"
+                                            Text="{Binding ShortcutPath}"
+                                            PlaceholderText="%Desktop% or %ProgramMenu%\Contoso" />
+                        <editors:TextEditor Title="Name"
+                                            Text="{Binding ShortcutName}"
+                                            PlaceholderText="Contoso Widget" />
+                        <editors:TextEditor Title="Target"
+                                            Text="{Binding TargetPath}"
+                                            PlaceholderText="[INSTALLDIR]\Widget.exe" />
+                        <editors:TextEditor Title="Icon"
+                                            Text="{Binding IconPath}"
+                                            PlaceholderText="Optional .ico path" />
+                        <editors:TextEditor Title="Arguments"
+                                            Text="{Binding Arguments}"
+                                            PlaceholderText="Optional command line" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
+            </enigma:SettingsCardExpander>
+
+            <enigma:SettingsCardExpander Header="Managed UI"
+                                         Description="Optional — off lets the build apply its default dialog set">
+              <StackPanel Spacing="12">
+                <enigma:SettingsCard Header="Customize the installer UI"
+                                     Description="Off writes no ui section at all">
+                  <ToggleSwitch IsChecked="{Binding Package.Ui.IsCustomized}" />
+                </enigma:SettingsCard>
+                <StackPanel Spacing="12" IsEnabled="{Binding Package.Ui.IsCustomized}">
+                  <enigma:SettingsCard Header="Dialog set"
+                                       Description="The built-in WixUI set hosting the dialogs">
+                    <ComboBox ItemsSource="{Binding Package.Ui.AvailableWuis}"
+                              SelectedItem="{Binding Package.Ui.Wui}"
+                              MinWidth="200" />
+                  </enigma:SettingsCard>
+
+                  <TextBlock Text="Install sequence" FontWeight="SemiBold" />
+                  <ContentControl Content="{Binding Package.Ui.InstallDialogs}"
+                                  ContentTemplate="{StaticResource DialogSequenceTemplate}" />
+
+                  <TextBlock Text="Modify sequence" FontWeight="SemiBold" />
+                  <ContentControl Content="{Binding Package.Ui.ModifyDialogs}"
+                                  ContentTemplate="{StaticResource DialogSequenceTemplate}" />
+                </StackPanel>
+              </StackPanel>
+            </enigma:SettingsCardExpander>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns" />
+
+        <Grid Grid.Column="2" RowDefinitions="Auto,Auto,Auto,*" Margin="16,16,16,0">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+            <ei:Icon Kind="Warning" VerticalAlignment="Center" />
+            <TextBlock Text="Problems" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding ValidationErrors.Count, StringFormat='({0})'}"
+                       Opacity="0.7" VerticalAlignment="Center" />
+          </StackPanel>
+
+          <Border Grid.Row="1" MaxHeight="220" Margin="0,0,0,16"
+                  BorderThickness="1" CornerRadius="4"
+                  BorderBrush="{DynamicResource EnigmaBorderBrush}">
+            <ScrollViewer>
+              <StackPanel>
+                <TextBlock Text="Nothing to report yet — press Validate."
+                           Opacity="0.7" Margin="10"
+                           IsVisible="{Binding !HasValidationErrors}" />
+                <ItemsControl ItemsSource="{Binding ValidationErrors}" Margin="10,6" />
+              </StackPanel>
+            </ScrollViewer>
+          </Border>
+
+          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+            <ei:Icon Kind="Monitor" VerticalAlignment="Center" />
+            <TextBlock Text="Build log" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <Button Command="{Binding ClearLogCommand}" Padding="6,2" ToolTip.Tip="Clear the log">
+              <ei:Icon Kind="Broom" />
+            </Button>
+          </StackPanel>
+
+          <Border Grid.Row="3" Margin="0,0,0,16"
+                  BorderThickness="1" CornerRadius="4"
+                  BorderBrush="{DynamicResource EnigmaBorderBrush}">
+            <ScrollViewer x:Name="LogScroller">
+              <ItemsControl ItemsSource="{Binding BuildLog}"
+                            FontFamily="Consolas, Menlo, monospace"
+                            FontSize="12"
+                            Margin="10,6" />
+            </ScrollViewer>
+          </Border>
+        </Grid>
+      </Grid>
+
+      <!-- Status -->
+      <Border Grid.Row="2" Padding="12,8" BorderThickness="0,1,0,0"
+              BorderBrush="{DynamicResource EnigmaBorderBrush}">
+        <TextBlock Text="{Binding StatusMessage}" />
+      </Border>
+    </Grid>
+
+    <contentDialog:ContentDialog x:Name="HostDialog" />
+    <enigma:Overlay x:Name="HostOverlay" />
+    <infoBar:InfoBar x:Name="HostInfoBar" />
+  </Panel>
+</Window>
