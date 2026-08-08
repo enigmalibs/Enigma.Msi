@@ -1,0 +1,58 @@
+<Project>
+
+  <!-- Central Package Management: every PackageReference version in the solution is pinned here so
+       shared dependencies cannot drift between projects (in particular between the modern library
+       and the net472 worker, which consume the same model assembly). Projects reference packages
+       WITHOUT a Version attribute (<PackageReference Include="Foo" />); the version comes from the
+       matching <PackageVersion> below. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Core library (Enigma.Msi). System.Text.Json is the model's serializer, pinned here ahead of
+       PHASE02 which introduces it; it is framework-provided on net8.0+, so the library references it
+       only under netstandard2.0. PolySharp and System.Buffers are the netstandard2.0-support pair
+       backing the conditional PackageReferences in src/Enigma.Msi/Enigma.Msi.csproj. -->
+  <ItemGroup>
+    <PackageVersion Include="System.Text.Json" Version="10.0.10" />
+    <PackageVersion Include="System.Buffers" Version="4.6.1" />
+    <PackageVersion Include="PolySharp" Version="1.16.0" />
+  </ItemGroup>
+
+  <!-- Worker (Enigma.Msi.Worker, net472). WixSharp_wix4 is the metapackage that brings in the actual
+       binaries through its WixSharp_wix4.bin dependency — never reference the .bin package directly. -->
+  <ItemGroup>
+    <PackageVersion Include="WixSharp_wix4" Version="2.14.1" />
+  </ItemGroup>
+
+  <!-- Desktop app (Enigma.Msi.Desktop). The Avalonia packages and the two Enigma UI packages are a
+       coupled set: Enigma.Avalonia.Desktop 1.0.0 and Enigma.Icons.Avalonia 1.0.0 are built against
+       Avalonia 12.1.x, so Avalonia is pinned to 12.1.1 to match and all four move together or not at
+       all. Enigma.Avalonia.Desktop also brings Enigma.Core (and, through it, BouncyCastle) and
+       CommunityToolkit.Mvvm transitively; CommunityToolkit.Mvvm is pinned anyway because the app's
+       ViewModels reference it directly. -->
+  <ItemGroup>
+    <PackageVersion Include="Avalonia" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="Enigma.Avalonia.Desktop" Version="1.0.0" />
+    <PackageVersion Include="Enigma.Icons.Avalonia" Version="1.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+    <PackageVersion Include="NLog" Version="6.1.4" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.4" />
+  </ItemGroup>
+
+  <!-- Tests (MTP-native: xunit.v3 only; coverlet.collector for coverage). No Microsoft.NET.Test.Sdk.
+       coverlet.collector ships build assets for net8.0+ only, so the net472 worker suite deliberately
+       omits it (see tests/Enigma.Msi.Worker.UnitTests). NSubstitute is used by the Desktop suite
+       alone — the library and worker suites are substitute-free by design. -->
+  <ItemGroup>
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="NSubstitute" Version="6.1.0" />
+  </ItemGroup>
+
+</Project>

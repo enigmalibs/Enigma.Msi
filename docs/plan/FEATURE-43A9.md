@@ -1,6 +1,6 @@
 # FEATURE-43A9 — MSI builder library, worker & Avalonia app
 
-**Status:** TODO (multi-phase)
+**Status:** DONE (multi-phase)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-43a9-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 
@@ -110,7 +110,7 @@ The translation layer lives in the worker project as testable public-in-assembly
 
 ## PHASE01 — Repository & solution bootstrap
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase01-bootstrap`
 
 Follow the house bootstrap checklist in order (git init already done during planning):
@@ -132,7 +132,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE02 — MsiPackage model, validation & serialization
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase02-model`
 
 1. Model types in `src/Enigma.Msi` (folder `Model/` or similar; one type per file): `MsiPackage`, `InstallSettings`, `OutputSettings`, `ControlPanelInfo`, `Shortcut`, `UiSettings`, enums `InstallScope`, `CompressionLevel`, `Wui`, `Dialog` — plus **`MsiBuildResult`** (`{ bool Success, string? MsiPath, IReadOnlyList<string> Errors }`), which PHASE03's worker already needs to serialize to the result file. XML docs on every public member.
@@ -147,7 +147,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE03 — net472 worker: WixSharp translation & CLI
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase03-worker`
 
 1. `src/Enigma.Msi.Worker` (net472, `OutputType=Exe`, references `Enigma.Msi` + `WixSharp_wix4` 2.14.1 only — no `.bin`).
@@ -162,7 +162,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE04 — Build client, interop & packaging plumbing
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase04-client`
 
 1. In `src/Enigma.Msi`: `IMsiBuildService`/`MsiBuildService` (+ options type) — write request JSON to temp, spawn worker, stream stdout/stderr via `IProgress<string>`, read result file, clean up temp files; cancellation kills the process tree; distinct failure messages for worker-not-found / no-result-file / result-parse-failure.
@@ -178,7 +178,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE05 — Avalonia desktop app
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase05-desktop`
 
 1. `src/Enigma.Msi.Desktop` (net10.0, `WinExe`, compiled bindings default): Avalonia 12.1.1 set (Avalonia, Desktop, Themes.Fluent, Fonts.Inter, AvaloniaUI.DiagnosticsSupport Debug-only), Enigma.Avalonia.Desktop 1.0.0, Enigma.Icons.Avalonia 1.0.0, CommunityToolkit.Mvvm, Microsoft.Extensions.Hosting, NLog + NLog.Extensions.Logging.

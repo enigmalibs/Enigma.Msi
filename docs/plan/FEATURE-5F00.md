@@ -1,6 +1,6 @@
 # FEATURE-5F00 — First release: Enigma.Msi 1.0.0 (NuGet) & Desktop app (MSI)
 
-**Status:** TODO (multi-phase)
+**Status:** DONE (multi-phase — all five phases complete)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-5f00-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-43A9 fully DONE (all five phases).
@@ -28,7 +28,9 @@ Follows the house first-release process (dotnet-release: metadata → guides →
 
 ## PHASE01 — Package metadata, packaging layout & license audit
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE01.md`. Step 2's library→worker `ProjectReference`
+proved to be a circular reference (MSB4006 at restore); the payload is assembled by a pack-time target
+instead, same intent, confirmed with the maintainer.
 **Branch:** `feature/feature-5f00-phase01-metadata`
 
 1. Add the 12 packaging properties to `src/Enigma.Msi/Enigma.Msi.csproj`: `PackageId`, `Version` (1.0.0), `Title`, `Description`, `PackageTags`, `PackageReadmeFile` (README.md), `PackageLicenseFile` (LICENSE.md), `RepositoryUrl`, `RepositoryType`, `PackageProjectUrl`, `PackageReleaseNotes` (placeholder until PHASE03 finalizes it), `GenerateDocumentationFile` (already true) — plus the packing `ItemGroup` for root README.md/LICENSE.md. Confirm `GeneratePackageOnBuild` is absent/off.
@@ -42,7 +44,10 @@ Follows the house first-release process (dotnet-release: metadata → guides →
 
 ## PHASE02 — Guides & index
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE02.md`. Five guides rather than the suggested four:
+validation was split out of `model.md` (the plan's "adjust the set to the code as built"). The snippet
+gate was run as a compile-and-execute harness; one prose mismatch found and fixed, two CLI snippets
+recorded as unexecuted.
 **Branch:** `feature/feature-5f00-phase02-guides`
 
 1. `docs/guides/` — one guide per real capability area (count follows the library, not a target): suggested set — `model.md` (MsiPackage reference: every field, defaults, `.msipkg.json` example), `building.md` (client API: `IMsiBuildService`, preflight, cancellation, worker discovery), `worker-cli.md` (headless `build <file.msipkg.json>`, exit codes 0/1/2, CI usage), `desktop-app.md` (the Avalonia app workflow). Adjust the set to the code as built.
@@ -55,7 +60,10 @@ Follows the house first-release process (dotnet-release: metadata → guides →
 
 ## PHASE03 — README, release notes & community files
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE03.md`. `RELEASENOTES.md` covers the Desktop app
+1.0.0 in prose as planned, but the app's `<Version>` property itself is still PHASE04's step 1; the notes
+are therefore ahead of the csproj until that phase lands. The README quick-start gate was run as a
+compile-and-execute harness and found two prose mismatches in `RELEASENOTES.md`, both fixed.
 **Branch:** `feature/feature-5f00-phase03-docs`
 
 1. Root `README.md` (packed — nuget.org landing page): title, exactly the two house badges (NuGet version + MIT license), intro, what's-new callout, Features, Installation (`dotnet add package Enigma.Msi` + supported TFMs line), Quick start (one compiling sample: build a minimal `MsiPackage` and `BuildAsync` it), Documentation section pointing at `docs/guides/` **in prose only** (no relative `docs/` links — dead on nuget.org), License. Mention the `wix` global-tool prerequisite and Windows requirement prominently.
@@ -71,7 +79,12 @@ Follows the house first-release process (dotnet-release: metadata → guides →
 
 ## PHASE04 — Desktop app release prep (MSI profile & dogfood build)
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE04.md`. Two confirmed deviations from step 2: the
+`releasePath` is the **publish** output (`…\net10.0\win-x64\publish`), not the raw build output the plan
+names — the latter carries `runtimes/` for every platform and measured a 156 MB MSI installing 580 MB, so
+the release payload is now `dotnet publish -c Release -r win-x64 --self-contained false` (17 MB MSI); and
+the icon gate was closed by **generating** the icon rather than sourcing it. The dogfood MSI was built and
+inspected, but not installed — install/launch/uninstall stays with the maintainer.
 **Branch:** `feature/feature-5f00-phase04-app-msi`
 
 1. Confirm/set `src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj` `<Version>` 1.0.0.
@@ -86,10 +99,15 @@ Follows the house first-release process (dotnet-release: metadata → guides →
 
 ## PHASE05 — Release runbook, pre-flight & pack-verify
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE05.md`. The pack-verify confirmed the family-unusual
+content (`tools/worker/` byte-identical to the worker's build output, `build/Enigma.Msi.targets`) survives
+a real `dotnet pack`. Three template deviations, all repo-specific: `dotnet test` needs `--solution` in MTP
+mode, the pack step is preceded by an explicit Release build, and a whole app-MSI section (§7) was added.
+The repo still has **no remote and no tags**, so §2/§3 are written as planned but unverified against a real
+`origin` — the maintainer must create the repository before publishing.
 **Branch:** `feature/feature-5f00-phase05-runbook`
 
-1. `docs/RELEASE.md` from the house template, all five placeholders filled (PackageId Enigma.Msi, solution Enigma.Msi.slnx, lib csproj `src/Enigma.Msi/Enigma.Msi.csproj`, lib dir `src/Enigma.Msi`, default branch main) — extended with the app-MSI step (profile clone rule: keep `upgradeCode`, new `productId`, bump version) and an explicit note that the solution Release build is a **hard prerequisite of the pack step** (`tools/worker/` is harvested from the worker's build output).
+1. `docs/RELEASE.md` from the house template, all five placeholders filled (PackageId Enigma.Msi, solution Enigma.Msi.slnx, lib csproj `src/Enigma.Msi/Enigma.Msi.csproj`, lib dir `src/Enigma.Msi`, default branch main) — extended with the app-MSI step (profile clone rule: keep `upgradeCode`, new `productId`, bump version) and an explicit note that the solution Release build is a **hard prerequisite of the pack step** (`tools/worker/` is harvested from the worker's build output). **Carried in from PHASE04:** the app-MSI step is `dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r win-x64 --self-contained false` **then** `…\worker\Enigma.Msi.Worker.exe build msiProfiles\<name>.msipkg.json`, run **from the repository root** — the profile's paths are all repo-root-relative, and the publish is what the profile packages.
 2. Pre-flight: `dotnet build Enigma.Msi.slnx -c Release` and `dotnet test --solution Enigma.Msi.slnx -c Release` — both green, zero warnings.
 3. **Pack-verify** (local, then deleted): pack into a throwaway dir; confirm nupkg version 1.0.0, README.md embedded non-empty, LICENSE.md embedded, nuspec `<version>/<title>/<license>/<readme>/<releaseNotes>` correct, dependency floors per TFM, **and `tools/worker/` + `build/Enigma.Msi.targets` present** (the family-unusual content). Delete the verify dir.
 4. Print the runbook (never run): merge to `main` → `git tag 1.0.0` + push → `dotnet pack src/Enigma.Msi/Enigma.Msi.csproj -c Release -o ./artifacts` → `dotnet nuget push ./artifacts/Enigma.Msi.1.0.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json` → post-publish verification (package page, badge, `dotnet add package Enigma.Msi --version 1.0.0` restores, tag matches notes) → app MSI distribution step (where the built MSI goes is the maintainer's choice).
