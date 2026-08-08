@@ -1,6 +1,6 @@
 # FEATURE-5F00 — First release: Enigma.Msi 1.0.0 (NuGet) & Desktop app (MSI)
 
-**Status:** TODO (multi-phase)
+**Status:** IN PROGRESS (multi-phase)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-5f00-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-43A9 fully DONE (all five phases).
@@ -28,7 +28,9 @@ Follows the house first-release process (dotnet-release: metadata → guides →
 
 ## PHASE01 — Package metadata, packaging layout & license audit
 
-**Status:** TODO
+**Status:** DONE — see `docs/done/FEATURE-5F00-PHASE01.md`. Step 2's library→worker `ProjectReference`
+proved to be a circular reference (MSB4006 at restore); the payload is assembled by a pack-time target
+instead, same intent, confirmed with the maintainer.
 **Branch:** `feature/feature-5f00-phase01-metadata`
 
 1. Add the 12 packaging properties to `src/Enigma.Msi/Enigma.Msi.csproj`: `PackageId`, `Version` (1.0.0), `Title`, `Description`, `PackageTags`, `PackageReadmeFile` (README.md), `PackageLicenseFile` (LICENSE.md), `RepositoryUrl`, `RepositoryType`, `PackageProjectUrl`, `PackageReleaseNotes` (placeholder until PHASE03 finalizes it), `GenerateDocumentationFile` (already true) — plus the packing `ItemGroup` for root README.md/LICENSE.md. Confirm `GeneratePackageOnBuild` is absent/off.

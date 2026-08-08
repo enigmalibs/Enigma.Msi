@@ -15,10 +15,13 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > aggregating validator, the net472 worker that translates a package to WixSharp and builds the MSI —
 > usable on its own through `Enigma.Msi.Worker.exe build <file.msipkg.json>` — the `IMsiBuildService`
 > build client that drives it out of process with the MSBuild plumbing that puts the worker where the
-> client looks for it, and the Avalonia desktop app over the same model. Still to come: the first release
-> (`FEATURE-5F00`), which adds the pack metadata, the packed README and guides, and populates the nupkg's
-> `tools/worker/` payload — see `docs/plan/FEATURE-5F00.md`. `README.md` and `RELEASENOTES.md` are
-> deliberately still placeholders until then.
+> client looks for it, and the Avalonia desktop app over the same model. The first release
+> (`FEATURE-5F00`) is under way: `PHASE01` is done — the library is packable, and `dotnet pack` produces a
+> complete nupkg (`lib/` for all three TFMs, the `tools/worker/` payload, `build/Enigma.Msi.targets`,
+> README, LICENSE). Still to come: the guides (`PHASE02`), the real README + release notes (`PHASE03`), the
+> desktop app's MSI profile and dogfood build (`PHASE04`), and the release runbook (`PHASE05`) — see
+> `docs/plan/FEATURE-5F00.md`. `README.md` and `RELEASENOTES.md` are deliberately still placeholders until
+> `PHASE03`, so the package must not be pushed before then.
 
 ## Architecture
 
@@ -84,6 +87,17 @@ build-order `ProjectReference` to `src/Enigma.Msi.Worker` with all three of
 `ReferenceOutputAssembly="false"`, `SkipGetTargetFrameworkProperties="true"` and
 `UndefineProperties="TargetFramework"` — the last one is not optional, without it the host's TFM flows
 down as a global property and the build fails with NETSDK1005. The targets file documents the contract.
+
+**`src/Enigma.Msi` is the one worker host that cannot use that contract.** The worker references the
+library, so a `ProjectReference` back to the worker — even build-order-only — closes a cycle and fails
+restore with MSB4006; `ReferenceOutputAssembly="false"` does not break it. The `tools/worker/` payload is
+therefore assembled by the `PackEnigmaMsiWorkerPayload` target in `Enigma.Msi.csproj`, which builds the
+worker through the `MSBuild` task and globs its output into `Pack="true"` items. Two details there are
+load-bearing: the glob must live **inside** the target (on a clean tree the worker's output does not exist
+when the library is evaluated, so an evaluation-time glob silently packs nothing), and `Restore` must be a
+**separate** `MSBuild` invocation from `Build` (sharing one project instance builds against the
+pre-assets evaluation and emits MSB3277 reference conflicts). A guard fails the pack if the payload is
+missing rather than shipping a nupkg whose every `BuildAsync` call would fail.
 
 ## Target frameworks & dependencies
 
