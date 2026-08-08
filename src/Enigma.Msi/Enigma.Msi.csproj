@@ -32,4 +32,12 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
+  <!-- Packaging plumbing. build/Enigma.Msi.targets is auto-imported by every consuming project (NuGet
+       imports build/<PackageId>.targets) and copies the worker into the consumer's output, where
+       MsiBuildService discovers it. The tools/worker/ payload it copies is assembled at release time by
+       FEATURE-5F00, together with the pack metadata and the pack-verify step; until then the targets
+       file finds no payload and does nothing, which is why it is safe to ship the plumbing first. -->
+  <ItemGroup>
+    <None Include="../../build/Enigma.Msi.targets" Pack="true" PackagePath="build/" Visible="false" />
+  </ItemGroup>
 </Project>

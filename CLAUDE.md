@@ -10,13 +10,14 @@ Guidance for Claude Code (and other AI agents) working in this repository.
 shortcuts, control-panel info, compression, managed-UI dialogs — as an `MsiPackage`, and the library
 turns it into an `.msi`. A companion Avalonia desktop app drives the same model through a UI.
 
-> **Build state.** The library's declarative surface (`FEATURE-43A9-PHASE02`) and the net472 worker
-> (`FEATURE-43A9-PHASE03`) are in place: the `MsiPackage` model with its WixSharp-free enum mirrors,
-> the `.msipkg.json` serialization contract, the aggregating validator, and the worker that translates
-> a package to WixSharp and builds the MSI — usable on its own through `Enigma.Msi.Worker.exe build
-> <file.msipkg.json>`. Still to come: the build client and packaging plumbing (PHASE04), and the
-> Avalonia desktop app (PHASE05) — see `docs/plan/FEATURE-43A9.md`. Types referenced below that those
-> phases deliver (`IMsiBuildService`, the worker-copy targets) do not exist yet.
+> **Build state.** The library is complete and works end to end (`FEATURE-43A9-PHASE02`…`PHASE04`): the
+> `MsiPackage` model with its WixSharp-free enum mirrors, the `.msipkg.json` serialization contract, the
+> aggregating validator, the net472 worker that translates a package to WixSharp and builds the MSI —
+> usable on its own through `Enigma.Msi.Worker.exe build <file.msipkg.json>` — and the
+> `IMsiBuildService` build client that drives it out of process, with the MSBuild plumbing that puts the
+> worker where the client looks for it. Still to come: the Avalonia desktop app (PHASE05) and the first
+> release (`FEATURE-5F00`, which populates the nupkg's `tools/worker/` payload) — see
+> `docs/plan/FEATURE-43A9.md`. Types referenced below that those phases deliver do not exist yet.
 
 ## Architecture
 
@@ -65,14 +66,23 @@ Directory.Build.props                Shared build defaults (Authors, Copyright, 
 Directory.Packages.props             Central Package Management (all package versions pinned here)
 .editorconfig                        Code style + analyzer severities
 global.json                          SDK 10.0.100 (latestFeature); test runner = Microsoft.Testing.Platform
+build/Enigma.Msi.targets             Packed into the nupkg's build/ — copies tools/worker/ to a consumer's $(OutDir)worker/
+build/CopyWorkerOutput.targets       In-repo counterpart — same layout, from a project's build output (imported by worker hosts)
 src/Enigma.Msi/                      The library — the only public/packable one (model, validation, JSON, build client)
 src/Enigma.Msi.Worker/               net472 console exe — WixSharp translation + the actual MSI build
 src/Enigma.Msi.Desktop/              Avalonia desktop app                                               (PHASE05)
 tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
+tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
 tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel suite                                                    (PHASE05)
 docs/                                Guides, samples, and the dev-workflow tracking artifacts
 ```
+
+A project that hosts the worker imports `build/CopyWorkerOutput.targets` **and** declares its own
+build-order `ProjectReference` to `src/Enigma.Msi.Worker` with all three of
+`ReferenceOutputAssembly="false"`, `SkipGetTargetFrameworkProperties="true"` and
+`UndefineProperties="TargetFramework"` — the last one is not optional, without it the host's TFM flows
+down as a global property and the build fails with NETSDK1005. The targets file documents the contract.
 
 ## Target frameworks & dependencies
 

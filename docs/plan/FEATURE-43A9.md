@@ -162,7 +162,7 @@ Follow the house bootstrap checklist in order (git init already done during plan
 
 ## PHASE04 — Build client, interop & packaging plumbing
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-43a9-phase04-client`
 
 1. In `src/Enigma.Msi`: `IMsiBuildService`/`MsiBuildService` (+ options type) — write request JSON to temp, spawn worker, stream stdout/stderr via `IProgress<string>`, read result file, clean up temp files; cancellation kills the process tree; distinct failure messages for worker-not-found / no-result-file / result-parse-failure.

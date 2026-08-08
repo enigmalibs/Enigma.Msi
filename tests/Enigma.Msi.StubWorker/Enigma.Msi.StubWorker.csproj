@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- A test asset, not a test suite: it is never run by the test platform, it is *spawned* by the
+         library suite so MsiBuildService can be exercised against a real child process instead of a
+         mocked-out abstraction over Process. Declared explicitly so the test platform does not mistake
+         a console exe under tests/ for something it should run. -->
+    <IsTestProject>false</IsTestProject>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <!-- Single TFM on purpose: the stub is launched as an external process, so its framework is
+         independent of the suite's. net8.0 is the lower of the two the suite targets, so its runtime is
+         present wherever the tests run. -->
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The stub speaks the real protocol: it deserializes the request with the very same
+         MsiPackageJson contract the worker uses, so a request the stub cannot read is a genuine
+         failure of the build client, not of the test double. -->
+    <ProjectReference Include="../../src/Enigma.Msi/Enigma.Msi.csproj" />
+  </ItemGroup>
+</Project>
