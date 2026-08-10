@@ -1,4 +1,63 @@
-# Enigma.Msi v1.0.0 Release Notes
+# Release notes
+
+Release notes for both artifacts of this repository: the **Enigma.Msi** library (published to NuGet) and
+the **Enigma.Msi.Desktop** application (released as an MSI installer). The two version independently —
+they coincided at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first.
+
+| Artifact | Current version |
+|---|---|
+| Enigma.Msi (library, NuGet) | **1.0.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.1.0** |
+
+## 1.1.0 — Enigma.Msi.Desktop
+
+An **application-only release**: five user-facing improvements to the desktop app. **The Enigma.Msi
+library remains at 1.0.0 and is not re-released** — no NuGet package is published for this version. The
+model, the validator, the build client, the `net472` worker and the `.msipkg.json` format
+(`schemaVersion` 1) are all untouched, so profiles saved by 1.0.0 open in 1.1.0 unchanged and there is no
+migration.
+
+### What's new
+
+- **Variable hints that stay put.** The three fields that accept WixSharp path tokens — *Install path*,
+  and a shortcut's *Location* and *Target* — now carry permanent helper text underneath naming the tokens
+  they accept: `%ProgramFiles%`, `%ProgramFiles64%`, `%LocalAppData%`, `%CommonAppData%` for the install
+  path; `%Desktop%`, `%ProgramMenu%`, `%StartMenu%`, `%Startup%` (sub-folders allowed) for a shortcut's
+  location; `[INSTALLDIR]` for its target. Previously the only guidance was the placeholder, which
+  disappeared the moment you started typing. The hints cite a common subset — WixSharp resolves the
+  tokens and the validator does not restrict them.
+- **A build-progress overlay.** Building an MSI now raises a modal card — title, indeterminate progress
+  bar, the latest streamed log line, and Cancel — so a long build is visibly in progress instead of
+  looking like nothing happened. It appears once validation passes, comes down before the outcome is
+  reported so the result is never shown under the dimming, and is guaranteed to be taken down on every
+  exit path: success, build failure, missing prerequisites, cancellation, or an unexpected error. The
+  toolbar's Cancel button is **gone** — it was unreachable behind the modal overlay, so the card's Cancel
+  is now the single cancel affordance. Cancelling still terminates the worker together with its child
+  processes, leaving no orphaned `wix` processes.
+- **Shortcuts as self-contained cards.** Each shortcut is a bordered card headed by its own name (falling
+  back to *Shortcut* while unnamed) with its own remove button, replacing the selected-row-plus-*Remove
+  selected*-button arrangement. The list-selection concept is deleted outright, which removes the root
+  cause of the selection/pressed background that used to flash across a row every time you clicked into
+  one of its editors.
+- **Icons on the section headers.** The five left-hand sections — *Product*, *Install and output*,
+  *Control Panel information*, *Shortcuts*, *Managed UI* — carry icons, so the form is scannable at a
+  glance rather than five identically-shaped headers.
+- **A legible incomplete-package warning.** The *Package incomplete — press Validate for details.*
+  message renders in the theme's warning colour at full opacity instead of dimmed default text, in both
+  the Dark and Light variants.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format — still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0 and 1.1.0 in both directions.
+- The app still targets **.NET 10.0** (`WinExe`), is published framework-dependent for `win-x64`, and
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
+- No new package references; the pinned Avalonia 12.1.1 / `Enigma.Avalonia.Desktop` 1.0.0 /
+  `Enigma.Icons.Avalonia` 1.0.0 UI stack is unchanged.
+- **Upgrading in place works as intended**: the installer keeps the app's permanent `UpgradeCode`, so
+  1.1.0 upgrades an installed 1.0.0 rather than installing alongside it.
+
+## 1.0.0 — Enigma.Msi and Enigma.Msi.Desktop
 
 The first public release of **Enigma.Msi** — a library that builds Windows MSI installers from a single
 declarative model. One `MsiPackage` is the input everywhere: the validator reports on it, the build
@@ -7,10 +66,10 @@ binds to it. The MSI authoring itself is done by WixSharp (WiX v4), which is .NE
 confined to a `net472` worker process shipped inside the package, so it never reaches the public API and
 modern .NET consumers take no .NET Framework dependency.
 
-This document covers both artifacts of the release: the **Enigma.Msi** library (NuGet) and the
-**Enigma.Msi.Desktop** application (MSI installer), both at **1.0.0**.
+This release covers both artifacts: the **Enigma.Msi** library (NuGet) and the **Enigma.Msi.Desktop**
+application (MSI installer), both at **1.0.0**.
 
-## Feature overview
+### Feature overview
 
 - **The package model** — `MsiPackage` describes product identity (name, version, `ProductId` /
   `UpgradeCode`, manufacturer), install `Scope` (per-machine or per-user), `InstallSettings` (the source
@@ -52,7 +111,7 @@ This document covers both artifacts of the release: the **Enigma.Msi** library (
   reflection-based drift tests assert them against WixSharp's real member sets so an upstream rename or
   addition fails the build instead of silently mis-mapping.
 
-## Dependencies
+### Dependencies
 
 - **Library** — `System.Text.Json` **10.0.10**, `System.Buffers` **4.6.1** and `PolySharp` **1.16.0**
   (compile-only) on `netstandard2.0` only; on `net8.0`/`net10.0` those are framework-provided, so the
@@ -65,7 +124,7 @@ This document covers both artifacts of the release: the **Enigma.Msi** library (
   (+ `NLog.Extensions.Logging`), and `AvaloniaUI.DiagnosticsSupport` **2.2.3** in Debug builds only. The
   four Avalonia-coupled packages move as a set.
 
-## Compatibility
+### Compatibility
 
 - The library targets **.NET Standard 2.0**, **.NET 8.0**, and **.NET 10.0**. `netstandard2.0` is what
   lets the `net472` worker consume the very same model assembly as modern consumers.
@@ -74,6 +133,6 @@ This document covers both artifacts of the release: the **Enigma.Msi** library (
   itself loads on any supported runtime; the build does not.
 - The `.msipkg.json` profile format is at **`schemaVersion` 1**.
 
-## Version
+### Version
 
 - Initial release: **1.0.0** (Enigma.Msi library and Enigma.Msi.Desktop application).

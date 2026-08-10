@@ -35,6 +35,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IContentDialogService _contentDialogService;
     private readonly IInfoBarService _infoBarService;
     private readonly IUiDispatcher _uiDispatcher;
+    private readonly IBuildProgressService _buildProgress;
     private readonly ILogger<MainWindowViewModel> _logger;
 
     private CancellationTokenSource? _buildCancellation;
@@ -59,6 +60,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <param name="contentDialogService">Reports a failed file operation.</param>
     /// <param name="infoBarService">Reports the outcome of validate and build.</param>
     /// <param name="uiDispatcher">Marshals streamed log lines onto the UI thread.</param>
+    /// <param name="buildProgress">Shows the modal build card while a build runs.</param>
     /// <param name="logger">Records what the user did and what failed.</param>
     /// <exception cref="ArgumentNullException">Any argument is <see langword="null"/>.</exception>
     public MainWindowViewModel(
@@ -69,6 +71,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IContentDialogService contentDialogService,
         IInfoBarService infoBarService,
         IUiDispatcher uiDispatcher,
+        IBuildProgressService buildProgress,
         ILogger<MainWindowViewModel> logger)
     {
         Package = package ?? throw new ArgumentNullException(nameof(package));
@@ -78,6 +81,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _contentDialogService = contentDialogService ?? throw new ArgumentNullException(nameof(contentDialogService));
         _infoBarService = infoBarService ?? throw new ArgumentNullException(nameof(infoBarService));
         _uiDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
+        _buildProgress = buildProgress ?? throw new ArgumentNullException(nameof(buildProgress));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         ValidationErrors.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasValidationErrors));
@@ -230,6 +234,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             CancellationToken cancellationToken = _buildCancellation.Token;
 
+            // Up before the pre-flight check, so even the fast failures are shown as "something is
+            // happening" rather than as a window that ignored the button. Every path below takes it down
+            // again before it reports, so no outcome is ever read through the dimming.
+            await _buildProgress.ShowAsync(CancelBuildCommand).ConfigureAwait(true);
+
             MsiPrerequisites prerequisites = await _buildService
                 .CheckPrerequisitesAsync(cancellationToken)
                 .ConfigureAwait(true);
@@ -242,6 +251,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 }
 
                 StatusMessage = "The build environment is not ready.";
+                await _buildProgress.HideAsync().ConfigureAwait(true);
                 await ShowInfoBarAsync(
                         "Cannot build",
                         string.Join(" ", prerequisites.Problems),
@@ -257,17 +267,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 .BuildAsync(Package.ToPackage(), new LogSink(AppendLog), cancellationToken)
                 .ConfigureAwait(true);
 
+            await _buildProgress.HideAsync().ConfigureAwait(true);
             await ReportBuildResultAsync(result).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
             AppendLog("Build cancelled.");
             StatusMessage = "Build cancelled.";
+            await _buildProgress.HideAsync().ConfigureAwait(true);
             await ShowInfoBarAsync("Cancelled", "The build was cancelled.", InfoBarSeverity.Warning)
                 .ConfigureAwait(true);
         }
         finally
         {
+            // Belt and braces: hiding is idempotent, so this only ever fires for a path that did not get
+            // to its own hide — an unexpected exception. The overlay is modal; leaving it up would lock
+            // the window.
+            await _buildProgress.HideAsync().ConfigureAwait(true);
+
             IsBuilding = false;
             _buildCancellation.Dispose();
             _buildCancellation = null;
@@ -376,8 +393,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             bar.Severity = severity;
         });
 
+    // One post for both consumers: the log pane and the overlay's message line are the same line arriving
+    // from the worker's reader thread, so they ride the same marshalling rather than each paying for it.
     private void AppendLog(string line)
-        => _uiDispatcher.Post(() => BuildLog.Add(line));
+        => _uiDispatcher.Post(() =>
+        {
+            BuildLog.Add(line);
+            _buildProgress.ReportMessage(line);
+        });
 
     private static string FormatProblemCount(int count)
         => string.Format(

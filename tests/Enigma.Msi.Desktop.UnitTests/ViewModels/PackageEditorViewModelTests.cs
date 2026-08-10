@@ -165,7 +165,7 @@ public sealed class PackageEditorViewModelTests
     }
 
     [Fact]
-    public void AddShortcut_SelectsTheNewRowAndSeedsItsNameFromTheApp()
+    public void AddShortcut_AppendsARowSeededFromTheAppName()
     {
         PackageEditorViewModel viewModel = CreateViewModel();
         viewModel.AppName = "Contoso Widget";
@@ -173,28 +173,56 @@ public sealed class PackageEditorViewModelTests
         viewModel.AddShortcutCommand.Execute(null);
 
         ShortcutViewModel row = Assert.Single(viewModel.Shortcuts);
-        Assert.Same(row, viewModel.SelectedShortcut);
         Assert.Equal("Contoso Widget", row.ShortcutName);
         Assert.Equal(ShortcutViewModel.DefaultShortcutPath, row.ShortcutPath);
         Assert.True(viewModel.HasShortcuts);
     }
 
     [Fact]
-    public void RemoveShortcut_IsDisabledUntilARowIsSelected()
+    public void AddShortcut_AppendsRatherThanReplacing()
     {
         PackageEditorViewModel viewModel = CreateViewModel();
 
-        Assert.False(viewModel.RemoveShortcutCommand.CanExecute(null));
+        viewModel.AddShortcutCommand.Execute(null);
+        viewModel.Shortcuts[0].ShortcutName = "First";
+        viewModel.AddShortcutCommand.Execute(null);
 
+        Assert.Equal(2, viewModel.Shortcuts.Count);
+        Assert.Equal("First", viewModel.Shortcuts[0].ShortcutName);
+    }
+
+    [Fact]
+    public void RemoveShortcut_RemovesTheRowItIsGiven_WhicheverItIs()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        viewModel.AddShortcutCommand.Execute(null);
+        viewModel.AddShortcutCommand.Execute(null);
+        viewModel.Shortcuts[0].ShortcutName = "Keep";
+        ShortcutViewModel second = viewModel.Shortcuts[1];
+
+        // No selection is involved: the row's own button hands its row over as the parameter.
+        viewModel.RemoveShortcutCommand.Execute(second);
+
+        ShortcutViewModel remaining = Assert.Single(viewModel.Shortcuts);
+        Assert.Equal("Keep", remaining.ShortcutName);
+    }
+
+    [Fact]
+    public void RemoveShortcut_IsAlwaysExecutable_AndDoesNothingWithoutARow()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
         viewModel.AddShortcutCommand.Execute(null);
 
         Assert.True(viewModel.RemoveShortcutCommand.CanExecute(null));
 
         viewModel.RemoveShortcutCommand.Execute(null);
 
+        Assert.Single(viewModel.Shortcuts);
+
+        viewModel.RemoveShortcutCommand.Execute(viewModel.Shortcuts[0]);
+
         Assert.Empty(viewModel.Shortcuts);
         Assert.False(viewModel.HasShortcuts);
-        Assert.False(viewModel.RemoveShortcutCommand.CanExecute(null));
     }
 
     [Fact]
@@ -263,7 +291,7 @@ public sealed class PackageEditorViewModelTests
         PackageEditorViewModel viewModel = CreateViewModel();
         viewModel.AddShortcutCommand.Execute(null);
         ShortcutViewModel row = viewModel.Shortcuts[0];
-        viewModel.RemoveShortcutCommand.Execute(null);
+        viewModel.RemoveShortcutCommand.Execute(row);
 
         int changes = 0;
         viewModel.Changed += (_, _) => changes++;

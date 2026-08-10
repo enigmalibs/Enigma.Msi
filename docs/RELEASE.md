@@ -7,10 +7,32 @@ NuGet; the worker ships *inside* that package under `tools/worker/`, and the des
 
 Replace `X.Y.Z` with the version being released (e.g. `1.1.0`) throughout. The library version lives in
 `src/Enigma.Msi/Enigma.Msi.csproj` (`<Version>`); the desktop app carries its own independent `<Version>` in
-`src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj` and is not published to NuGet. They happened to coincide
-at 1.0.0; nothing keeps them in step afterwards.
+`src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj` and is not published to NuGet. They coincided at 1.0.0
+and parted at the app's 1.1.0; nothing keeps them in step.
 
 Run every command **from the repository root** — the MSI profile's paths are all repo-root-relative.
+
+## 0. Which release is this?
+
+Because the two artifacts version independently, not every release runs every section. Decide this
+first — the sections below are *not* a single linear flow.
+
+| Release flavour | Sections to run |
+|---|---|
+| **Library** (a new `Enigma.Msi` on NuGet) | §1–§6; also §7 if the app ships in the same release |
+| **App only** (a new `Enigma.Msi.Desktop` MSI, library unchanged) | §1's build + test gate, then §7 and *Pre-flight for the app release* — **skip §4 and §5 entirely** |
+
+For an **app-only** release there is no `dotnet pack` and no `dotnet nuget push`: the library's
+`<Version>`, `<PackageReleaseNotes>` and the README badges are not touched, and re-packing an unchanged
+library would only publish a duplicate. §1's library-specific checkboxes (library `<Version>`,
+`<PackageReleaseNotes>`, README badges, `<TargetFrameworks>`) do not apply either — but the warning-free
+build and the full test suite still gate the release, and `RELEASENOTES.md` is the single notes source
+for both artifacts, so it still gets a section.
+
+**Tagging an app-only release is the maintainer's call.** §3's bare `X.Y.Z` convention names the library
+version; an app-only release either goes untagged or wants a distinct, app-scoped tag (e.g.
+`desktop/X.Y.Z`) so the two artifacts' version streams do not collide in one namespace. Nothing in this
+repository picks for you.
 
 ## 1. Pre-release checks
 
@@ -147,7 +169,7 @@ the next one, copy the most recent profile and change exactly three things:
 | Field | Rule |
 |---|---|
 | `upgradeCode` | **Keep verbatim.** It is the app's permanent identity — `3405046f-527a-439e-a22f-866247dc8314`. Change it and Windows Installer treats the new release as an unrelated product: the old version is never upgraded, only accumulated alongside. |
-| `productId` | **Generate a new GUID for every version** — `[guid]::NewGuid()`. Never hand-fabricated. |
+| `productId` | **Generate a new GUID for every version**, from a real generator — `[guid]::NewGuid()` on Windows, `uuidgen` elsewhere. Never hand-fabricated. |
 | `version` | Set to the app's release `X.Y.Z`, matching `<Version>` in `Enigma.Msi.Desktop.csproj`. |
 
 Everything else — `installPath`, `releasePath`, `scope`, `compression`, `output`, `controlPanel`,

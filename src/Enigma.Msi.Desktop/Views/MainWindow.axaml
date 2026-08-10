@@ -16,6 +16,17 @@
         Width="1200" Height="800"
         MinWidth="900" MinHeight="600"
         Background="{DynamicResource EnigmaBackgroundBrush}">
+  <Window.Styles>
+    <!-- The permanent variable hints under the three token fields. A placeholder disappears the moment
+         typing starts, which is exactly when the tokens are needed; this is what survives. -->
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource EnigmaForegroundTertiaryBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+  </Window.Styles>
+
   <Window.Resources>
     <!-- One template, used for both dialog sequences: an ordered list with add/remove/reorder, because
          the sequences are ordered and the order is not the enum's. -->
@@ -91,17 +102,13 @@
               <TextBlock Text="Build" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding CancelBuildCommand}" ToolTip.Tip="Cancel the running build">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="Stop" />
-              <TextBlock Text="Cancel" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
+          <!-- No Cancel button here: a build runs under a modal overlay, so this one would be
+               unreachable. The overlay card carries the one cancel affordance. -->
 
           <!-- Build is gated on validity, so say why it is disabled instead of leaving it dead. -->
           <TextBlock Text="Package incomplete — press Validate for details."
                      VerticalAlignment="Center"
-                     Opacity="0.7"
+                     Foreground="{DynamicResource EnigmaWarningBrush}"
                      IsVisible="{Binding !IsPackageValid}" />
         </StackPanel>
       </Border>
@@ -114,6 +121,7 @@
 
             <enigma:SettingsCardExpander Header="Product"
                                          Description="Identity shown by the installer and in Control Panel"
+                                         IconData="{ei:IconGeometry Icon=Package}"
                                          IsExpanded="True">
               <StackPanel Spacing="12">
                 <editors:TextEditor Title="Application name"
@@ -164,11 +172,16 @@
 
             <enigma:SettingsCardExpander Header="Install and output"
                                          Description="What is packaged, where it installs, where the MSI is written"
+                                         IconData="{ei:IconGeometry Icon=HardDrives}"
                                          IsExpanded="True">
               <StackPanel Spacing="12">
-                <editors:TextEditor Title="Install path"
-                                    Text="{Binding Package.InstallPath}"
-                                    PlaceholderText="%ProgramFiles%\Contoso\Widget" />
+                <StackPanel>
+                  <editors:TextEditor Title="Install path"
+                                      Text="{Binding Package.InstallPath}"
+                                      PlaceholderText="%ProgramFiles%\Contoso\Widget" />
+                  <TextBlock Classes="hint"
+                             Text="Variables: %ProgramFiles%, %ProgramFiles64%, %LocalAppData%, %CommonAppData%" />
+                </StackPanel>
                 <editors:TextEditor Title="Release folder"
                                     Text="{Binding Package.ReleasePath}"
                                     PlaceholderText="The folder whose contents are packaged">
@@ -195,7 +208,8 @@
             </enigma:SettingsCardExpander>
 
             <enigma:SettingsCardExpander Header="Control Panel information"
-                                         Description="Optional — shown in Apps &amp; features">
+                                         Description="Optional — shown in Apps &amp; features"
+                                         IconData="{ei:IconGeometry Icon=Info}">
               <StackPanel Spacing="12">
                 <enigma:SettingsCard Header="Include this section"
                                      Description="Off leaves every value at the MSI default">
@@ -229,55 +243,82 @@
             </enigma:SettingsCardExpander>
 
             <enigma:SettingsCardExpander Header="Shortcuts"
-                                         Description="Shortcuts the installer creates">
+                                         Description="Shortcuts the installer creates"
+                                         IconData="{ei:IconGeometry Icon=LinkSimple}">
               <StackPanel Spacing="12">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Command="{Binding Package.AddShortcutCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <ei:Icon Kind="Plus" />
-                      <TextBlock Text="Add" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Button>
-                  <Button Command="{Binding Package.RemoveShortcutCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <ei:Icon Kind="Trash" />
-                      <TextBlock Text="Remove selected" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Button>
-                </StackPanel>
+                <Button Command="{Binding Package.AddShortcutCommand}"
+                        HorizontalAlignment="Left"
+                        ToolTip.Tip="Add a shortcut">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ei:Icon Kind="Plus" />
+                    <TextBlock Text="Add" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
                 <TextBlock Text="No shortcuts. The installer will create none."
                            Opacity="0.7"
                            IsVisible="{Binding !Package.HasShortcuts}" />
-                <ListBox ItemsSource="{Binding Package.Shortcuts}"
-                         SelectedItem="{Binding Package.SelectedShortcut}"
-                         MaxHeight="420">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ShortcutViewModel">
-                      <StackPanel Spacing="8" Margin="0,6">
-                        <editors:TextEditor Title="Location"
-                                            Text="{Binding ShortcutPath}"
-                                            PlaceholderText="%Desktop% or %ProgramMenu%\Contoso" />
-                        <editors:TextEditor Title="Name"
-                                            Text="{Binding ShortcutName}"
-                                            PlaceholderText="Contoso Widget" />
-                        <editors:TextEditor Title="Target"
-                                            Text="{Binding TargetPath}"
-                                            PlaceholderText="[INSTALLDIR]\Widget.exe" />
-                        <editors:TextEditor Title="Icon"
-                                            Text="{Binding IconPath}"
-                                            PlaceholderText="Optional .ico path" />
-                        <editors:TextEditor Title="Arguments"
-                                            Text="{Binding Arguments}"
-                                            PlaceholderText="Optional command line" />
-                      </StackPanel>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
+                <!-- An ItemsControl, not a ListBox: a row is a form, not something to select. The
+                     selection was what made clicking into an editor flash the row's selected/pressed
+                     background — and with each row carrying its own remove button, nothing needs it. -->
+                <ScrollViewer MaxHeight="420">
+                  <ItemsControl ItemsSource="{Binding Package.Shortcuts}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ShortcutViewModel">
+                        <Border Margin="0,0,0,8"
+                                Padding="12"
+                                CornerRadius="4"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource EnigmaBorderBrush}">
+                          <StackPanel Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                              <TextBlock Grid.Column="0"
+                                         Text="{Binding DisplayName}"
+                                         FontWeight="SemiBold"
+                                         VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis" />
+                              <Button Grid.Column="1"
+                                      Padding="6,2"
+                                      ToolTip.Tip="Remove this shortcut"
+                                      Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).Package.RemoveShortcutCommand}"
+                                      CommandParameter="{Binding}">
+                                <ei:Icon Kind="Trash" />
+                              </Button>
+                            </Grid>
+                            <StackPanel>
+                              <editors:TextEditor Title="Location"
+                                                  Text="{Binding ShortcutPath}"
+                                                  PlaceholderText="%Desktop% or %ProgramMenu%\Contoso" />
+                              <TextBlock Classes="hint"
+                                         Text="Variables: %Desktop%, %ProgramMenu%, %StartMenu%, %Startup% — sub-folders allowed: %ProgramMenu%\Contoso" />
+                            </StackPanel>
+                            <editors:TextEditor Title="Name"
+                                                Text="{Binding ShortcutName}"
+                                                PlaceholderText="Contoso Widget" />
+                            <StackPanel>
+                              <editors:TextEditor Title="Target"
+                                                  Text="{Binding TargetPath}"
+                                                  PlaceholderText="[INSTALLDIR]\Widget.exe" />
+                              <TextBlock Classes="hint"
+                                         Text="[INSTALLDIR] = the install folder, e.g. [INSTALLDIR]\Widget.exe" />
+                            </StackPanel>
+                            <editors:TextEditor Title="Icon"
+                                                Text="{Binding IconPath}"
+                                                PlaceholderText="Optional .ico path" />
+                            <editors:TextEditor Title="Arguments"
+                                                Text="{Binding Arguments}"
+                                                PlaceholderText="Optional command line" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
               </StackPanel>
             </enigma:SettingsCardExpander>
 
             <enigma:SettingsCardExpander Header="Managed UI"
-                                         Description="Optional — off lets the build apply its default dialog set">
+                                         Description="Optional — off lets the build apply its default dialog set"
+                                         IconData="{ei:IconGeometry Icon=AppWindow}">
               <StackPanel Spacing="12">
                 <enigma:SettingsCard Header="Customize the installer UI"
                                      Description="Off writes no ui section at all">

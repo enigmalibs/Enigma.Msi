@@ -1,6 +1,6 @@
 # FEATURE-6C35 — Desktop app 1.1.0: UI polish & release
 
-**Status:** TODO (multi-phase — 2 phases)
+**Status:** DONE (multi-phase — 2 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-6c35-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-5F00 fully DONE (1.0.0 prepared; this item builds the app's next release on top).
@@ -61,7 +61,7 @@ The five improvements (all user-requested):
 
 ## PHASE01 — UI improvements (hints, build overlay, shortcuts, icons, warning)
 
-**Status:** TODO
+**Status:** DONE (see `docs/done/FEATURE-6C35-PHASE01.md`)
 **Branch:** `feature/feature-6c35-phase01-ui-polish`
 
 All in `src/Enigma.Msi.Desktop` (+ its test project + the desktop guide). Steps ordered smallest to
@@ -148,7 +148,7 @@ largest so the XAML-only changes are in place before `MainWindow.axaml`'s bigger
 
 ## PHASE02 — Release prep: desktop app 1.1.0
 
-**Status:** TODO
+**Status:** DONE (see `docs/done/FEATURE-6C35-PHASE02.md`)
 **Branch:** `feature/feature-6c35-phase02-release-1-1-0`
 
 Mirrors FEATURE-5F00 PHASE04 for the next version. **App-only release:** no `dotnet pack`, no NuGet

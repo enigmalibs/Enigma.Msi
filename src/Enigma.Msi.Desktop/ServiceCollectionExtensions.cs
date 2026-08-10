@@ -34,7 +34,7 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Registers the MSI library's services plus this app's two thin seams over the UI framework.
+        /// Registers the MSI library's services plus this app's three thin seams over the UI framework.
         /// </summary>
         /// <remarks>
         /// The library ships no <c>AddEnigmaMsi()</c> extension of its own — registration is the
@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<IMsiBuildService>(_ => new MsiBuildService());
             _ = services.AddSingleton<IPathPickerService, PathPickerService>();
             _ = services.AddSingleton<IUiDispatcher, UiDispatcher>();
+            _ = services.AddSingleton<IBuildProgressService, BuildProgressService>();
         }
 
         /// <summary>Registers the window, the form and their ViewModels.</summary>

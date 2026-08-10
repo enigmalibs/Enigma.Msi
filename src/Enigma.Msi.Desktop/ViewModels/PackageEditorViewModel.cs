@@ -91,10 +91,6 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     [ObservableProperty]
     private string _urlInfoAbout = string.Empty;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RemoveShortcutCommand))]
-    private ShortcutViewModel? _selectedShortcut;
-
     /// <summary>Creates the form over the picker its browse buttons drive.</summary>
     /// <param name="pathPicker">Answers the folder and icon browse buttons.</param>
     /// <exception cref="ArgumentNullException"><paramref name="pathPicker"/> is <see langword="null"/>.</exception>
@@ -161,7 +157,6 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         Contact = string.Empty;
         HelpLink = string.Empty;
         UrlInfoAbout = string.Empty;
-        SelectedShortcut = null;
         Shortcuts.Clear();
         Ui.LoadFrom(null);
     }
@@ -196,7 +191,6 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         HelpLink = package.ControlPanel?.HelpLink ?? string.Empty;
         UrlInfoAbout = package.ControlPanel?.UrlInfoAbout ?? string.Empty;
 
-        SelectedShortcut = null;
         Shortcuts.Clear();
 
         foreach (Shortcut shortcut in package.Shortcuts)
@@ -288,23 +282,20 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     private void NewUpgradeCode() => UpgradeCode = Guid.NewGuid().ToString();
 
     [RelayCommand]
-    private void AddShortcut()
-    {
-        var shortcut = new ShortcutViewModel { ShortcutName = AppName };
-        Shortcuts.Add(shortcut);
-        SelectedShortcut = shortcut;
-    }
+    private void AddShortcut() => Shortcuts.Add(new ShortcutViewModel { ShortcutName = AppName });
 
-    [RelayCommand(CanExecute = nameof(HasSelectedShortcut))]
-    private void RemoveShortcut()
+    // Parameterized rather than driven by a selected row: each row carries its own remove button, so the
+    // list needs no selection at all — and without a selection the editors inside a row no longer flash a
+    // selected/pressed background when they are clicked into.
+    [RelayCommand]
+    private void RemoveShortcut(ShortcutViewModel? shortcut)
     {
-        if (SelectedShortcut is not { } shortcut)
+        if (shortcut is null)
         {
             return;
         }
 
         _ = Shortcuts.Remove(shortcut);
-        SelectedShortcut = null;
     }
 
     [RelayCommand]
@@ -335,8 +326,6 @@ public sealed partial class PackageEditorViewModel : ObservableObject
             ProductIcon = path;
         }
     }
-
-    private bool HasSelectedShortcut => SelectedShortcut is not null;
 
     // Rows come and go, so their subscriptions have to follow the collection rather than be taken once.
     private void OnShortcutsChanged(object? sender, NotifyCollectionChangedEventArgs e)
