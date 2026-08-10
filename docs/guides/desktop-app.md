@@ -42,7 +42,9 @@ line runs along the bottom.
 | **Save as…** | Saves under a new name. Suggests a file name from the MSI file name, or the app name. |
 | **Validate** | Reports every problem with the package, without touching the worker. |
 | **Build** | Validates, checks prerequisites, then builds the MSI. Disabled while the package is incomplete or a build is running. |
-| **Cancel** | Cancels the running build, terminating the worker and its children. |
+
+There is no Cancel button in the command bar: a running build covers the window with a modal progress card,
+and that card carries the one cancel affordance.
 
 The title bar shows the open profile (`Enigma.Msi — Widget.msipkg.json`) or `Enigma.Msi — new package`. A
 status line reports the last thing that happened; results also arrive as an info bar.
@@ -62,10 +64,27 @@ Each section is a collapsible card.
 | **Product** | App name, version, manufacturer, product ID, upgrade code, install scope, compression. |
 | **Install and output** | Install path, release path (with a folder browser), output path (with a folder browser), MSI file name. |
 | **Control Panel information** | A switch that includes the whole optional block, then product icon (with a file browser), comments, contact, help link, about URL. |
-| **Shortcuts** | A list of shortcuts, each with location, name, target, icon and arguments. Add and remove; new shortcuts default to `%ProgramMenu%` and take the app name. |
+| **Shortcuts** | One card per shortcut — its name as the header, its own remove button, then location, name, target, icon and arguments. **Add** appends; new shortcuts default to `%ProgramMenu%` and take the app name. |
 | **Managed UI** | A switch that pins the package's own UI, then the WixUI dialog set and the two dialog sequences. |
 
-Two details in the form are worth pointing out, because they encode rules from the model.
+**The three fields that take variables say so, permanently.** A hint under the *Install path* box and under a
+shortcut's *Location* and *Target* lists what may be typed there — the placeholder alone would not do, since it
+disappears the moment typing starts, which is exactly when the tokens are wanted:
+
+| Field | Hint |
+|---|---|
+| Install path | `%ProgramFiles%`, `%ProgramFiles64%`, `%LocalAppData%`, `%CommonAppData%` |
+| Shortcut location | `%Desktop%`, `%ProgramMenu%`, `%StartMenu%`, `%Startup%` — sub-folders allowed, e.g. `%ProgramMenu%\Contoso` |
+| Shortcut target | `[INSTALLDIR]` is the install folder, e.g. `[INSTALLDIR]\Widget.exe` |
+
+The hints are a curated common subset, not the whole list: the validator does not restrict tokens at all —
+WixSharp resolves them when the MSI is built.
+
+**Each shortcut is a card, and each card removes itself.** There is no list selection to make first, which is
+also why clicking into a field inside a card no longer highlights the whole row. A card with no name yet is
+headed *Shortcut*.
+
+Two further details in the form are worth pointing out, because they encode rules from the model.
 
 **The two GUIDs have regenerate buttons, and they mean different things.** `productId` identifies this
 exact version and can be regenerated freely — do it for every release. `upgradeCode` identifies the
@@ -89,6 +108,11 @@ and must not be empty.
    into the log pane line by line as it arrives, so a long build is visibly alive.
 4. **Report.** On success the MSI's path goes to the status line, the log and a success info bar. On
    failure, *every* reason is appended to the log.
+
+**A build runs under a modal card.** From the moment Build is pressed — before the pre-flight check, so even
+the fast failures are visible — the window dims behind a card titled *Building MSI…* carrying an
+indeterminate bar, the latest line the build wrote, and **Cancel**. The card comes down on every exit path,
+and always *before* the outcome is reported, so no result is ever read through the dimming.
 
 **Cancel** terminates the worker together with everything it started, so a cancelled build leaves no
 orphaned `wix` processes behind. The log pane has its own clear command; the build log is append-only by

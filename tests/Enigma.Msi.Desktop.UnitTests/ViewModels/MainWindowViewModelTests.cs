@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Enigma.Avalonia.Desktop.Controls.InfoBar;
 using Enigma.Avalonia.Desktop.Services;
 using Enigma.Msi.Build;
@@ -31,6 +32,7 @@ public sealed class MainWindowViewModelTests : IDisposable
     private readonly IPathPickerService _pathPicker = Substitute.For<IPathPickerService>();
     private readonly IContentDialogService _contentDialogService = Substitute.For<IContentDialogService>();
     private readonly IInfoBarService _infoBarService = Substitute.For<IInfoBarService>();
+    private readonly IBuildProgressService _buildProgress = Substitute.For<IBuildProgressService>();
     private readonly FakeBuildService _buildService = new();
 
     /// <inheritdoc />
@@ -261,6 +263,128 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.Equal("Build cancelled.", viewModel.StatusMessage);
     }
 
+    // ---- the build overlay --------------------------------------------------------------------
+
+    [Fact]
+    public async Task Build_ShowsTheOverlayOnce_DrivenByTheCancelCommand()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.LoadFrom(CreateBuildablePackage());
+
+        await viewModel.BuildCommand.ExecuteAsync(null);
+
+        // The overlay's Cancel is the only cancel affordance while a build runs — the toolbar has none.
+        _ = _buildProgress.Received(1).ShowAsync(viewModel.CancelBuildCommand);
+    }
+
+    [Fact]
+    public async Task Build_ShowsNoOverlayForAPackageThatDoesNotEvenValidate()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+
+        await viewModel.BuildCommand.ExecuteAsync(null);
+
+        _ = _buildProgress.DidNotReceive().ShowAsync(Arg.Any<ICommand>());
+    }
+
+    [Fact]
+    public async Task Build_TakesTheOverlayDownBeforeReportingSuccess()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.LoadFrom(CreateBuildablePackage());
+        _buildService.Result = MsiBuildResult.Succeeded(@"C:\out\Widget.msi");
+        List<string> order = RecordOverlayAndReportingOrder();
+
+        await viewModel.BuildCommand.ExecuteAsync(null);
+
+        Assert.Equal("hide", order[0]);
+        Assert.Contains("report", order);
+    }
+
+    [Fact]
+    public async Task Build_TakesTheOverlayDownBeforeReportingAFailedBuild()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.LoadFrom(CreateBuildablePackage());
+        _buildService.Result = MsiBuildResult.Failed(["wix said no"]);
+        List<string> order = RecordOverlayAndReportingOrder();
+
+        await viewModel.BuildCommand.ExecuteAsync(null);
+
+        Assert.Equal("hide", order[0]);
+        Assert.Contains("report", order);
+    }
+
+    [Fact]
+    public async Task Build_TakesTheOverlayDownBeforeReportingAFailedPreFlightCheck()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.LoadFrom(CreateBuildablePackage());
+        _buildService.Prerequisites = new MsiPrerequisites
+        {
+            WorkerPath = @"C:\app\worker\Enigma.Msi.Worker.exe",
+            Problems = ["The WiX CLI was not found. Run: dotnet tool install --global wix"]
+        };
+        List<string> order = RecordOverlayAndReportingOrder();
+
+        await viewModel.BuildCommand.ExecuteAsync(null);
+
+        Assert.Equal("hide", order[0]);
+        Assert.Contains("report", order);
+    }
+
+    [Fact]
+    public async Task Build_TakesTheOverlayDownWhenTheBuildIsCancelled()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.LoadFrom(CreateBuildablePackage());
+        _buildService.WaitForCancellation = true;
+        List<string> order = RecordOverlayAndReportingOrder();
+
+        Task build = viewModel.BuildCommand.ExecuteAsync(null);
+        await _buildService.BuildStarted.Task.WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken);
+        viewModel.CancelBuildCommand.Execute(null);
+        await build;
+
+        Assert.Equal("hide", order[0]);
+        Assert.Contains("report", order);
+    }
+
+    [Fact]
+    public async Task Build_FeedsEveryStreamedLineToTheOverlaysMessage()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.LoadFrom(CreateBuildablePackage());
+        _buildService.LogLines = ["compiling", "linking", "done"];
+
+        await viewModel.BuildCommand.ExecuteAsync(null);
+
+        // The card shows the latest line, so every line has to reach it — in the same post that appends it
+        // to the log, which is what keeps the marshalling to one hop.
+        _buildProgress.Received(1).ReportMessage("compiling");
+        _buildProgress.Received(1).ReportMessage("linking");
+        _buildProgress.Received(1).ReportMessage("done");
+    }
+
+    [Fact]
+    public void Constructor_RejectsAMissingBuildProgressService()
+    {
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new MainWindowViewModel(
+            new PackageEditorViewModel(_pathPicker),
+            new MsiPackageValidator(),
+            _buildService,
+            _pathPicker,
+            _contentDialogService,
+            _infoBarService,
+            new InlineUiDispatcher(),
+            null!,
+            NullLogger<MainWindowViewModel>.Instance));
+
+        Assert.Equal("buildProgress", exception.ParamName);
+    }
+
     [Fact]
     public void ClearLog_EmptiesTheLog()
     {
@@ -408,7 +532,23 @@ public sealed class MainWindowViewModelTests : IDisposable
         _contentDialogService,
         _infoBarService,
         new InlineUiDispatcher(),
+        _buildProgress,
         NullLogger<MainWindowViewModel>.Instance);
+
+    // The overlay is modal, so *when* it comes down matters as much as that it does: an outcome reported
+    // while it is still up is unreadable behind the dimming. Recording the two calls in one list is what
+    // lets a test assert the order without pinning down how many times each is made.
+    private List<string> RecordOverlayAndReportingOrder()
+    {
+        List<string> order = [];
+
+        _buildProgress.When(progress => progress.HideAsync()).Do(_ => order.Add("hide"));
+        _infoBarService
+            .When(bar => bar.ShowAsync(Arg.Any<Action<InfoBar>>()))
+            .Do(_ => order.Add("report"));
+
+        return order;
+    }
 
     // A package whose folders exist, so the environment rules pass too and a build can start. The
     // release folder needs a file in it: an empty one is a validation error, since a package with

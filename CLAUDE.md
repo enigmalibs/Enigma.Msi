@@ -34,6 +34,13 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > is deliberately outside the repo: this repository still has **no git remote and no tags**, so
 > `github.com/enigmalibs/Enigma.Msi` must be created and `main` pushed before the runbook's tag/pack/push
 > steps mean anything. Nothing here ever runs an outward-facing command — follow `docs/RELEASE.md`.
+>
+> **`FEATURE-6C35` (desktop app 1.1.0) is under way.** `PHASE01` is done — the app-only UI polish: permanent
+> variable hints under the three token fields, a modal build-progress card (its Cancel is now the *only*
+> cancel affordance — the toolbar's is gone) driven through the `IBuildProgressService` seam over the
+> control library's overlay, shortcuts as one self-removing card per row with the selection concept deleted,
+> icons on the five section expanders, and the incomplete-package message in the theme's warning brush.
+> `PHASE02` is the app's 1.1.0 release prep. **The library stays at 1.0.0 and is not re-released.**
 
 ## Architecture
 

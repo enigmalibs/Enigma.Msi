@@ -14,10 +14,14 @@ public sealed partial class ShortcutViewModel : ObservableObject
     /// <summary>The special-folder token a new shortcut starts at.</summary>
     public const string DefaultShortcutPath = "%ProgramMenu%";
 
+    /// <summary>What <see cref="DisplayName"/> falls back to while the row has no name yet.</summary>
+    public const string UnnamedDisplayName = "Shortcut";
+
     [ObservableProperty]
     private string _shortcutPath = DefaultShortcutPath;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
     private string _shortcutName = string.Empty;
 
     [ObservableProperty]
@@ -28,6 +32,12 @@ public sealed partial class ShortcutViewModel : ObservableObject
 
     [ObservableProperty]
     private string _arguments = string.Empty;
+
+    /// <summary>
+    /// The row's card header — its <see cref="ShortcutName"/>, or <see cref="UnnamedDisplayName"/> while
+    /// that is blank, so a row the user has not named yet still has a title to sit under.
+    /// </summary>
+    public string DisplayName => string.IsNullOrWhiteSpace(ShortcutName) ? UnnamedDisplayName : ShortcutName;
 
     /// <summary>Creates a row holding <paramref name="shortcut"/>'s values.</summary>
     /// <param name="shortcut">The shortcut to edit.</param>
