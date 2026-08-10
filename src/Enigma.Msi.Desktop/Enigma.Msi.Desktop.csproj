@@ -4,10 +4,11 @@
     <!-- Plain net10.0, no -windows suffix: Avalonia needs none, and the app's Windows-only nature
          comes from what it drives (the net472 worker and the WiX CLI), not from its TFM. -->
     <TargetFramework>net10.0</TargetFramework>
-    <!-- The app versions independently of the library; the two simply coincide at 1.0.0 for the first
-         release. This value is what msiProfiles/Enigma.Msi.Desktop.<version>.msipkg.json mirrors — bump
-         both together, and clone the profile per the rule in docs/RELEASE.md. -->
-    <Version>1.0.0</Version>
+    <!-- The app versions independently of the library, which stays at 1.0.0: they coincided for the
+         first release and parted here. This value is what
+         msiProfiles/Enigma.Msi.Desktop.<version>.msipkg.json mirrors — bump both together, and clone the
+         profile per the rule in docs/RELEASE.md. -->
+    <Version>1.1.0</Version>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
   </PropertyGroup>
