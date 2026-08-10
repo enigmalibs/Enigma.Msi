@@ -16,3 +16,6 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | - PHASE03    | README, release notes & community files                     | DONE        | (in FEATURE-5F00.md)      |
 | - PHASE04    | Desktop app release prep (MSI profile & dogfood build)      | DONE        | (in FEATURE-5F00.md)      |
 | - PHASE05    | Release runbook, pre-flight & pack-verify                   | DONE        | (in FEATURE-5F00.md)      |
+| FEATURE-6C35 | Desktop app 1.1.0: UI polish & release                      | DONE        | docs/plan/FEATURE-6C35.md |
+| - PHASE01    | UI improvements (hints, overlay, shortcuts, icons, warning) | DONE        | (in FEATURE-6C35.md)      |
+| - PHASE02    | Release prep: desktop app 1.1.0                             | DONE        | (in FEATURE-6C35.md)      |

@@ -34,6 +34,24 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > is deliberately outside the repo: this repository still has **no git remote and no tags**, so
 > `github.com/enigmalibs/Enigma.Msi` must be created and `main` pushed before the runbook's tag/pack/push
 > steps mean anything. Nothing here ever runs an outward-facing command — follow `docs/RELEASE.md`.
+>
+> **`FEATURE-6C35` is complete (`PHASE01`, `PHASE02`); the desktop app 1.1.0 is prepared but not built.**
+> `PHASE01` was the app-only UI polish: permanent variable hints under the three token fields, a modal
+> build-progress card (its Cancel is now the *only* cancel affordance — the toolbar's is gone) driven
+> through the `IBuildProgressService` seam over the control library's overlay, shortcuts as one
+> self-removing card per row with the selection concept deleted, icons on the five section expanders, and
+> the incomplete-package message in the theme's warning brush. `PHASE02` was the release prep: the app
+> declares `<Version>1.1.0`, `msiProfiles/Enigma.Msi.Desktop.1.1.0.msipkg.json` is committed (fresh
+> `productId`, `upgradeCode` reused verbatim — that reuse is what makes 1.1.0 *upgrade* an installed
+> 1.0.0), and `RELEASENOTES.md` is now a newest-first multi-version document.
+> **The library stays at 1.0.0 and is not re-released** — an app-only release runs no `dotnet pack` and no
+> NuGet push; `docs/RELEASE.md` §0 says which sections apply to which release flavour.
+>
+> **Outstanding, and Windows-only:** the 1.1.0 dogfood MSI has **not** been built — `PHASE02` ran on Linux,
+> where there is no WiX CLI and the `net472` worker cannot start. The same run leaves the 32 Windows-only
+> `Enigma.Msi.UnitTests` cases and the whole `Enigma.Msi.Worker.UnitTests` suite unexercised since before
+> `PHASE01`. Both need one Windows pass before 1.1.0 is called good; the commands are in
+> `docs/done/FEATURE-6C35-PHASE02.md`.
 
 ## Architecture
 
