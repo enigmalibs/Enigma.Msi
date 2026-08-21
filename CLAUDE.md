@@ -53,6 +53,24 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > `PHASE01` ran the whole solution on Windows — 392 passed, 0 skipped — so the 32 Windows-only
 > `Enigma.Msi.UnitTests` cases and the entire `Enigma.Msi.Worker.UnitTests` suite (mapping + the WixSharp
 > enum drift guards) are exercised again.
+>
+> **`FEATURE-74C4` is under way — the app-only 1.2.0.** `PHASE01` gave the app a visual identity: a ~2 s
+> dismissable `SplashWindow` that hands over to the real window, and an About dialog behind an icon-only
+> button at the right of the command bar, both fed by `AppInfo` and `Assets/logo.png`. `PHASE02` removed
+> the tedium from first-time setup: **Control Panel information is on by default for a new package**
+> (`Reset()` only — `LoadFrom` still derives the toggle from the profile, so an existing 1.0.0/1.1.0
+> profile opens unchanged), and a one-page **quick start** — six answers in, a form that passes Validate
+> with zero problems out, deriving the install path, the output folder, the MSI name, the product icon and
+> two shortcuts. It opens from the toolbar and once by itself on an empty form, and replaces the package
+> after a Yes/No confirmation when there is work to lose. `PHASE03` (release prep for 1.2.0) is still
+> `TODO`, and it is the phase that owns closing the outstanding dogfood-MSI debt above.
+>
+> **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
+> third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
+> instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes
+> on gating the next dialog's button — and `ShowAsync` does **not** reset the six `Dialog*` size
+> properties, so every dialog states its own size rather than inheriting the last one's. The host also
+> does not expose its `Title` to UI Automation: assert on the content or a button name instead.
 
 ## Architecture
 

@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:editors="using:Enigma.Avalonia.Desktop.Controls.Editors"
+             xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="520"
+             x:Class="Enigma.Msi.Desktop.Views.QuickStartCard"
+             x:DataType="vm:QuickStartViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource EnigmaForegroundTertiaryBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="12">
+
+    <TextBlock Text="Answer these six and the whole form is filled in — install path, output folder, MSI name, product icon and two shortcuts."
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+
+    <editors:TextEditor x:Name="AppNameEditor"
+                        Title="Application name"
+                        Text="{Binding AppName}"
+                        PlaceholderText="Contoso Widget" />
+
+    <editors:TextEditor Title="Version"
+                        Text="{Binding Version}"
+                        PlaceholderText="1.0.0" />
+
+    <editors:TextEditor Title="Manufacturer"
+                        Text="{Binding Manufacturer}"
+                        PlaceholderText="Contoso AG" />
+
+    <!-- First of the three paths, and the one the other two are browsed from — hence its position. -->
+    <editors:TextEditor Title="Release folder"
+                        Text="{Binding ReleasePath}"
+                        PlaceholderText="The folder whose contents are packaged">
+      <editors:TextEditor.ActionContent>
+        <Button Content="Browse…"
+                Command="{Binding BrowseReleasePathCommand}"
+                Padding="4,2" />
+      </editors:TextEditor.ActionContent>
+    </editors:TextEditor>
+
+    <editors:TextEditor Title="Icon"
+                        Text="{Binding IconPath}"
+                        PlaceholderText="Path to an .ico file">
+      <editors:TextEditor.ActionContent>
+        <Button Content="Browse…"
+                Command="{Binding BrowseIconCommand}"
+                Padding="4,2" />
+      </editors:TextEditor.ActionContent>
+    </editors:TextEditor>
+
+    <StackPanel>
+      <editors:TextEditor Title="Main executable"
+                          Text="{Binding ExecutablePath}"
+                          PlaceholderText="The .exe both shortcuts point at">
+        <editors:TextEditor.ActionContent>
+          <Button Content="Browse…"
+                  Command="{Binding BrowseExecutableCommand}"
+                  Padding="4,2" />
+        </editors:TextEditor.ActionContent>
+      </editors:TextEditor>
+      <TextBlock Classes="hint"
+                 Text="Its path inside the release folder becomes the shortcut target, e.g. [INSTALLDIR]\bin\Widget.exe" />
+      <TextBlock Text="{Binding ExecutableError}"
+                 IsVisible="{Binding HasExecutableError}"
+                 TextWrapping="Wrap"
+                 Margin="0,6,0,0"
+                 Foreground="{DynamicResource EnigmaWarningBrush}" />
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

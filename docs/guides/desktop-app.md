@@ -44,6 +44,7 @@ line runs along the bottom.
 
 | Command | What it does |
 |---|---|
+| **Quick start** | Asks six questions and fills the whole form from the answers. See [Quick start](#quick-start). |
 | **New** | Starts an empty package, with freshly generated `productId` and `upgradeCode` and the version at `1.0.0`. Discards what is in the form. |
 | **Open** | Loads a `.msipkg.json` profile into the form. |
 | **Save** | Saves to the open profile, asking for a path the first time. |
@@ -68,6 +69,43 @@ typing a path hit the file system on every keystroke. Those run when the build a
 why Build can be enabled and still report problems. The hint next to the disabled button says as much:
 *Package incomplete — press Validate for details.*
 
+## Quick start
+
+Six answers, and the form comes back filled in. It is the fastest way from a published folder to a
+buildable package, and nothing it produces is beyond editing afterwards — the quick start is assistance,
+never the only path.
+
+| Field | What it is |
+|---|---|
+| **Application name** | The product's name. Also the MSI file name, both shortcut names, and the last segment of the install path. |
+| **Version** | The product version. Must parse as a version number. |
+| **Manufacturer** | The publisher. |
+| **Release folder** | The folder whose contents are packaged. Browse for it first: the next two questions open their pickers here. |
+| **Icon** | An `.ico` file. Used as the product icon *and* on both shortcuts. |
+| **Main executable** | The `.exe` both shortcuts point at. It must be **inside the release folder** — that folder is what `[INSTALLDIR]` becomes once the MSI is installed — and the dialog says so if it is not. |
+
+From those, it derives:
+
+| Field | Derived as |
+|---|---|
+| Install path | `%ProgramFiles%\<application name>` |
+| Output folder | The release folder's **parent** — beside the payload, not inside it. A release folder at a drive root has no parent, and the output folder then falls back to the release folder itself. |
+| MSI file name | The application name, with any character a file name cannot hold removed and a trailing `.msi` stripped. If nothing survives that, `package`. |
+| Product icon | The chosen icon, with the Control Panel section switched on. |
+| Shortcuts | Two, in this order: `%ProgramMenu%` then `%Desktop%`. Each named after the application, targeting `[INSTALLDIR]\<executable>` — a nested executable keeps its sub-folder, e.g. `[INSTALLDIR]\bin\Widget.exe` — and carrying the icon. |
+
+**Apply stays disabled until all six are answered**, the version parses, and the executable is inside the
+release folder. Those are string and parse rules only — no path is checked for existing here, which is the
+main form's Problems pane's job, in one place.
+
+**Applying replaces the package**, it does not merge into it: `productId` and `upgradeCode` are
+regenerated and everything else goes back to a new package's defaults before the six answers are applied.
+If the form already holds something, you are asked to confirm first — and cancelling the quick-start
+dialog itself asks nothing at all.
+
+The dialog **opens by itself, once**, when the app starts on an empty form. Escape or Cancel dismisses it,
+and it does not come back in that session. There is no setting to turn it off.
+
 ## The form
 
 Each section is a collapsible card.
@@ -76,7 +114,7 @@ Each section is a collapsible card.
 |---|---|
 | **Product** | App name, version, manufacturer, product ID, upgrade code, install scope, compression. |
 | **Install and output** | Install path, release path (with a folder browser), output path (with a folder browser), MSI file name. |
-| **Control Panel information** | A switch that includes the whole optional block, then product icon (with a file browser), comments, contact, help link, about URL. |
+| **Control Panel information** | A switch that includes the whole optional block, then product icon (with a file browser), comments, contact, help link, about URL. **On by default for a new package** — see below. |
 | **Shortcuts** | One card per shortcut — its name as the header, its own remove button, then location, name, target, icon and arguments. **Add** appends; new shortcuts default to `%ProgramMenu%` and take the app name. |
 | **Managed UI** | A switch that pins the package's own UI, then the WixUI dialog set and the two dialog sequences. |
 
@@ -103,6 +141,13 @@ Two further details in the form are worth pointing out, because they encode rule
 exact version and can be regenerated freely — do it for every release. `upgradeCode` identifies the
 product *line* and must stay constant forever, or Windows Installer stops recognizing a new build as an
 upgrade of the old one. Regenerating it on an existing product is almost always a mistake.
+
+**Control Panel information starts switched on, for a new package only.** The section costs nothing to
+carry — it has no validation rule of its own and every field in it is optional — while switching it off is
+what produces an installed product with no Control Panel entry at all. A new package with nothing typed
+there saves as `"controlPanel": {}`, which is exactly what the switch says. **Opening a profile is
+unaffected:** the switch follows what the profile carries, so a 1.0.0 or 1.1.0 package written without the
+section still shows it off, and saving it again does not add one.
 
 **The managed-UI switch is a three-state affair in disguise.** Off means the package carries no UI
 settings, and the build applies its default sequences — `Welcome → InstallDir → Progress → Exit` for a
@@ -144,6 +189,9 @@ Saved packages are `<name>.msipkg.json`, exactly the format described in
   are a deliberate clean break; re-enter the package once and save it as a `.msipkg.json`.
 
 ## Typical workflow
+
+The short version is **Quick start**, then Validate, Save as… and Build — steps 1 to 4 below are what it
+does for you. The long version, if you would rather type it or the quick start's six answers do not fit:
 
 1. **New**, then fill in Product — the app name, manufacturer and version. Keep the generated
    `upgradeCode`; it is this product's identity from now on.

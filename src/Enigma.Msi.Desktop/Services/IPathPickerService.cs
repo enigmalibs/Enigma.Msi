@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 namespace Enigma.Msi.Desktop.Services;
 
 /// <summary>
-/// The four path questions this app asks the user: which profile to open, where to save one, which
-/// folder to package or write to, and which icon file to use. Each answers with a plain path, or
-/// <see langword="null"/> when the user cancelled.
+/// The five path questions this app asks the user: which profile to open, where to save one, which
+/// folder to package or write to, which icon file to use, and which executable a shortcut points at.
+/// Each answers with a plain path, or <see langword="null"/> when the user cancelled.
 /// </summary>
 /// <remarks>
 /// A deliberate thin seam over <c>Enigma.Avalonia.Desktop</c>'s <c>IFileDialogService</c> and
@@ -36,4 +36,9 @@ public interface IPathPickerService
     /// <param name="startLocation">Directory to open the dialog at; ignored when blank or missing.</param>
     /// <returns>The chosen file's path, or <see langword="null"/> if the user cancelled.</returns>
     Task<string?> PickIconAsync(string? startLocation);
+
+    /// <summary>Asks for an executable file.</summary>
+    /// <param name="startLocation">Directory to open the dialog at; ignored when blank or missing.</param>
+    /// <returns>The chosen file's path, or <see langword="null"/> if the user cancelled.</returns>
+    Task<string?> PickExecutableAsync(string? startLocation);
 }

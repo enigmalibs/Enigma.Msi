@@ -306,7 +306,7 @@ places that wire them in (`App`, `MainWindow`).
 
 ## PHASE02 — Quick-start dialog & Control Panel default
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-74c4-phase02-quick-start`
 
 The one-page quick start, its apply logic, and the Control Panel default. Ordered so the model-facing

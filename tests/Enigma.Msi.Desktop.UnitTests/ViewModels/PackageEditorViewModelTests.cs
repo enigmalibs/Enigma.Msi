@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Enigma.Msi.Desktop.Services;
@@ -298,6 +299,306 @@ public sealed class PackageEditorViewModelTests
         row.TargetPath = @"[INSTALLDIR]\Gone.exe";
 
         Assert.Equal(0, changes);
+    }
+
+    // ---- control panel default ----------------------------------------------------------------
+
+    [Fact]
+    public void Reset_LeavesTheControlPanelSectionOn()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        viewModel.HasControlPanelInfo = false;
+
+        viewModel.Reset();
+
+        Assert.True(viewModel.HasControlPanelInfo);
+        Assert.NotNull(viewModel.ToPackage().ControlPanel);
+    }
+
+    [Fact]
+    public void Reset_ThenSaved_WritesAnEmptyControlPanelBlock()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        // What the toggle honestly reports: the section is included, and nothing in it is filled in.
+        Assert.Contains("\"controlPanel\": {}", MsiPackageJson.Serialize(viewModel.ToPackage()));
+    }
+
+    // ---- has data -----------------------------------------------------------------------------
+
+    [Fact]
+    public void HasData_IsFalseOnAFreshPackage_DespiteItsGeneratedIdentifiers()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        Assert.False(viewModel.HasData);
+    }
+
+    [Fact]
+    public void HasData_IgnoresTheVersionAndTheTwoIdentifiers()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.Version = "9.9.9";
+        viewModel.NewProductIdCommand.Execute(null);
+        viewModel.NewUpgradeCodeCommand.Execute(null);
+
+        Assert.False(viewModel.HasData);
+    }
+
+    [Fact]
+    public void HasData_IsTrueForEachFieldThatCountsAsWork()
+    {
+        Assert.True(WithField(viewModel => viewModel.AppName = "Widget"));
+        Assert.True(WithField(viewModel => viewModel.Manufacturer = "Contoso AG"));
+        Assert.True(WithField(viewModel => viewModel.InstallPath = @"%ProgramFiles%\Widget"));
+        Assert.True(WithField(viewModel => viewModel.ReleasePath = @"C:\payload"));
+        Assert.True(WithField(viewModel => viewModel.OutputPath = @"C:\out"));
+        Assert.True(WithField(viewModel => viewModel.MsiFilename = "Widget"));
+        Assert.True(WithField(viewModel => viewModel.ProductIcon = @"C:\art\app.ico"));
+        Assert.True(WithField(viewModel => viewModel.Comments = "A widget."));
+        Assert.True(WithField(viewModel => viewModel.Contact = "support@contoso.example"));
+        Assert.True(WithField(viewModel => viewModel.HelpLink = "https://contoso.example/support"));
+        Assert.True(WithField(viewModel => viewModel.UrlInfoAbout = "https://contoso.example/widget"));
+        Assert.True(WithField(viewModel => viewModel.AddShortcutCommand.Execute(null)));
+        Assert.True(WithField(viewModel => viewModel.Ui.IsCustomized = true));
+    }
+
+    [Fact]
+    public void HasData_TreatsWhitespaceAsNothing()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.AppName = "   ";
+
+        Assert.False(viewModel.HasData);
+    }
+
+    // ---- quick start --------------------------------------------------------------------------
+
+    [Fact]
+    public void ApplyQuickStart_TakesTheFourEnteredFieldsVerbatim()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        QuickStartSettings settings = CreateSettings();
+
+        viewModel.ApplyQuickStart(settings);
+
+        Assert.Equal("Widget", viewModel.AppName);
+        Assert.Equal("2.1.0", viewModel.Version);
+        Assert.Equal("Contoso AG", viewModel.Manufacturer);
+        Assert.Equal(settings.ReleasePath, viewModel.ReleasePath);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_DerivesTheInstallPathUnderProgramFiles()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "  Widget  " });
+
+        Assert.Equal(@"%ProgramFiles%\Widget", viewModel.InstallPath);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_PutsTheOutputFolderBesideTheReleaseFolder()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        string release = Path.Combine(Root, "payload", "release");
+
+        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = release });
+
+        Assert.Equal(Path.Combine(Root, "payload"), viewModel.OutputPath);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_IgnoresATrailingSeparatorOnTheReleaseFolder()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        string release = Path.Combine(Root, "payload", "release") + Path.DirectorySeparatorChar;
+
+        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = release });
+
+        Assert.Equal(Path.Combine(Root, "payload"), viewModel.OutputPath);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_FallsBackToTheReleaseFolderWhenItHasNoParent()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = Root });
+
+        Assert.Equal(Root, viewModel.OutputPath);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_NamesTheMsiAfterTheApplication()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings());
+
+        Assert.Equal("Widget", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_SanitizesTheMsiFileName()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        // '/' is an invalid file-name character on every platform this suite runs on, so the expectation
+        // does not depend on the host.
+        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "Contoso/Widget" });
+
+        Assert.Equal("ContosoWidget", viewModel.MsiFilename);
+        Assert.DoesNotContain(
+            new MsiPackageValidator().Validate(viewModel.ToPackage()).Errors,
+            error => error.Path == "output.msiFilename");
+    }
+
+    [Fact]
+    public void ApplyQuickStart_StripsATrailingMsiExtensionFromTheFileName()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "Widget.MSI" });
+
+        Assert.Equal("Widget", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_FallsBackToAFileNameWhenNothingSurvivesSanitization()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "///" });
+
+        Assert.Equal(PackageEditorViewModel.FallbackMsiFilename, viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_SwitchesTheControlPanelSectionOnWithTheIcon()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        QuickStartSettings settings = CreateSettings();
+
+        viewModel.ApplyQuickStart(settings);
+
+        Assert.True(viewModel.HasControlPanelInfo);
+        Assert.Equal(settings.IconPath, viewModel.ProductIcon);
+        Assert.Equal(settings.IconPath, viewModel.ToPackage().ControlPanel?.ProductIcon);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_AppendsExactlyTwoShortcuts_ProgramMenuThenDesktop()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        QuickStartSettings settings = CreateSettings();
+
+        viewModel.ApplyQuickStart(settings);
+
+        Assert.Equal(2, viewModel.Shortcuts.Count);
+        Assert.Equal("%ProgramMenu%", viewModel.Shortcuts[0].ShortcutPath);
+        Assert.Equal("%Desktop%", viewModel.Shortcuts[1].ShortcutPath);
+
+        foreach (ShortcutViewModel shortcut in viewModel.Shortcuts)
+        {
+            Assert.Equal("Widget", shortcut.ShortcutName);
+            Assert.Equal(@"[INSTALLDIR]\Widget.exe", shortcut.TargetPath);
+            Assert.Equal(settings.IconPath, shortcut.IconPath);
+            Assert.Equal(string.Empty, shortcut.Arguments);
+        }
+    }
+
+    [Fact]
+    public void ApplyQuickStart_KeepsANestedExecutablesSubFolderInTheTarget()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings() with { ExecutableRelativePath = @"bin\Widget.exe" });
+
+        Assert.Equal(@"[INSTALLDIR]\bin\Widget.exe", viewModel.Shortcuts[0].TargetPath);
+        Assert.Equal(@"[INSTALLDIR]\bin\Widget.exe", viewModel.Shortcuts[1].TargetPath);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_ReplacesTheWholePackage_WithFreshIdentifiers()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        viewModel.LoadFrom(TestPackages.CreateFull());
+        string productId = viewModel.ProductId;
+        string upgradeCode = viewModel.UpgradeCode;
+
+        viewModel.ApplyQuickStart(CreateSettings());
+
+        Assert.NotEqual(productId, viewModel.ProductId);
+        Assert.NotEqual(upgradeCode, viewModel.UpgradeCode);
+        Assert.Equal(2, viewModel.Shortcuts.Count);
+        Assert.Equal(string.Empty, viewModel.Comments);
+        Assert.Equal(string.Empty, viewModel.Contact);
+        Assert.Equal(string.Empty, viewModel.HelpLink);
+        Assert.Equal(string.Empty, viewModel.UrlInfoAbout);
+        Assert.False(viewModel.Ui.IsCustomized);
+        Assert.Equal(InstallScope.PerMachine, viewModel.Scope);
+        Assert.Equal(CompressionLevel.High, viewModel.Compression);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_WiresTheNewShortcutsIntoTheChangeNotification()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        viewModel.ApplyQuickStart(CreateSettings());
+        int changes = 0;
+        viewModel.Changed += (_, _) => changes++;
+
+        viewModel.Shortcuts[1].Arguments = "--quiet";
+
+        Assert.True(changes > 0);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_RejectsMissingSettings()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        ArgumentNullException exception =
+            Assert.Throws<ArgumentNullException>(() => viewModel.ApplyQuickStart(null!));
+
+        Assert.Equal("settings", exception.ParamName);
+    }
+
+    [Fact]
+    public void ApplyQuickStart_ProducesAPackageThatPassesTheInMemoryRules()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.ApplyQuickStart(CreateSettings());
+
+        Assert.Empty(viewModel.GetInputErrors());
+        Assert.True(new MsiPackageValidator().Validate(viewModel.ToPackage()).IsValid);
+    }
+
+    // ---- helpers ------------------------------------------------------------------------------
+
+    // The drive root the derivation tests build their paths under: "C:\" on Windows, "/" elsewhere, so
+    // parents and roots are the host's own rather than a hard-coded Windows literal.
+    private static string Root => Path.GetPathRoot(Path.GetTempPath())!;
+
+    private static QuickStartSettings CreateSettings() => new(
+        "Widget",
+        "2.1.0",
+        "Contoso AG",
+        Path.Combine(Root, "payload", "release"),
+        Path.Combine(Root, "art", "app.ico"),
+        "Widget.exe");
+
+    private bool WithField(Action<PackageEditorViewModel> edit)
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        edit(viewModel);
+
+        return viewModel.HasData;
     }
 
     private PackageEditorViewModel CreateViewModel() => new(_pathPicker);
