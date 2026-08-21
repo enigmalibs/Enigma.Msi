@@ -48,10 +48,11 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > NuGet push; `docs/RELEASE.md` §0 says which sections apply to which release flavour.
 >
 > **Outstanding, and Windows-only:** the 1.1.0 dogfood MSI has **not** been built — `PHASE02` ran on Linux,
-> where there is no WiX CLI and the `net472` worker cannot start. The same run leaves the 32 Windows-only
-> `Enigma.Msi.UnitTests` cases and the whole `Enigma.Msi.Worker.UnitTests` suite unexercised since before
-> `PHASE01`. Both need one Windows pass before 1.1.0 is called good; the commands are in
-> `docs/done/FEATURE-6C35-PHASE02.md`.
+> where there is no WiX CLI and the `net472` worker cannot start; the commands are in
+> `docs/done/FEATURE-6C35-PHASE02.md`. The **test-suite** half of that debt is settled: `FEATURE-74C4`
+> `PHASE01` ran the whole solution on Windows — 392 passed, 0 skipped — so the 32 Windows-only
+> `Enigma.Msi.UnitTests` cases and the entire `Enigma.Msi.Worker.UnitTests` suite (mapping + the WixSharp
+> enum drift guards) are exercised again.
 
 ## Architecture
 

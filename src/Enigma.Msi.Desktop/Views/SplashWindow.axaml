@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="280"
+        x:Class="Enigma.Msi.Desktop.Views.SplashWindow"
+        x:DataType="vm:SplashViewModel"
+        Title="Enigma.Msi"
+        Width="480" Height="280"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource EnigmaSurfaceBrush}">
+  <!-- Undecorated windows have no frame of their own, so the border is the window's only edge. -->
+  <Border BorderThickness="1" BorderBrush="{DynamicResource EnigmaBorderBrush}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+      <Image Source="avares://Enigma.Msi.Desktop/Assets/logo.png"
+             Width="96" Height="96"
+             HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Name}"
+                 FontSize="28" FontWeight="SemiBold"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Tagline}"
+                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Version}"
+                 FontSize="12"
+                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}"
+                 HorizontalAlignment="Center"
+                 Margin="0,6,0,0" />
+      <TextBlock Text="{Binding Author}"
+                 FontSize="12"
+                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}"
+                 HorizontalAlignment="Center" />
+    </StackPanel>
+  </Border>
+</Window>

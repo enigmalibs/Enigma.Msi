@@ -1,6 +1,6 @@
 # FEATURE-74C4 — Desktop app 1.2.0: identity, quick start & release
 
-**Status:** TODO (multi-phase — 3 phases)
+**Status:** IN PROGRESS (multi-phase — 3 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-74c4-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-6C35 fully DONE (app at 1.1.0; this item builds the next app release on top).
@@ -148,7 +148,7 @@ re-derive these from memory; they are the exact strings to type.**
 
 ## PHASE01 — Splash screen & About dialog
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-74c4-phase01-splash-about`
 
 All in `src/Enigma.Msi.Desktop` (+ its test project + the desktop guide). New files first, then the two

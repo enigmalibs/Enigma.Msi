@@ -33,6 +33,7 @@ public sealed class MainWindowViewModelTests : IDisposable
     private readonly IContentDialogService _contentDialogService = Substitute.For<IContentDialogService>();
     private readonly IInfoBarService _infoBarService = Substitute.For<IInfoBarService>();
     private readonly IBuildProgressService _buildProgress = Substitute.For<IBuildProgressService>();
+    private readonly IAboutDialogService _aboutDialog = Substitute.For<IAboutDialogService>();
     private readonly FakeBuildService _buildService = new();
 
     /// <inheritdoc />
@@ -380,6 +381,7 @@ public sealed class MainWindowViewModelTests : IDisposable
             _infoBarService,
             new InlineUiDispatcher(),
             null!,
+            _aboutDialog,
             NullLogger<MainWindowViewModel>.Instance));
 
         Assert.Equal("buildProgress", exception.ParamName);
@@ -394,6 +396,36 @@ public sealed class MainWindowViewModelTests : IDisposable
         viewModel.ClearLogCommand.Execute(null);
 
         Assert.Empty(viewModel.BuildLog);
+    }
+
+    // ---- about --------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task ShowAbout_OpensTheAboutDialog()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+
+        await viewModel.ShowAboutCommand.ExecuteAsync(null);
+
+        _ = _aboutDialog.Received(1).ShowAsync();
+    }
+
+    [Fact]
+    public void Constructor_RejectsAMissingAboutDialogService()
+    {
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new MainWindowViewModel(
+            new PackageEditorViewModel(_pathPicker),
+            new MsiPackageValidator(),
+            _buildService,
+            _pathPicker,
+            _contentDialogService,
+            _infoBarService,
+            new InlineUiDispatcher(),
+            _buildProgress,
+            null!,
+            NullLogger<MainWindowViewModel>.Instance));
+
+        Assert.Equal("aboutDialog", exception.ParamName);
     }
 
     // ---- files --------------------------------------------------------------------------------
@@ -533,6 +565,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         _infoBarService,
         new InlineUiDispatcher(),
         _buildProgress,
+        _aboutDialog,
         NullLogger<MainWindowViewModel>.Instance);
 
     // The overlay is modal, so *when* it comes down matters as much as that it does: an outcome reported

@@ -12,8 +12,9 @@ using NLog.Extensions.Logging;
 namespace Enigma.Msi.Desktop;
 
 /// <summary>
-/// The Avalonia application. Resolves the window from the host built in <see cref="Program"/> and
-/// hands the control library its three hosts and the window's storage provider.
+/// The Avalonia application. Resolves the windows from the host built in <see cref="Program"/>, hands the
+/// control library its three hosts and the window's storage provider, and sequences the splash-to-window
+/// handover.
 /// </summary>
 public partial class App : Application
 {
@@ -32,7 +33,7 @@ public partial class App : Application
             var mainWindow = services.GetRequiredService<MainWindow>();
             mainWindow.DataContext = services.GetRequiredService<MainWindowViewModel>();
 
-            // Before the window is shown: a service whose host is still unregistered throws the
+            // Before any window is shown: a service whose host is still unregistered throws the
             // moment a ViewModel asks it for anything.
             services.GetRequiredService<IContentDialogService>().RegisterHost(mainWindow.HostDialog);
             services.GetRequiredService<IOverlayService>().RegisterHost(mainWindow.HostOverlay);
@@ -40,10 +41,31 @@ public partial class App : Application
             services.GetRequiredService<IFileDialogService>().SetStorageProvider(mainWindow.StorageProvider);
             services.GetRequiredService<IFolderDialogService>().SetStorageProvider(mainWindow.StorageProvider);
 
-            desktop.MainWindow = mainWindow;
+            var splash = services.GetRequiredService<SplashWindow>();
+            splash.DataContext = services.GetRequiredService<SplashViewModel>();
+            splash.Dismissed += (_, _) => ShowMainWindow(desktop, mainWindow, splash);
+
+            // The lifetime shows whatever MainWindow holds once this method returns, so the splash needs
+            // no Show() of its own — and being the initial MainWindow is what makes it the *only* thing
+            // on screen, rather than something that appears alongside the real window.
+            desktop.MainWindow = splash;
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    // The order here is load-bearing, though not for the obvious reason: the default ShutdownMode is
+    // OnLastWindowClose — a last-window-standing rule, not a MainWindow-identity one — so the real window
+    // has to be open before the splash closes, or the process exits. Reassigning MainWindow is not enough
+    // on its own either: only the *initial* MainWindow is shown automatically.
+    private static void ShowMainWindow(
+        IClassicDesktopStyleApplicationLifetime desktop,
+        MainWindow mainWindow,
+        SplashWindow splash)
+    {
+        desktop.MainWindow = mainWindow;
+        mainWindow.Show();
+        splash.Close();
     }
 
     private static IServiceProvider BuildDesignerServices()

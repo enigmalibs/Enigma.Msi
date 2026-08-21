@@ -27,6 +27,14 @@ dotnet run --project src/Enigma.Msi.Desktop
 Or, from a release build, `Enigma.Msi.Desktop.exe` in the output folder — with its `worker\` subfolder
 next to it. The app finds the worker there by itself; no configuration.
 
+## The splash screen
+
+The app opens with a splash: the logo, **Enigma.Msi**, the tagline, the running version and the author. It
+is the only window on screen while it is up — the main window appears when it goes.
+
+It stays for about two seconds, and **any click or key press dismisses it immediately**. There is no
+setting to turn it off, and it behaves the same in Debug and Release.
+
 ## The window
 
 A command bar across the top; below it the package form on the left and two panes on the right —
@@ -45,6 +53,11 @@ line runs along the bottom.
 
 There is no Cancel button in the command bar: a running build covers the window with a modal progress card,
 and that card carries the one cancel affordance.
+
+At the far right of the same bar sits an **icon-only About button**. It opens a modal dialog reporting the
+logo, the name and tagline, the app version, the copyright, the author and the repository URL — with a
+**View on GitHub** button that opens the repository in your browser. The URL is selectable text as well,
+so it can be copied by hand on a machine with no browser association. Close or Escape dismisses it.
 
 The title bar shows the open profile (`Enigma.Msi — Widget.msipkg.json`) or `Enigma.Msi — new package`. A
 status line reports the last thing that happened; results also arrive as an info bar.

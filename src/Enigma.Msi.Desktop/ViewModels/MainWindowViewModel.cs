@@ -36,6 +36,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IInfoBarService _infoBarService;
     private readonly IUiDispatcher _uiDispatcher;
     private readonly IBuildProgressService _buildProgress;
+    private readonly IAboutDialogService _aboutDialog;
     private readonly ILogger<MainWindowViewModel> _logger;
 
     private CancellationTokenSource? _buildCancellation;
@@ -61,6 +62,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <param name="infoBarService">Reports the outcome of validate and build.</param>
     /// <param name="uiDispatcher">Marshals streamed log lines onto the UI thread.</param>
     /// <param name="buildProgress">Shows the modal build card while a build runs.</param>
+    /// <param name="aboutDialog">Shows the About dialog.</param>
     /// <param name="logger">Records what the user did and what failed.</param>
     /// <exception cref="ArgumentNullException">Any argument is <see langword="null"/>.</exception>
     public MainWindowViewModel(
@@ -72,6 +74,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IInfoBarService infoBarService,
         IUiDispatcher uiDispatcher,
         IBuildProgressService buildProgress,
+        IAboutDialogService aboutDialog,
         ILogger<MainWindowViewModel> logger)
     {
         Package = package ?? throw new ArgumentNullException(nameof(package));
@@ -82,6 +85,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _infoBarService = infoBarService ?? throw new ArgumentNullException(nameof(infoBarService));
         _uiDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
         _buildProgress = buildProgress ?? throw new ArgumentNullException(nameof(buildProgress));
+        _aboutDialog = aboutDialog ?? throw new ArgumentNullException(nameof(aboutDialog));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         ValidationErrors.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasValidationErrors));
@@ -302,6 +306,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Empties the build log.</summary>
     [RelayCommand]
     private void ClearLog() => BuildLog.Clear();
+
+    /// <summary>Shows the About dialog.</summary>
+    [RelayCommand]
+    private Task ShowAboutAsync() => _aboutDialog.ShowAsync();
 
     private bool CanBuild => !IsBuilding && IsPackageValid;
 
