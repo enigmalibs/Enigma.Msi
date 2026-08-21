@@ -19,3 +19,7 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-6C35 | Desktop app 1.1.0: UI polish & release                      | DONE        | docs/plan/FEATURE-6C35.md |
 | - PHASE01    | UI improvements (hints, overlay, shortcuts, icons, warning) | DONE        | (in FEATURE-6C35.md)      |
 | - PHASE02    | Release prep: desktop app 1.1.0                             | DONE        | (in FEATURE-6C35.md)      |
+| FEATURE-74C4 | Desktop app 1.2.0: identity & quick start                   | TODO        | docs/plan/FEATURE-74C4.md |
+| - PHASE01    | Splash screen & About dialog                                | TODO        | (in FEATURE-74C4.md)      |
+| - PHASE02    | Quick-start dialog & Control Panel default                  | TODO        | (in FEATURE-74C4.md)      |
+| - PHASE03    | Release prep: desktop app 1.2.0                             | TODO        | (in FEATURE-74C4.md)      |
