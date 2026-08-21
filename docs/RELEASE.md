@@ -5,7 +5,7 @@ Reusable checklist for publishing a new **Enigma.Msi** version to NuGet, and for
 NuGet; the worker ships *inside* that package under `tools/worker/`, and the desktop app is released as an
 `.msi` rather than as a package.
 
-Replace `X.Y.Z` with the version being released (e.g. `1.1.0`) throughout. The library version lives in
+Replace `X.Y.Z` with the version being released (e.g. `1.2.0`) throughout. The library version lives in
 `src/Enigma.Msi/Enigma.Msi.csproj` (`<Version>`); the desktop app carries its own independent `<Version>` in
 `src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj` and is not published to NuGet. They coincided at 1.0.0
 and parted at the app's 1.1.0; nothing keeps them in step.
@@ -29,10 +29,11 @@ library would only publish a duplicate. §1's library-specific checkboxes (libra
 build and the full test suite still gate the release, and `RELEASENOTES.md` is the single notes source
 for both artifacts, so it still gets a section.
 
-**Tagging an app-only release is the maintainer's call.** §3's bare `X.Y.Z` convention names the library
-version; an app-only release either goes untagged or wants a distinct, app-scoped tag (e.g.
-`desktop/X.Y.Z`) so the two artifacts' version streams do not collide in one namespace. Nothing in this
-repository picks for you.
+**Tagging an app-only release stays the maintainer's call, but there is now a precedent.** The app-only
+1.1.0 was tagged bare `1.1.0` on its merge commit, alongside the library's `1.0.0` — so in practice the
+two artifacts share one bare-version tag namespace rather than getting an app-scoped prefix (e.g.
+`desktop/X.Y.Z`). Keeping that is the path of least surprise; splitting the namespaces is still open, and
+nothing in this repository tags anything for you.
 
 ## 1. Pre-release checks
 
@@ -71,8 +72,8 @@ git pull
 
 ## 3. Tag the release
 
-Match the repo's existing tag convention — run `git tag` to see how prior releases were tagged (bare `X.Y.Z`
-vs. `vX.Y.Z`). Default to a **bare** `X.Y.Z` tag when the repo has none. Tag the merge commit and push the tag:
+The convention here is a **bare** `X.Y.Z` tag — `git tag` shows `1.0.0` and `1.1.0`, no `v` prefix. Tag the
+merge commit and push the tag:
 
 ```bash
 git tag X.Y.Z

@@ -1,6 +1,6 @@
 # FEATURE-74C4 — Desktop app 1.2.0: identity, quick start & release
 
-**Status:** IN PROGRESS (multi-phase — 3 phases)
+**Status:** DONE (multi-phase — 3 phases, all complete)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-74c4-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-6C35 fully DONE (app at 1.1.0; this item builds the next app release on top).
@@ -485,7 +485,7 @@ logic and its tests exist before the dialog that drives them.
 
 ## PHASE03 — Release prep: desktop app 1.2.0
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-74c4-phase03-release-1-2-0`
 
 Mirrors FEATURE-6C35 PHASE02 for the next version, **plus** the Windows verification that 1.1.0 could not
