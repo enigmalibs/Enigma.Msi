@@ -771,18 +771,20 @@ public sealed class MainWindowViewModelTests : IDisposable
         return package;
     }
 
-    // Six answers the dialog would have validated before handing them over — the relative executable
+    // Seven answers the dialog would have validated before handing them over — the relative executable
     // path is what crosses the seam, not the absolute one.
     private static QuickStartSettings CreateSettings() => new(
         "Widget",
         "2.1.0",
         "Contoso AG",
         Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "payload", "release"),
+        Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "payload"),
         Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "art", "app.ico"),
         @"bin\Widget.exe");
 
     // A payload folder as a real build would leave it: the executable in a sub-folder, an icon beside it,
-    // and a parent directory for the MSI to be written into.
+    // and an existing directory for the MSI to be written into — the answer the user now gives, rather
+    // than one derived from the release folder.
     private QuickStartSettings CreateSettingsForARealFolder()
     {
         string release = Path.Combine(_tempDirectory, "payload", "release");
@@ -790,8 +792,10 @@ public sealed class MainWindowViewModelTests : IDisposable
         File.WriteAllText(Path.Combine(release, "bin", "Widget.exe"), "not really an executable");
         string icon = Path.Combine(release, "app.ico");
         File.WriteAllText(icon, "not really an icon");
+        string output = Path.Combine(_tempDirectory, "payload");
 
-        return new QuickStartSettings("Widget", "2.1.0", "Contoso AG", release, icon, @"bin\Widget.exe");
+        return new QuickStartSettings(
+            "Widget", "2.1.0", "Contoso AG", release, output, icon, @"bin\Widget.exe");
     }
 
     private string TempPath(string fileName)

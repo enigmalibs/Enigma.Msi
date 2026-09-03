@@ -57,8 +57,9 @@ public static class ServiceCollectionExtensions
 
         /// <summary>Registers the windows, the form, the dialog content and their ViewModels.</summary>
         /// <remarks>
-        /// The splash pair is transient on purpose: it is shown once at startup and closed, and a
-        /// singleton would keep a dead window alive for the life of the process. The quick-start form is
+        /// The splash window is transient on purpose: it is shown once at startup and closed, and a
+        /// singleton would keep a dead window alive for the life of the process. It comes without a
+        /// ViewModel — its two lines are read off <c>AppInfo</c> in the markup. The quick-start form is
         /// transient for the opposite reason: it is shown <em>repeatedly</em>, and a shared instance
         /// would open the second run on the first run's answers — which is why its service takes a
         /// factory rather than the ViewModel itself.
@@ -70,7 +71,6 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<PackageEditorViewModel>();
             _ = services.AddSingleton<AboutViewModel>();
             _ = services.AddTransient<SplashWindow>();
-            _ = services.AddTransient<SplashViewModel>();
             _ = services.AddTransient<QuickStartViewModel>();
             _ = services.AddSingleton<Func<QuickStartViewModel>>(
                 provider => provider.GetRequiredService<QuickStartViewModel>);

@@ -2,39 +2,43 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="280"
+        xmlns:services="using:Enigma.Msi.Desktop.Services"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="260"
         x:Class="Enigma.Msi.Desktop.Views.SplashWindow"
-        x:DataType="vm:SplashViewModel"
         Title="Enigma.Msi"
-        Width="480" Height="280"
+        Width="420" Height="260"
         CanResize="False"
         ShowInTaskbar="False"
         Topmost="True"
         WindowDecorations="None"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource EnigmaSurfaceBrush}">
+
+  <!-- No x:DataType and no DataContext: there is nothing to bind to. What the splash shows is fixed
+       for the life of the process, so it is read straight off AppInfo with x:Static rather than
+       through a ViewModel that would exist to forward two constants. -->
+
   <!-- Undecorated windows have no frame of their own, so the border is the window's only edge. -->
-  <Border BorderThickness="1" BorderBrush="{DynamicResource EnigmaBorderBrush}">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+  <Border BorderThickness="1" BorderBrush="{DynamicResource EnigmaBorderSubtleBrush}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+
       <Image Source="avares://Enigma.Msi.Desktop/Assets/logo.png"
              Width="96" Height="96"
              HorizontalAlignment="Center" />
-      <TextBlock Text="{Binding Name}"
-                 FontSize="28" FontWeight="SemiBold"
+
+      <TextBlock Text="{x:Static services:AppInfo.Name}"
+                 FontSize="18" FontWeight="SemiBold"
                  HorizontalAlignment="Center" />
-      <TextBlock Text="{Binding Tagline}"
-                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}"
-                 HorizontalAlignment="Center" />
-      <TextBlock Text="{Binding Version}"
-                 FontSize="12"
-                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}"
-                 HorizontalAlignment="Center"
-                 Margin="0,6,0,0" />
-      <TextBlock Text="{Binding Author}"
-                 FontSize="12"
-                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}"
-                 HorizontalAlignment="Center" />
+
+      <!-- The version, and nothing else. A progress or status line would spend its two seconds
+           flickering through stages nobody can read. -->
+      <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+        <TextBlock Text="Version"
+                   Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+        <TextBlock Text="{x:Static services:AppInfo.Version}"
+                   Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+      </StackPanel>
+
     </StackPanel>
   </Border>
 </Window>

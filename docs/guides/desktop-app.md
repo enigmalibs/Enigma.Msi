@@ -29,8 +29,9 @@ next to it. The app finds the worker there by itself; no configuration.
 
 ## The splash screen
 
-The app opens with a splash: the logo, **Enigma.Msi**, the tagline, the running version and the author. It
-is the only window on screen while it is up — the main window appears when it goes.
+The app opens with a splash: the logo, **Enigma.Msi** and `Version <x.y.z>` — and nothing else. The
+tagline, the copyright and the author line are in the About dialog, which is where there is time to read
+them. It is the only window on screen while it is up — the main window appears when it goes.
 
 It stays for about two seconds, and **any click or key press dismisses it immediately**. There is no
 setting to turn it off, and it behaves the same in Debug and Release.
@@ -44,7 +45,7 @@ line runs along the bottom.
 
 | Command | What it does |
 |---|---|
-| **Quick start** | Asks six questions and fills the whole form from the answers. See [Quick start](#quick-start). |
+| **Quick start** | Asks seven questions and fills the whole form from the answers. See [Quick start](#quick-start). |
 | **New** | Starts an empty package, with freshly generated `productId` and `upgradeCode` and the version at `1.0.0`. Discards what is in the form. |
 | **Open** | Loads a `.msipkg.json` profile into the form. |
 | **Save** | Saves to the open profile, asking for a path the first time. |
@@ -71,7 +72,7 @@ why Build can be enabled and still report problems. The hint next to the disable
 
 ## Quick start
 
-Six answers, and the form comes back filled in. It is the fastest way from a published folder to a
+Seven answers, and the form comes back filled in. It is the fastest way from a published folder to a
 buildable package, and nothing it produces is beyond editing afterwards — the quick start is assistance,
 never the only path.
 
@@ -80,7 +81,8 @@ never the only path.
 | **Application name** | The product's name. Also the MSI file name, both shortcut names, and the last segment of the install path. |
 | **Version** | The product version. Must parse as a version number. |
 | **Manufacturer** | The publisher. |
-| **Release folder** | The folder whose contents are packaged. Browse for it first: the next two questions open their pickers here. |
+| **Release folder** | The folder whose contents are packaged. Browse for it first: the icon and executable questions open their pickers here. |
+| **Output folder** | Where the built `.msi` is written. Typically the release folder's parent, so the installer lands beside the payload rather than inside it — but any folder is accepted, the release folder itself included. Its Browse button works from the start; it depends on nothing. |
 | **Icon** | An `.ico` file. Used as the product icon *and* on both shortcuts. |
 | **Main executable** | The `.exe` both shortcuts point at. It must be **inside the release folder** — that folder is what `[INSTALLDIR]` becomes once the MSI is installed — and the dialog says so if it is not. |
 
@@ -89,17 +91,16 @@ From those, it derives:
 | Field | Derived as |
 |---|---|
 | Install path | `%ProgramFiles%\<application name>` |
-| Output folder | The release folder's **parent** — beside the payload, not inside it. A release folder at a drive root has no parent, and the output folder then falls back to the release folder itself. |
 | MSI file name | The application name, with any character a file name cannot hold removed and a trailing `.msi` stripped. If nothing survives that, `package`. |
 | Product icon | The chosen icon, with the Control Panel section switched on. |
 | Shortcuts | Two, in this order: `%ProgramMenu%` then `%Desktop%`. Each named after the application, targeting `[INSTALLDIR]\<executable>` — a nested executable keeps its sub-folder, e.g. `[INSTALLDIR]\bin\Widget.exe` — and carrying the icon. |
 
-**Apply stays disabled until all six are answered**, the version parses, and the executable is inside the
+**Apply stays disabled until all seven are answered**, the version parses, and the executable is inside the
 release folder. Those are string and parse rules only — no path is checked for existing here, which is the
-main form's Problems pane's job, in one place.
+main form's Problems pane's job, in one place. An output folder that does not exist is reported there, once.
 
 **Applying replaces the package**, it does not merge into it: `productId` and `upgradeCode` are
-regenerated and everything else goes back to a new package's defaults before the six answers are applied.
+regenerated and everything else goes back to a new package's defaults before the seven answers are applied.
 If the form already holds something, you are asked to confirm first — and cancelling the quick-start
 dialog itself asks nothing at all.
 
@@ -191,7 +192,7 @@ Saved packages are `<name>.msipkg.json`, exactly the format described in
 ## Typical workflow
 
 The short version is **Quick start**, then Validate, Save as… and Build — steps 1 to 4 below are what it
-does for you. The long version, if you would rather type it or the quick start's six answers do not fit:
+does for you. The long version, if you would rather type it or the quick start's seven answers do not fit:
 
 1. **New**, then fill in Product — the app name, manufacturer and version. Keep the generated
    `upgradeCode`; it is this product's identity from now on.

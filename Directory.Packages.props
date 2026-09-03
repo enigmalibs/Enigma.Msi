@@ -35,6 +35,13 @@
     <PackageVersion Include="Avalonia" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Desktop" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <!-- The headless test harness lives in this block rather than with the test packages below: it is
+         version-locked to the Avalonia it drives, so it moves with the coupled set and never alone.
+         Avalonia.Headless supplies a windowing and drawing platform with no screen behind it;
+         Avalonia.Headless.XUnit adds [AvaloniaFact]/[AvaloniaTheory], whose 12.1.1 build is built
+         against xunit.v3 — the runner this solution already uses. -->
+    <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.1" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />

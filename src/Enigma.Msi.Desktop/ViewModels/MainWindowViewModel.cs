@@ -71,7 +71,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <param name="uiDispatcher">Marshals streamed log lines onto the UI thread.</param>
     /// <param name="buildProgress">Shows the modal build card while a build runs.</param>
     /// <param name="aboutDialog">Shows the About dialog.</param>
-    /// <param name="quickStartDialog">Collects the six answers the quick start fills the form from.</param>
+    /// <param name="quickStartDialog">Collects the seven answers the quick start fills the form from.</param>
     /// <param name="logger">Records what the user did and what failed.</param>
     /// <exception cref="ArgumentNullException">Any argument is <see langword="null"/>.</exception>
     public MainWindowViewModel(
@@ -323,7 +323,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private Task ShowAboutAsync() => _aboutDialog.ShowAsync();
 
     /// <summary>
-    /// Asks the six quick-start questions and fills the form from the answers.
+    /// Asks the seven quick-start questions and fills the form from the answers.
     /// </summary>
     [RelayCommand]
     private async Task QuickStartAsync()

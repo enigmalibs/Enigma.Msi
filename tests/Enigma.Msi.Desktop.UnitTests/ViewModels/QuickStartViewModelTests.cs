@@ -10,7 +10,7 @@ namespace Enigma.Msi.Desktop.UnitTests.ViewModels;
 
 /// <summary>
 /// Covers the quick start's form: the Apply gate, the relative-path derivation that a shortcut target
-/// needs, and the three browse commands over the substituted picker.
+/// needs, and the four browse commands over the substituted picker.
 /// </summary>
 public sealed class QuickStartViewModelTests
 {
@@ -21,6 +21,8 @@ public sealed class QuickStartViewModelTests
     private static string Root => Path.GetPathRoot(Path.GetTempPath())!;
 
     private static string ReleaseFolder => Path.Combine(Root, "payload", "release");
+
+    private static string OutputFolder => Path.Combine(Root, "drops");
 
     // ---- the apply gate -----------------------------------------------------------------------
 
@@ -34,7 +36,7 @@ public sealed class QuickStartViewModelTests
     }
 
     [Fact]
-    public void CanApply_IsTrueOnceAllSixAnswersAreThere()
+    public void CanApply_IsTrueOnceAllSevenAnswersAreThere()
     {
         QuickStartViewModel viewModel = CreateCompleteViewModel();
 
@@ -48,6 +50,7 @@ public sealed class QuickStartViewModelTests
         Assert.False(WithoutAnswer(viewModel => viewModel.Version = string.Empty));
         Assert.False(WithoutAnswer(viewModel => viewModel.Manufacturer = string.Empty));
         Assert.False(WithoutAnswer(viewModel => viewModel.ReleasePath = string.Empty));
+        Assert.False(WithoutAnswer(viewModel => viewModel.OutputPath = "   "));
         Assert.False(WithoutAnswer(viewModel => viewModel.IconPath = string.Empty));
         Assert.False(WithoutAnswer(viewModel => viewModel.ExecutablePath = string.Empty));
     }
@@ -139,7 +142,7 @@ public sealed class QuickStartViewModelTests
         Assert.False(viewModel.HasExecutableError);
     }
 
-    // ---- the three browse commands -------------------------------------------------------------
+    // ---- the four browse commands --------------------------------------------------------------
 
     [Fact]
     public async Task BrowseReleasePath_TakesThePickedFolder()
@@ -162,6 +165,31 @@ public sealed class QuickStartViewModelTests
         await viewModel.BrowseReleasePathCommand.ExecuteAsync(null);
 
         Assert.Equal(ReleaseFolder, viewModel.ReleasePath);
+    }
+
+    [Fact]
+    public async Task BrowseOutputPath_TakesThePickedFolderAndOpensAtWhatIsAlreadyThere()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+        viewModel.OutputPath = Path.Combine(Root, "old-drops");
+        _pathPicker.PickFolderAsync(Arg.Any<string>(), Arg.Any<string?>()).Returns(OutputFolder);
+
+        await viewModel.BrowseOutputPathCommand.ExecuteAsync(null);
+
+        Assert.Equal(OutputFolder, viewModel.OutputPath);
+        _ = _pathPicker.Received(1).PickFolderAsync(Arg.Any<string>(), Path.Combine(Root, "old-drops"));
+    }
+
+    [Fact]
+    public async Task BrowseOutputPath_LeavesTheFieldAloneWhenCancelled()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+        viewModel.OutputPath = OutputFolder;
+        _pathPicker.PickFolderAsync(Arg.Any<string>(), Arg.Any<string?>()).Returns((string?)null);
+
+        await viewModel.BrowseOutputPathCommand.ExecuteAsync(null);
+
+        Assert.Equal(OutputFolder, viewModel.OutputPath);
     }
 
     [Fact]
@@ -197,7 +225,10 @@ public sealed class QuickStartViewModelTests
     {
         QuickStartViewModel viewModel = CreateViewModel();
 
+        // The output folder depends on nothing, so its picker is open from the start — unlike the two
+        // that need somewhere to start browsing from.
         Assert.True(viewModel.BrowseReleasePathCommand.CanExecute(null));
+        Assert.True(viewModel.BrowseOutputPathCommand.CanExecute(null));
         Assert.False(viewModel.BrowseIconCommand.CanExecute(null));
         Assert.False(viewModel.BrowseExecutableCommand.CanExecute(null));
 
@@ -227,6 +258,7 @@ public sealed class QuickStartViewModelTests
         viewModel.AppName = "  Widget  ";
         viewModel.Version = " 2.1.0 ";
         viewModel.Manufacturer = " Contoso AG ";
+        viewModel.OutputPath = $"  {OutputFolder}  ";
 
         QuickStartSettings settings = viewModel.ToSettings();
 
@@ -234,6 +266,27 @@ public sealed class QuickStartViewModelTests
         Assert.Equal("2.1.0", settings.Version);
         Assert.Equal("Contoso AG", settings.Manufacturer);
         Assert.Equal(ReleaseFolder, settings.ReleasePath);
+        Assert.Equal(OutputFolder, settings.OutputPath);
+    }
+
+    [Fact]
+    public void ToSettings_CarriesTheEnteredOutputFolder()
+    {
+        QuickStartViewModel viewModel = CreateCompleteViewModel();
+
+        QuickStartSettings settings = viewModel.ToSettings();
+
+        Assert.Equal(OutputFolder, settings.OutputPath);
+    }
+
+    [Fact]
+    public void CanApply_AcceptsAnOutputFolderInsideTheReleaseFolder()
+    {
+        QuickStartViewModel viewModel = CreateCompleteViewModel();
+
+        viewModel.OutputPath = Path.Combine(ReleaseFolder, "installer");
+
+        Assert.True(viewModel.CanApply);
     }
 
     // ---- helpers -------------------------------------------------------------------------------
@@ -247,6 +300,7 @@ public sealed class QuickStartViewModelTests
         viewModel.Version = "2.1.0";
         viewModel.Manufacturer = "Contoso AG";
         viewModel.ReleasePath = ReleaseFolder;
+        viewModel.OutputPath = OutputFolder;
         viewModel.IconPath = Path.Combine(Root, "art", "app.ico");
         viewModel.ExecutablePath = Path.Combine(ReleaseFolder, "Widget.exe");
 

@@ -1,6 +1,6 @@
 # FEATURE-2D02 — Desktop app 1.3.0: quick-start output folder, splash restyle & de-NuGet
 
-**Status:** TODO (multi-phase — 4 phases)
+**Status:** DONE (multi-phase — 4 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-2d02-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-74C4 fully DONE (app at 1.2.0; this item builds the next app release on top).
@@ -107,7 +107,7 @@ Read from the repository at planning time (2026-09-03), and binding on every pha
 
 ## PHASE01 — Quick start: output folder field
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase01-quickstart-output-folder`
 
 1. `src/Enigma.Msi.Desktop/ViewModels/QuickStartSettings.cs` — add `OutputPath` after `ReleasePath`,
@@ -161,7 +161,7 @@ Read from the repository at planning time (2026-09-03), and binding on every pha
 
 ## PHASE02 — Splash screen restyle & headless tests
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase02-splash-restyle`
 
 Target: Enigma.MarkdownEditor's `SplashWindow` — read at
@@ -215,7 +215,7 @@ Target: Enigma.MarkdownEditor's `SplashWindow` — read at
 
 ## PHASE03 — Drop NuGet packaging & publication
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase03-de-nuget`
 
 `Enigma.Msi` will never be published to nuget.org. This phase removes the machinery *and* the claims. No
@@ -302,7 +302,7 @@ app's output through `build/CopyWorkerOutput.targets`.
 
 ## PHASE04 — Release prep: desktop app 1.3.0
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase04-release-1-3-0`
 
 Follows the runbook as PHASE03 rewrote it. **App-only:** no pack, no push, no library version change —
