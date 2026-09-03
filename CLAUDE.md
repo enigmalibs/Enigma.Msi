@@ -65,6 +65,18 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > `artifacts\Enigma.Msi.Desktop.msi`, 17.25 MB, from the committed profile with WiX 7.0.0.
 > Install/launch/uninstall verification stays the maintainer's step.
 >
+> **`FEATURE-2D02` is under way — the app-only 1.3.0, plus settling what this repository publishes.**
+> `PHASE01` is done: the quick start asks **seven** answers, not six. **Output folder** sits after Release
+> folder and is stated rather than derived — 1.2.0 silently used the release folder's *parent*, and
+> `ParentDirectoryOrSelf` is gone with its single call site. It is required (Apply gates on it) but
+> otherwise unconstrained: an output folder *inside* the release folder is accepted with a hint and no
+> warning, and one that does not exist is still reported once, by the Problems pane, because the dialog
+> applies string and parse rules only. Its Browse button is the one that is **ungated** — the icon and
+> executable pickers open *at* the release folder, the output folder depends on nothing. 447 tests pass.
+> `PHASE02` (splash restyle + the repository's first headless-Avalonia suite), `PHASE03` (**delete the
+> NuGet packaging** — `build/Enigma.Msi.targets`, the pack target and every claim of publication; the
+> library becomes an in-repo `ProjectReference` consumer at 1.0.0) and `PHASE04` (release 1.3.0) remain.
+>
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
 > instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes

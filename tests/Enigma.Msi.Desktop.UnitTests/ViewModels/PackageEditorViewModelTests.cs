@@ -377,7 +377,7 @@ public sealed class PackageEditorViewModelTests
     // ---- quick start --------------------------------------------------------------------------
 
     [Fact]
-    public void ApplyQuickStart_TakesTheFourEnteredFieldsVerbatim()
+    public void ApplyQuickStart_TakesTheEnteredFieldsVerbatim()
     {
         PackageEditorViewModel viewModel = CreateViewModel();
         QuickStartSettings settings = CreateSettings();
@@ -388,6 +388,7 @@ public sealed class PackageEditorViewModelTests
         Assert.Equal("2.1.0", viewModel.Version);
         Assert.Equal("Contoso AG", viewModel.Manufacturer);
         Assert.Equal(settings.ReleasePath, viewModel.ReleasePath);
+        Assert.Equal(settings.OutputPath, viewModel.OutputPath);
     }
 
     [Fact]
@@ -401,35 +402,29 @@ public sealed class PackageEditorViewModelTests
     }
 
     [Fact]
-    public void ApplyQuickStart_PutsTheOutputFolderBesideTheReleaseFolder()
+    public void ApplyQuickStart_TakesTheOutputFolderAsEntered_WithoutDerivingItFromTheReleaseFolder()
     {
         PackageEditorViewModel viewModel = CreateViewModel();
         string release = Path.Combine(Root, "payload", "release");
+        string output = Path.Combine(Root, "drops", "msi");
 
-        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = release });
+        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = release, OutputPath = output });
 
-        Assert.Equal(Path.Combine(Root, "payload"), viewModel.OutputPath);
+        // Neither the release folder nor its parent: nothing derives this field any more.
+        Assert.Equal(output, viewModel.OutputPath);
     }
 
     [Fact]
-    public void ApplyQuickStart_IgnoresATrailingSeparatorOnTheReleaseFolder()
+    public void ApplyQuickStart_AcceptsAnOutputFolderInsideTheReleaseFolder()
     {
         PackageEditorViewModel viewModel = CreateViewModel();
-        string release = Path.Combine(Root, "payload", "release") + Path.DirectorySeparatorChar;
+        string release = Path.Combine(Root, "payload", "release");
+        string output = Path.Combine(release, "installer");
 
-        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = release });
+        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = release, OutputPath = output });
 
-        Assert.Equal(Path.Combine(Root, "payload"), viewModel.OutputPath);
-    }
-
-    [Fact]
-    public void ApplyQuickStart_FallsBackToTheReleaseFolderWhenItHasNoParent()
-    {
-        PackageEditorViewModel viewModel = CreateViewModel();
-
-        viewModel.ApplyQuickStart(CreateSettings() with { ReleasePath = Root });
-
-        Assert.Equal(Root, viewModel.OutputPath);
+        Assert.Equal(output, viewModel.OutputPath);
+        Assert.Empty(viewModel.GetInputErrors());
     }
 
     [Fact]
@@ -581,8 +576,8 @@ public sealed class PackageEditorViewModelTests
 
     // ---- helpers ------------------------------------------------------------------------------
 
-    // The drive root the derivation tests build their paths under: "C:\" on Windows, "/" elsewhere, so
-    // parents and roots are the host's own rather than a hard-coded Windows literal.
+    // The drive root the quick-start tests build their paths under: "C:\" on Windows, "/" elsewhere, so
+    // the paths are the host's own rather than a hard-coded Windows literal.
     private static string Root => Path.GetPathRoot(Path.GetTempPath())!;
 
     private static QuickStartSettings CreateSettings() => new(
@@ -590,6 +585,7 @@ public sealed class PackageEditorViewModelTests
         "2.1.0",
         "Contoso AG",
         Path.Combine(Root, "payload", "release"),
+        Path.Combine(Root, "drops"),
         Path.Combine(Root, "art", "app.ico"),
         "Widget.exe");
 

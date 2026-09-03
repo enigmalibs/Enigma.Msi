@@ -7,13 +7,15 @@ using Enigma.Msi.Desktop.Services;
 namespace Enigma.Msi.Desktop.ViewModels;
 
 /// <summary>
-/// The quick start's form: six answers, and the rules that decide when they add up to a package.
+/// The quick start's form: seven answers, and the rules that decide when they add up to a package.
 /// </summary>
 /// <remarks>
 /// <para>
-/// One page, every field visible — not a wizard. The field <em>order</em> is a dependency order rather
-/// than a presentation choice: the icon and the executable are both browsed for starting at the release
-/// folder, so their browse buttons stay disabled until that folder is known.
+/// One page, every field visible — not a wizard. The field <em>order</em> is still a dependency order
+/// rather than a presentation choice: the icon and the executable are both browsed for starting at the
+/// release folder, so their browse buttons stay disabled until that folder is known. The output folder
+/// sits next to the release folder because that is where it is thought about, not because it depends on
+/// it — it is deliberately <em>not</em> derived from it any more, so its own browse button is ungated.
 /// </para>
 /// <para>
 /// <see cref="CanApply"/> applies string and parse rules only, and never touches the disk. That mirrors
@@ -55,6 +57,10 @@ public sealed partial class QuickStartViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanApply))]
+    private string _outputPath = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanApply))]
     private string _iconPath = string.Empty;
 
     [ObservableProperty]
@@ -64,8 +70,8 @@ public sealed partial class QuickStartViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasExecutableError))]
     private string _executablePath = string.Empty;
 
-    /// <summary>Creates the form over the picker its three browse buttons drive.</summary>
-    /// <param name="pathPicker">Answers the release-folder, icon and executable questions.</param>
+    /// <summary>Creates the form over the picker its four browse buttons drive.</summary>
+    /// <param name="pathPicker">Answers the release-folder, output-folder, icon and executable questions.</param>
     /// <exception cref="ArgumentNullException"><paramref name="pathPicker"/> is <see langword="null"/>.</exception>
     public QuickStartViewModel(IPathPickerService pathPicker)
         => _pathPicker = pathPicker ?? throw new ArgumentNullException(nameof(pathPicker));
@@ -116,7 +122,7 @@ public sealed partial class QuickStartViewModel : ObservableObject
     public bool HasExecutableError => ExecutableError is not null;
 
     /// <summary>
-    /// Whether the six answers add up to a package: all present, the version parsing, and the
+    /// Whether the seven answers add up to a package: all present, the version parsing, and the
     /// executable inside the release folder.
     /// </summary>
     public bool CanApply
@@ -124,6 +130,7 @@ public sealed partial class QuickStartViewModel : ObservableObject
            && !string.IsNullOrWhiteSpace(Version)
            && !string.IsNullOrWhiteSpace(Manufacturer)
            && !string.IsNullOrWhiteSpace(ReleasePath)
+           && !string.IsNullOrWhiteSpace(OutputPath)
            && !string.IsNullOrWhiteSpace(IconPath)
            && !string.IsNullOrWhiteSpace(ExecutablePath)
            && System.Version.TryParse(Version, out _)
@@ -139,6 +146,7 @@ public sealed partial class QuickStartViewModel : ObservableObject
         Version.Trim(),
         Manufacturer.Trim(),
         ReleasePath.Trim(),
+        OutputPath.Trim(),
         IconPath.Trim(),
         ExecutableRelativePath ?? string.Empty);
 
@@ -149,6 +157,18 @@ public sealed partial class QuickStartViewModel : ObservableObject
                 .ConfigureAwait(true) is { } path)
         {
             ReleasePath = path;
+        }
+    }
+
+    // Ungated, unlike the two below: the output folder is asked for in its own right, so there is
+    // nothing to know before opening the picker at whatever has been typed so far.
+    [RelayCommand]
+    private async Task BrowseOutputPathAsync()
+    {
+        if (await _pathPicker.PickFolderAsync("Select the folder the .msi is written to", OutputPath)
+                .ConfigureAwait(true) is { } path)
+        {
+            OutputPath = path;
         }
     }
 

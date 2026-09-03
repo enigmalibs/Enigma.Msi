@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:editors="using:Enigma.Avalonia.Desktop.Controls.Editors"
              xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="520"
+             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="600"
              x:Class="Enigma.Msi.Desktop.Views.QuickStartCard"
              x:DataType="vm:QuickStartViewModel">
   <UserControl.Styles>
@@ -18,7 +18,7 @@
 
   <StackPanel Spacing="12">
 
-    <TextBlock Text="Answer these six and the whole form is filled in — install path, output folder, MSI name, product icon and two shortcuts."
+    <TextBlock Text="Answer these seven and the whole form is filled in — install path, MSI name, product icon and two shortcuts."
                TextWrapping="Wrap"
                Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
 
@@ -35,7 +35,7 @@
                         Text="{Binding Manufacturer}"
                         PlaceholderText="Contoso AG" />
 
-    <!-- First of the three paths, and the one the other two are browsed from — hence its position. -->
+    <!-- The one path the icon and the executable are browsed from — hence its position. -->
     <editors:TextEditor Title="Release folder"
                         Text="{Binding ReleasePath}"
                         PlaceholderText="The folder whose contents are packaged">
@@ -45,6 +45,20 @@
                 Padding="4,2" />
       </editors:TextEditor.ActionContent>
     </editors:TextEditor>
+
+    <StackPanel>
+      <editors:TextEditor Title="Output folder"
+                          Text="{Binding OutputPath}"
+                          PlaceholderText="Where the built .msi is written">
+        <editors:TextEditor.ActionContent>
+          <Button Content="Browse…"
+                  Command="{Binding BrowseOutputPathCommand}"
+                  Padding="4,2" />
+        </editors:TextEditor.ActionContent>
+      </editors:TextEditor>
+      <TextBlock Classes="hint"
+                 Text="Where the .msi is written. Typically the release folder's parent, so the installer lands beside the payload rather than inside it." />
+    </StackPanel>
 
     <editors:TextEditor Title="Icon"
                         Text="{Binding IconPath}"

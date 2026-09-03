@@ -5,7 +5,7 @@ using Avalonia.Threading;
 namespace Enigma.Msi.Desktop.Views;
 
 /// <summary>
-/// The quick start's content: the six fields, shown inside the control library's shared
+/// The quick start's content: the seven fields, shown inside the control library's shared
 /// <c>ContentDialog</c> by <see cref="Services.QuickStartDialogService"/> — which is where Apply and
 /// Cancel come from, so the card carries no buttons of its own.
 /// </summary>

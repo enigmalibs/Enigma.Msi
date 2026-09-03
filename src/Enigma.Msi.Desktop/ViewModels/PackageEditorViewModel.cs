@@ -220,16 +220,16 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Replaces the package with one derived from the quick start's six answers.
+    /// Replaces the package with one derived from the quick start's seven answers.
     /// </summary>
     /// <param name="settings">The validated answers.</param>
     /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
     /// <remarks>
     /// <see cref="Reset"/> first — so the result is a genuinely new package with fresh identifiers, not
-    /// six fields overwritten inside whatever was there — then the four entered values plus everything
-    /// derivable from them: the install path, the output folder, the MSI file name, the product icon and
-    /// the two shortcuts. What comes out is intended to pass every validation rule with no further
-    /// typing, which is the whole point of the dialog.
+    /// seven fields overwritten inside whatever was there — then the entered values plus everything
+    /// derivable from them: the install path, the MSI file name, the product icon and the two shortcuts.
+    /// The output folder is entered rather than derived. What comes out is intended to pass every
+    /// validation rule with no further typing, which is the whole point of the dialog.
     /// </remarks>
     public void ApplyQuickStart(QuickStartSettings settings)
     {
@@ -246,9 +246,9 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         Version = settings.Version;
         Manufacturer = settings.Manufacturer;
         ReleasePath = settings.ReleasePath;
+        OutputPath = settings.OutputPath;
 
         InstallPath = ProgramFilesToken + WindowsSeparator + appName;
-        OutputPath = ParentDirectoryOrSelf(settings.ReleasePath);
         MsiFilename = ToMsiFilename(appName);
 
         HasControlPanelInfo = true;
@@ -455,17 +455,6 @@ public sealed partial class PackageEditorViewModel : ObservableObject
             TargetPath = InstallDirToken + WindowsSeparator + settings.ExecutableRelativePath,
             IconPath = settings.IconPath
         });
-
-    // The output folder defaults beside the payload rather than inside it, so a build does not write its
-    // MSI into the very folder it is packaging. A release folder at a drive root has no parent, and
-    // "beside" then means "in it" — which still validates, being an existing directory.
-    private static string ParentDirectoryOrSelf(string path)
-    {
-        string trimmed = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        string? parent = trimmed.Length == 0 ? null : Path.GetDirectoryName(trimmed);
-
-        return string.IsNullOrEmpty(parent) ? path : parent;
-    }
 
     // Shaped for the validator's rule on output.msiFilename: a plain file name, no invalid characters,
     // no .msi extension — the extension is the installer's to add.

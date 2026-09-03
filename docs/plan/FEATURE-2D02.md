@@ -1,6 +1,6 @@
 # FEATURE-2D02 — Desktop app 1.3.0: quick-start output folder, splash restyle & de-NuGet
 
-**Status:** TODO (multi-phase — 4 phases)
+**Status:** IN PROGRESS (multi-phase — 4 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-2d02-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-74C4 fully DONE (app at 1.2.0; this item builds the next app release on top).
@@ -107,7 +107,7 @@ Read from the repository at planning time (2026-09-03), and binding on every pha
 
 ## PHASE01 — Quick start: output folder field
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase01-quickstart-output-folder`
 
 1. `src/Enigma.Msi.Desktop/ViewModels/QuickStartSettings.cs` — add `OutputPath` after `ReleasePath`,

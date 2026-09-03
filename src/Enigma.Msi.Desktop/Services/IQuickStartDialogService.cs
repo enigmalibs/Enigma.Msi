@@ -10,7 +10,7 @@ namespace Enigma.Msi.Desktop.Services;
 /// A thin seam over <c>Enigma.Avalonia.Desktop</c>'s <c>IContentDialogService</c>, in the shape of
 /// <see cref="IAboutDialogService"/> and <see cref="IBuildProgressService"/>: the dialog takes a
 /// <c>Control</c>, and a ViewModel that constructs controls cannot be tested without standing up an
-/// Avalonia application. The window's ViewModel asks for six answers; the card that collects them lives
+/// Avalonia application. The window's ViewModel asks for seven answers; the card that collects them lives
 /// on this side of the seam.
 /// </remarks>
 public interface IQuickStartDialogService
