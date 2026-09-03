@@ -7,12 +7,56 @@ at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi.Desktop (application, MSI) | **1.2.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.3.0** |
 | Enigma.Msi (library, in-repo) | **1.0.0** |
 
 The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
+
+## 1.3.0 — Enigma.Msi.Desktop
+
+An **application-only release**, and the one that settles what this repository publishes. The quick start
+stops guessing where the `.msi` should go, the splash screen is down to what identifies the app, and the
+**Enigma.Msi library stops being a NuGet package** — it was never published to a feed, and now it cannot
+be. **The library remains at 1.0.0 and is not re-released.** The model, the validator, the build client,
+the `net472` worker and the `.msipkg.json` format (`schemaVersion` 1) are all untouched, so profiles saved
+by 1.0.0, 1.1.0 or 1.2.0 open in 1.3.0 unchanged and there is no migration.
+
+### What's new
+
+- **The quick start asks where the `.msi` goes — seven answers, not six.** **Output folder** sits
+  immediately after Release folder, and is stated rather than derived: 1.2.0 silently used the release
+  folder's *parent*, which was a reasonable guess and still only a guess. It is required — Apply stays
+  disabled while it is blank — and otherwise unconstrained: an output folder **inside** the release folder
+  is accepted, with a permanent hint and no warning. Its **Browse…** button is the one that is ungated,
+  because unlike the icon and executable pickers (which open at the release folder and need one first) the
+  output folder depends on nothing. A folder that does not exist yet is reported **once**, by the Problems
+  pane on Validate — the dialog applies string and parse rules only and never touches the disk.
+  **Saved profiles are unaffected:** `outputPath` has always been a stored field, so whatever a 1.0.0,
+  1.1.0 or 1.2.0 profile carries opens verbatim.
+- **A quieter splash screen.** It shows the logo, **Enigma.Msi** and `Version X.Y.Z` — and nothing else.
+  The tagline and the author line are off it (both are still in **About**, which is unchanged), and the
+  card is 420×260 with a subtler border. **Its behaviour is untouched:** about two seconds, dismissed
+  immediately by any click or key press, still the only window on screen until the main one takes over.
+- **The Enigma.Msi library is no longer packaged, and cannot be.** It is on no feed, no version of it ever
+  was, and this release removes the machinery that suggested otherwise: the packaging metadata, the
+  worker-payload pack target and `build/Enigma.Msi.targets` are deleted, and the project declares
+  `IsPackable=false` plus a guard that makes an accidental `dotnet pack` **fail loudly** — on its own,
+  `IsPackable=false` would make it a silent no-op. **Consume the library in-repo by `ProjectReference`**:
+  clone the repository and reference `src/Enigma.Msi/Enigma.Msi.csproj`. Nothing about the build changed —
+  `build/CopyWorkerOutput.targets` still copies the `net472` worker into `$(OutDir)worker/` beside each
+  host, and is now the only mechanism that does.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format — still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0, 1.1.0, 1.2.0 and 1.3.0 in **both** directions.
+- **The library's public surface is unchanged** — the `MsiPackage` model, `IMsiPackageValidator`,
+  `MsiPackageJson` and `IMsiBuildService` are exactly what 1.0.0 shipped; only its packaging is gone. It
+  still multi-targets `netstandard2.0`, `net8.0` and `net10.0`.
+- The app still targets **.NET 10.0** (`WinExe`), is published framework-dependent for `win-x64`, and
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
 
 ## 1.2.0 — Enigma.Msi.Desktop
 

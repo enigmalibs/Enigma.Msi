@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "appName": "Enigma.Msi.Desktop",
+  "version": "1.3.0",
+  "productId": "4a817b41-057a-4f5d-9698-54f3e0103360",
+  "upgradeCode": "3405046f-527a-439e-a22f-866247dc8314",
+  "manufacturer": "Josu\u00E9 Cl\u00E9ment",
+  "scope": "PerMachine",
+  "install": {
+    "installPath": "%ProgramFiles%\\Enigma.Msi",
+    "releasePath": "src\\Enigma.Msi.Desktop\\bin\\Release\\net10.0\\win-x64\\publish"
+  },
+  "output": {
+    "outputPath": "artifacts",
+    "msiFilename": "Enigma.Msi.Desktop"
+  },
+  "compression": "High",
+  "controlPanel": {
+    "productIcon": "src\\Enigma.Msi.Desktop\\Assets\\appicon.ico"
+  },
+  "shortcuts": [
+    {
+      "shortcutPath": "%Desktop%",
+      "shortcutName": "Enigma.Msi.Desktop",
+      "targetPath": "[INSTALLDIR]\\Enigma.Msi.Desktop.exe",
+      "iconPath": "src\\Enigma.Msi.Desktop\\Assets\\appicon.ico"
+    },
+    {
+      "shortcutPath": "%ProgramMenu%",
+      "shortcutName": "Enigma.Msi.Desktop",
+      "targetPath": "[INSTALLDIR]\\Enigma.Msi.Desktop.exe",
+      "iconPath": "src\\Enigma.Msi.Desktop\\Assets\\appicon.ico"
+    }
+  ]
+}

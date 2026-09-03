@@ -1,6 +1,6 @@
 # FEATURE-2D02 — Desktop app 1.3.0: quick-start output folder, splash restyle & de-NuGet
 
-**Status:** IN PROGRESS (multi-phase — 4 phases)
+**Status:** DONE (multi-phase — 4 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-2d02-phaseNN-<slug>` — one branch per phase, cut from current `HEAD`.
 **Depends on:** FEATURE-74C4 fully DONE (app at 1.2.0; this item builds the next app release on top).
@@ -302,7 +302,7 @@ app's output through `build/CopyWorkerOutput.targets`.
 
 ## PHASE04 — Release prep: desktop app 1.3.0
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase04-release-1-3-0`
 
 Follows the runbook as PHASE03 rewrote it. **App-only:** no pack, no push, no library version change —

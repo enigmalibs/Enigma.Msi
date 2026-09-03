@@ -51,6 +51,10 @@ dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r wi
 .\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.X.Y.Z.msipkg.json
 ```
 
+- **`artifacts/` has to exist first** — `mkdir artifacts` from the repository root. It is git-ignored, so a
+  fresh clone does not have it, and the profile's `output.outputPath` is required to be an *existing*
+  directory: the worker does not create one. Without it the build stops at validation instead of writing
+  the MSI.
 - **The publish is a hard prerequisite**, not an alternative to the build. The profile's `releasePath` points
   at `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish`, so whatever sits in that directory is
   what ships. A stale publish silently packages the previous version; a missing one fails validation. Do not

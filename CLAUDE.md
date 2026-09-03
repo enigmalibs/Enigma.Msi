@@ -69,7 +69,8 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > `artifacts\Enigma.Msi.Desktop.msi`, 17.25 MB, from the committed profile with WiX 7.0.0.
 > Install/launch/uninstall verification stays the maintainer's step.
 >
-> **`FEATURE-2D02` is under way — the app-only 1.3.0, plus settling what this repository publishes.**
+> **`FEATURE-2D02` is complete (`PHASE01`…`PHASE04`) — the app-only 1.3.0, and what this repository
+> publishes is settled.**
 > `PHASE01` is done: the quick start asks **seven** answers, not six. **Output folder** sits after Release
 > folder and is stated rather than derived — 1.2.0 silently used the release folder's *parent*, and
 > `ParentDirectoryOrSelf` is gone with its single call site. It is required (Apply gates on it) but
@@ -93,8 +94,14 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > by building from source — no feed, no Releases page), `docs/RELEASE.md` is the app release runbook with
 > no pack/push sections, and `RELEASENOTES.md`, `SECURITY.md` and the two affected guides describe the
 > library as in-repo. **Nothing about the build changed**: `build/CopyWorkerOutput.targets` is untouched
-> and is now the *only* worker-deployment mechanism, and the same 453 tests pass. Only `PHASE04`
-> (release 1.3.0) remains.
+> and is now the *only* worker-deployment mechanism, and the same 453 tests pass. `PHASE04` shipped the
+> release: the app declares `<Version>1.3.0`, `msiProfiles/Enigma.Msi.Desktop.1.3.0.msipkg.json` is
+> committed (fresh `productId`, `upgradeCode` reused verbatim), `RELEASENOTES.md` leads with a 1.3.0
+> section, and it was **verified on Windows** — warning-free rebuild, all **453** tests green including the
+> 16 WixSharp drift guards (none fired), and the **dogfood MSI built** from the committed profile:
+> `artifacts\Enigma.Msi.Desktop.msi`, 17.25 MB, WiX 7.0.0, its Property/Upgrade/Shortcut tables read back
+> and checked. The library is still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall
+> stays the maintainer's step.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
