@@ -1,12 +1,16 @@
 <Project>
 
   <!--
-    In-repository counterpart of build/Enigma.Msi.targets: the same worker/ layout, produced from a
-    project's build output instead of from a package payload. Imported by solution projects that host
-    the worker — the Desktop app, and the library test suite (which hosts a stub worker so the build
-    client can be tested against a real child process).
+    Puts the net472 worker where the library looks for it: MsiBuildService discovers it at
+    AppContext.BaseDirectory/worker/Enigma.Msi.Worker.exe, so this copies a worker project's build
+    output into the host's $(OutDir)worker/ — otherwise every BuildAsync call fails with "the MSI
+    worker was not found". Imported by solution projects that host the worker: the Desktop app, and
+    the library test suite (which hosts a stub worker so the build client can be tested against a
+    real child process).
 
-    Package consumers never see this file; it is not packed.
+    This is the only worker-deployment mechanism in the repository. Enigma.Msi is not published to
+    any feed, so there is no package-side counterpart: a consumer of the library is a project in this
+    solution, and it imports this file.
 
     Importing project's contract — set the properties BEFORE the Import, and declare the build-order
     reference yourself, because the source project differs per host:

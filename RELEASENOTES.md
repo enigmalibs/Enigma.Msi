@@ -1,13 +1,18 @@
 # Release notes
 
-Release notes for both artifacts of this repository: the **Enigma.Msi** library (published to NuGet) and
-the **Enigma.Msi.Desktop** application (released as an MSI installer). The two version independently —
-they coincided at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first.
+Release notes for both artifacts of this repository: the **Enigma.Msi.Desktop** application, released as an
+MSI installer, and the **Enigma.Msi** library it is built on, which is **not published anywhere** — it is
+consumed in-repo by `ProjectReference` and stays at 1.0.0. The two version independently — they coincided
+at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first.
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi (library, NuGet) | **1.0.0** |
 | Enigma.Msi.Desktop (application, MSI) | **1.2.0** |
+| Enigma.Msi (library, in-repo) | **1.0.0** |
+
+The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
+describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
+no version of it was ever pushed to a feed.
 
 ## 1.2.0 — Enigma.Msi.Desktop
 

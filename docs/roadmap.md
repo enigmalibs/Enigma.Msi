@@ -26,5 +26,5 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-2D02 | Desktop app 1.3.0 & de-NuGet                                | IN PROGRESS | docs/plan/FEATURE-2D02.md |
 | - PHASE01    | Quick start: output folder field                            | DONE        | (in FEATURE-2D02.md)      |
 | - PHASE02    | Splash screen restyle & headless tests                      | DONE        | (in FEATURE-2D02.md)      |
-| - PHASE03    | Drop NuGet packaging & publication                          | TODO        | (in FEATURE-2D02.md)      |
+| - PHASE03    | Drop NuGet packaging & publication                          | DONE        | (in FEATURE-2D02.md)      |
 | - PHASE04    | Release prep: desktop app 1.3.0                             | TODO        | (in FEATURE-2D02.md)      |

@@ -56,7 +56,7 @@ public sealed class MsiBuildService : IMsiBuildService
     /// <summary>
     /// Where the worker is discovered when <see cref="MsiBuildServiceOptions.WorkerPath"/> is not set:
     /// the <c>worker</c> folder beside the host application, which is where
-    /// <c>build/Enigma.Msi.targets</c> copies it for package consumers.
+    /// <c>build/CopyWorkerOutput.targets</c> copies it from the worker project's build output.
     /// </summary>
     public static string DefaultWorkerPath { get; } = Path.Combine(
         AppContext.BaseDirectory,

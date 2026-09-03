@@ -215,7 +215,7 @@ Target: Enigma.MarkdownEditor's `SplashWindow` — read at
 
 ## PHASE03 — Drop NuGet packaging & publication
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase03-de-nuget`
 
 `Enigma.Msi` will never be published to nuget.org. This phase removes the machinery *and* the claims. No

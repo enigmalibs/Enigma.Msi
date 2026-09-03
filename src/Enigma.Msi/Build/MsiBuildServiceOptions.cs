@@ -2,8 +2,8 @@ namespace Enigma.Msi.Build;
 
 /// <summary>
 /// Settings for <see cref="MsiBuildService"/>. Every member has a working default, so the common case
-/// is <c>new MsiBuildService()</c>; the options exist for hosts whose layout differs from the one the
-/// <c>Enigma.Msi</c> package produces.
+/// is <c>new MsiBuildService()</c>; the options exist for hosts whose layout differs from the standard
+/// one — a <c>worker</c> folder beside the application.
 /// </summary>
 public sealed class MsiBuildServiceOptions
 {
@@ -12,7 +12,7 @@ public sealed class MsiBuildServiceOptions
 
     /// <summary>
     /// Name of the folder next to the host application that holds the worker — the layout
-    /// <c>build/Enigma.Msi.targets</c> produces for package consumers.
+    /// <c>build/CopyWorkerOutput.targets</c> produces for the projects that host it.
     /// </summary>
     public const string WorkerFolderName = "worker";
 
