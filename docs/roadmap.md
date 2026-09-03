@@ -23,3 +23,8 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | - PHASE01    | Splash screen & About dialog                                | DONE   | (in FEATURE-74C4.md)      |
 | - PHASE02    | Quick-start dialog & Control Panel default                  | DONE   | (in FEATURE-74C4.md)      |
 | - PHASE03    | Release prep: desktop app 1.2.0                             | DONE   | (in FEATURE-74C4.md)      |
+| FEATURE-2D02 | Desktop app 1.3.0 & de-NuGet                                | TODO   | docs/plan/FEATURE-2D02.md |
+| - PHASE01    | Quick start: output folder field                            | TODO   | (in FEATURE-2D02.md)      |
+| - PHASE02    | Splash screen restyle & headless tests                      | TODO   | (in FEATURE-2D02.md)      |
+| - PHASE03    | Drop NuGet packaging & publication                          | TODO   | (in FEATURE-2D02.md)      |
+| - PHASE04    | Release prep: desktop app 1.3.0                             | TODO   | (in FEATURE-2D02.md)      |
