@@ -31,27 +31,46 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > embedded non-empty README and LICENSE, the intended dependency floors).
 >
 > **`FEATURE-5F00` is complete; 1.0.0 is prepared but not published.** What remains is the maintainer's and
-> is deliberately outside the repo: this repository still has **no git remote and no tags**, so
-> `github.com/enigmalibs/Enigma.Msi` must be created and `main` pushed before the runbook's tag/pack/push
-> steps mean anything. Nothing here ever runs an outward-facing command — follow `docs/RELEASE.md`.
+> is deliberately outside the repo: `origin` is `https://github.com/enigmalibs/Enigma.Msi.git` and the tags
+> `1.0.0` and `1.1.0` exist, but the library has never been packed and pushed to NuGet — the runbook's
+> pack/push steps are still ahead. Nothing here ever runs an outward-facing command — follow
+> `docs/RELEASE.md`.
 >
-> **`FEATURE-6C35` is complete (`PHASE01`, `PHASE02`); the desktop app 1.1.0 is prepared but not built.**
-> `PHASE01` was the app-only UI polish: permanent variable hints under the three token fields, a modal
-> build-progress card (its Cancel is now the *only* cancel affordance — the toolbar's is gone) driven
+> **`FEATURE-6C35` is complete (`PHASE01`, `PHASE02`) — the desktop app 1.1.0, prepared but never built as
+> an MSI.** `PHASE01` was the app-only UI polish: permanent variable hints under the three token fields, a
+> modal build-progress card (its Cancel is now the *only* cancel affordance — the toolbar's is gone) driven
 > through the `IBuildProgressService` seam over the control library's overlay, shortcuts as one
 > self-removing card per row with the selection concept deleted, icons on the five section expanders, and
 > the incomplete-package message in the theme's warning brush. `PHASE02` was the release prep: the app
-> declares `<Version>1.1.0`, `msiProfiles/Enigma.Msi.Desktop.1.1.0.msipkg.json` is committed (fresh
-> `productId`, `upgradeCode` reused verbatim — that reuse is what makes 1.1.0 *upgrade* an installed
-> 1.0.0), and `RELEASENOTES.md` is now a newest-first multi-version document.
+> declared `<Version>1.1.0`, `msiProfiles/Enigma.Msi.Desktop.1.1.0.msipkg.json` is committed (fresh
+> `productId`, `upgradeCode` reused verbatim — that reuse is what makes each release *upgrade* the
+> installed one), and `RELEASENOTES.md` became a newest-first multi-version document. Its dogfood MSI was
+> never built (`PHASE02` ran on Linux) and 1.2.0 has superseded it; the profile is kept as history.
 > **The library stays at 1.0.0 and is not re-released** — an app-only release runs no `dotnet pack` and no
 > NuGet push; `docs/RELEASE.md` §0 says which sections apply to which release flavour.
 >
-> **Outstanding, and Windows-only:** the 1.1.0 dogfood MSI has **not** been built — `PHASE02` ran on Linux,
-> where there is no WiX CLI and the `net472` worker cannot start. The same run leaves the 32 Windows-only
-> `Enigma.Msi.UnitTests` cases and the whole `Enigma.Msi.Worker.UnitTests` suite unexercised since before
-> `PHASE01`. Both need one Windows pass before 1.1.0 is called good; the commands are in
-> `docs/done/FEATURE-6C35-PHASE02.md`.
+> **`FEATURE-74C4` is complete (`PHASE01`…`PHASE03`) — the app-only 1.2.0, prepared *and* verified.**
+> `PHASE01` gave the app a visual identity: a ~2 s dismissable `SplashWindow` that hands over to the real
+> window, and an About dialog behind an icon-only button at the right of the command bar, both fed by
+> `AppInfo` and `Assets/logo.png`. `PHASE02` removed the tedium from first-time setup: **Control Panel
+> information is on by default for a new package** (`Reset()` only — `LoadFrom` still derives the toggle
+> from the profile, so an existing 1.0.0/1.1.0 profile opens unchanged), and a one-page **quick start** —
+> six answers in, a form that passes Validate with zero problems out, deriving the install path, the output
+> folder, the MSI name, the product icon and two shortcuts. It opens from the toolbar and once by itself on
+> an empty form, and replaces the package after a Yes/No confirmation when there is work to lose.
+> `PHASE03` was the release prep, and it **closed the Windows verification debt 1.1.0 left**: the app
+> declares `<Version>1.2.0`, `msiProfiles/Enigma.Msi.Desktop.1.2.0.msipkg.json` is committed, the whole
+> solution builds warning-free and all **444** tests pass on Windows (the previously Windows-only library
+> cases and the entire `net472` worker suite, drift guards included), and the **dogfood MSI is built** —
+> `artifacts\Enigma.Msi.Desktop.msi`, 17.25 MB, from the committed profile with WiX 7.0.0.
+> Install/launch/uninstall verification stays the maintainer's step.
+>
+> **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
+> third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
+> instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes
+> on gating the next dialog's button — and `ShowAsync` does **not** reset the six `Dialog*` size
+> properties, so every dialog states its own size rather than inheriting the last one's. The host also
+> does not expose its `Title` to UI Automation: assert on the content or a button name instead.
 
 ## Architecture
 

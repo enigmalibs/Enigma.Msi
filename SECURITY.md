@@ -8,13 +8,15 @@ Vulnerability reports are taken seriously and handled with priority.
 
 ## Supported versions
 
-Security fixes are provided for the latest released version. Enigma.Msi follows
-[Semantic Versioning](https://semver.org/), and users are encouraged to stay current with the newest
-release.
+Security fixes are provided for the latest released version of each artifact. The two version
+independently — the **Enigma.Msi** library (NuGet) and the **Enigma.Msi.Desktop** application (MSI) — so
+they are listed separately. Both follow [Semantic Versioning](https://semver.org/), and users are
+encouraged to stay current with the newest release.
 
-| Version | Supported          |
-|---------|--------------------|
-| 1.0.x   | :white_check_mark: |
+| Artifact                              | Version | Supported          |
+|---------------------------------------|---------|--------------------|
+| Enigma.Msi (library, NuGet)           | 1.0.x   | :white_check_mark: |
+| Enigma.Msi.Desktop (application, MSI) | 1.2.x   | :white_check_mark: |
 
 ## Reporting a vulnerability
 

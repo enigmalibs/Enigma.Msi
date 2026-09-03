@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Enigma.Avalonia.Desktop.Controls.ContentDialog;
 using Enigma.Avalonia.Desktop.Controls.InfoBar;
 using Enigma.Avalonia.Desktop.Services;
 using Enigma.Msi.Build;
@@ -33,6 +34,8 @@ public sealed class MainWindowViewModelTests : IDisposable
     private readonly IContentDialogService _contentDialogService = Substitute.For<IContentDialogService>();
     private readonly IInfoBarService _infoBarService = Substitute.For<IInfoBarService>();
     private readonly IBuildProgressService _buildProgress = Substitute.For<IBuildProgressService>();
+    private readonly IAboutDialogService _aboutDialog = Substitute.For<IAboutDialogService>();
+    private readonly IQuickStartDialogService _quickStartDialog = Substitute.For<IQuickStartDialogService>();
     private readonly FakeBuildService _buildService = new();
 
     /// <inheritdoc />
@@ -380,6 +383,8 @@ public sealed class MainWindowViewModelTests : IDisposable
             _infoBarService,
             new InlineUiDispatcher(),
             null!,
+            _aboutDialog,
+            _quickStartDialog,
             NullLogger<MainWindowViewModel>.Instance));
 
         Assert.Equal("buildProgress", exception.ParamName);
@@ -394,6 +399,205 @@ public sealed class MainWindowViewModelTests : IDisposable
         viewModel.ClearLogCommand.Execute(null);
 
         Assert.Empty(viewModel.BuildLog);
+    }
+
+    // ---- about --------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task ShowAbout_OpensTheAboutDialog()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+
+        await viewModel.ShowAboutCommand.ExecuteAsync(null);
+
+        _ = _aboutDialog.Received(1).ShowAsync();
+    }
+
+    [Fact]
+    public void Constructor_RejectsAMissingAboutDialogService()
+    {
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new MainWindowViewModel(
+            new PackageEditorViewModel(_pathPicker),
+            new MsiPackageValidator(),
+            _buildService,
+            _pathPicker,
+            _contentDialogService,
+            _infoBarService,
+            new InlineUiDispatcher(),
+            _buildProgress,
+            null!,
+            _quickStartDialog,
+            NullLogger<MainWindowViewModel>.Instance));
+
+        Assert.Equal("aboutDialog", exception.ParamName);
+    }
+
+    // ---- quick start --------------------------------------------------------------------------
+
+    [Fact]
+    public async Task QuickStart_OpensTheDialogOnce()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        _quickStartDialog.ShowAsync().Returns((QuickStartSettings?)null);
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        _ = _quickStartDialog.Received(1).ShowAsync();
+    }
+
+    [Fact]
+    public async Task QuickStart_Cancelled_ChangesNothingAndAsksNothing()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.AppName = "Widget";
+        _quickStartDialog.ShowAsync().Returns((QuickStartSettings?)null);
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        Assert.Equal("Widget", viewModel.Package.AppName);
+        Assert.Empty(viewModel.Package.Shortcuts);
+        _ = _contentDialogService.DidNotReceive().ShowAsync(Arg.Any<Action<ContentDialog>>());
+    }
+
+    [Fact]
+    public async Task QuickStart_OnAnEmptyForm_AppliesWithoutAskingForConfirmation()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        _quickStartDialog.ShowAsync().Returns(CreateSettings());
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        Assert.Equal("Widget", viewModel.Package.AppName);
+        Assert.Equal(2, viewModel.Package.Shortcuts.Count);
+        _ = _contentDialogService.DidNotReceive().ShowAsync(Arg.Any<Action<ContentDialog>>());
+    }
+
+    [Fact]
+    public async Task QuickStart_OverAFormWithData_AsksFirstAndAppliesOnYes()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.AppName = "Something else";
+        viewModel.CurrentFilePath = TempPath("open.msipkg.json");
+        _quickStartDialog.ShowAsync().Returns(CreateSettings());
+        _contentDialogService.ShowAsync(Arg.Any<Action<ContentDialog>>()).Returns(DialogResult.Primary);
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        _ = _contentDialogService.Received(1).ShowAsync(Arg.Any<Action<ContentDialog>>());
+        Assert.Equal("Widget", viewModel.Package.AppName);
+        Assert.Null(viewModel.CurrentFilePath);
+    }
+
+    [Fact]
+    public async Task QuickStart_OverAFormWithData_LeavesItAloneOnNo()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.AppName = "Something else";
+        _quickStartDialog.ShowAsync().Returns(CreateSettings());
+        _contentDialogService.ShowAsync(Arg.Any<Action<ContentDialog>>()).Returns(DialogResult.Close);
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        Assert.Equal("Something else", viewModel.Package.AppName);
+        Assert.Empty(viewModel.Package.Shortcuts);
+    }
+
+    [Fact]
+    public async Task QuickStart_OverAFormWithData_TreatsADismissedConfirmationAsNo()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.AppName = "Something else";
+        _quickStartDialog.ShowAsync().Returns(CreateSettings());
+        _contentDialogService.ShowAsync(Arg.Any<Action<ContentDialog>>()).Returns(DialogResult.None);
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        Assert.Equal("Something else", viewModel.Package.AppName);
+    }
+
+    [Fact]
+    public async Task QuickStart_Applied_ClearsTheProblemsAndTheOpenPath()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        await viewModel.ValidateCommand.ExecuteAsync(null);
+        Assert.NotEmpty(viewModel.ValidationErrors);
+        viewModel.CurrentFilePath = TempPath("open.msipkg.json");
+        _quickStartDialog.ShowAsync().Returns(CreateSettings());
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+
+        Assert.Empty(viewModel.ValidationErrors);
+        Assert.Null(viewModel.CurrentFilePath);
+    }
+
+    [Fact]
+    public async Task ShowQuickStartOnStartup_OpensTheDialogOnceAndNeverAgain()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        _quickStartDialog.ShowAsync().Returns((QuickStartSettings?)null);
+
+        await viewModel.ShowQuickStartOnStartupCommand.ExecuteAsync(null);
+        await viewModel.ShowQuickStartOnStartupCommand.ExecuteAsync(null);
+
+        _ = _quickStartDialog.Received(1).ShowAsync();
+    }
+
+    [Fact]
+    public async Task ShowQuickStartOnStartup_StaysOutOfTheWayOfAFormWithData()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.Package.AppName = "Widget";
+
+        await viewModel.ShowQuickStartOnStartupCommand.ExecuteAsync(null);
+
+        _ = _quickStartDialog.DidNotReceive().ShowAsync();
+    }
+
+    [Fact]
+    public async Task ShowQuickStartOnStartup_StaysOutOfTheWayOfAnOpenProfile()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        viewModel.CurrentFilePath = TempPath("open.msipkg.json");
+
+        await viewModel.ShowQuickStartOnStartupCommand.ExecuteAsync(null);
+
+        _ = _quickStartDialog.DidNotReceive().ShowAsync();
+    }
+
+    // The headline promise of the whole feature: six answers in, a buildable package out. Run against
+    // real folders so the *environment* rules are exercised too — those are the ones the derivations
+    // exist to satisfy, and the only ones that can tell whether the output folder landed somewhere that
+    // exists.
+    [Fact]
+    public async Task QuickStart_Applied_YieldsAPackageThatValidatesCleanlyAndEnablesBuild()
+    {
+        MainWindowViewModel viewModel = CreateViewModel();
+        _quickStartDialog.ShowAsync().Returns(CreateSettingsForARealFolder());
+
+        await viewModel.QuickStartCommand.ExecuteAsync(null);
+        await viewModel.ValidateCommand.ExecuteAsync(null);
+
+        Assert.Empty(viewModel.ValidationErrors);
+        Assert.True(viewModel.BuildCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void Constructor_RejectsAMissingQuickStartDialogService()
+    {
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new MainWindowViewModel(
+            new PackageEditorViewModel(_pathPicker),
+            new MsiPackageValidator(),
+            _buildService,
+            _pathPicker,
+            _contentDialogService,
+            _infoBarService,
+            new InlineUiDispatcher(),
+            _buildProgress,
+            _aboutDialog,
+            null!,
+            NullLogger<MainWindowViewModel>.Instance));
+
+        Assert.Equal("quickStartDialog", exception.ParamName);
     }
 
     // ---- files --------------------------------------------------------------------------------
@@ -533,6 +737,8 @@ public sealed class MainWindowViewModelTests : IDisposable
         _infoBarService,
         new InlineUiDispatcher(),
         _buildProgress,
+        _aboutDialog,
+        _quickStartDialog,
         NullLogger<MainWindowViewModel>.Instance);
 
     // The overlay is modal, so *when* it comes down matters as much as that it does: an outcome reported
@@ -563,6 +769,29 @@ public sealed class MainWindowViewModelTests : IDisposable
         File.WriteAllText(Path.Combine(package.Install.ReleasePath, "Widget.exe"), "not really an executable");
 
         return package;
+    }
+
+    // Six answers the dialog would have validated before handing them over — the relative executable
+    // path is what crosses the seam, not the absolute one.
+    private static QuickStartSettings CreateSettings() => new(
+        "Widget",
+        "2.1.0",
+        "Contoso AG",
+        Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "payload", "release"),
+        Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "art", "app.ico"),
+        @"bin\Widget.exe");
+
+    // A payload folder as a real build would leave it: the executable in a sub-folder, an icon beside it,
+    // and a parent directory for the MSI to be written into.
+    private QuickStartSettings CreateSettingsForARealFolder()
+    {
+        string release = Path.Combine(_tempDirectory, "payload", "release");
+        Directory.CreateDirectory(Path.Combine(release, "bin"));
+        File.WriteAllText(Path.Combine(release, "bin", "Widget.exe"), "not really an executable");
+        string icon = Path.Combine(release, "app.ico");
+        File.WriteAllText(icon, "not really an icon");
+
+        return new QuickStartSettings("Widget", "2.1.0", "Contoso AG", release, icon, @"bin\Widget.exe");
     }
 
     private string TempPath(string fileName)

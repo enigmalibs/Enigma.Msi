@@ -18,6 +18,21 @@ public partial class MainWindow : Window
     public MainWindow() => InitializeComponent();
 
     /// <summary>
+    /// Offers the quick start the first time the window appears on an empty form. The window's own
+    /// lifecycle event is the only honest trigger for it: a ViewModel has no notion of being shown, and
+    /// the command it delegates to carries the once-only and not-over-work guards itself.
+    /// </summary>
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.ShowQuickStartOnStartupCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
     /// Keeps the log pane pinned to the newest line. Scrolling is a view concern, so it is wired here
     /// rather than pushed into the ViewModel.
     /// </summary>

@@ -7,7 +7,56 @@ they coincided at 1.0.0 for the first release and part from 1.1.0 onwards. Newes
 | Artifact | Current version |
 |---|---|
 | Enigma.Msi (library, NuGet) | **1.0.0** |
-| Enigma.Msi.Desktop (application, MSI) | **1.1.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.2.0** |
+
+## 1.2.0 — Enigma.Msi.Desktop
+
+An **application-only release**: the app gets a visual identity and a fast path from a published folder to
+a buildable package. **The Enigma.Msi library remains at 1.0.0 and is not re-released** — no NuGet package
+is published for this version. The model, the validator, the build client, the `net472` worker and the
+`.msipkg.json` format (`schemaVersion` 1) are all untouched, so profiles saved by 1.0.0 or 1.1.0 open in
+1.2.0 unchanged and there is no migration.
+
+### What's new
+
+- **Quick start — six answers, and the form is filled in.** A **Quick start** button at the head of the
+  command bar (and, on a freshly launched app with an empty form, one automatic opening) asks for the
+  application name, version, manufacturer, release folder, an `.ico` and the main executable. From those
+  six it derives the rest of a package that passes Validate with nothing outstanding: the install path
+  `%ProgramFiles%\<application name>`, an output folder (the release folder's **parent**, so the `.msi`
+  lands beside the payload rather than inside it), the MSI file name sanitized to the validator's rule, the
+  product icon with the Control Panel section switched on, and **two shortcuts** — `%ProgramMenu%` then
+  `%Desktop%` — each named after the application, carrying the icon and targeting
+  `[INSTALLDIR]\<executable>`, where a nested executable keeps its sub-folder (`[INSTALLDIR]\bin\App.exe`).
+  Apply stays disabled until all six are answered, the version parses and the executable is inside the
+  release folder; applying **replaces** the package — fresh `productId` and `upgradeCode` included — and
+  asks first when the form already holds work. Everything it produces stays editable: the quick start is
+  assistance, never the only path.
+- **Control Panel information is on by default.** A **new** package no longer starts with that section
+  switched off — the section carries no validation rule of its own and every field in it is optional, while
+  leaving it off is what produces an installed product with no Add/Remove Programs entry at all. An
+  untouched new package saves as `"controlPanel": {}`, which is exactly what the switch says.
+  **Opening a profile is unaffected:** the switch still follows what the profile carries, so a 1.0.0 or
+  1.1.0 profile written without the section opens with it off and saving it again does not add one.
+- **A splash screen.** The app opens on an undecorated card showing the logo, **Enigma.Msi**, the tagline,
+  the running version and the author. It is the only window on screen while it is up — the main window
+  appears when it goes — stays for about two seconds, and **any click or key press dismisses it
+  immediately**. It behaves the same in Debug and Release, and there is no setting to turn it off.
+- **An About dialog.** An icon-only button at the far right of the command bar opens a modal dialog with
+  the logo, the name and tagline, the app version, the copyright, the author and the repository URL, plus
+  a **View on GitHub** button that opens it in your browser. The URL is selectable text as well, so it can
+  be copied by hand on a machine with no browser association. Close or Escape dismisses it.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format — still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0, 1.1.0 and 1.2.0 in **both** directions.
+- The app still targets **.NET 10.0** (`WinExe`), is published framework-dependent for `win-x64`, and
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
+- No new package references; the pinned Avalonia 12.1.1 / `Enigma.Avalonia.Desktop` 1.0.0 /
+  `Enigma.Icons.Avalonia` 1.0.0 UI stack is unchanged.
+- **Upgrading in place works as intended**: the installer keeps the app's permanent `UpgradeCode`, so
+  1.2.0 upgrades an installed 1.1.0 (or 1.0.0) rather than installing alongside it.
 
 ## 1.1.0 — Enigma.Msi.Desktop
 

@@ -62,55 +62,71 @@
       <!-- Commands -->
       <Border Grid.Row="0" Padding="12,10" BorderThickness="0,0,0,1"
               BorderBrush="{DynamicResource EnigmaBorderBrush}">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Command="{Binding NewCommand}" ToolTip.Tip="Start a new package">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="FilePlus" />
-              <TextBlock Text="New" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Command="{Binding OpenCommand}" ToolTip.Tip="Open a .msipkg.json profile">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="FolderOpen" />
-              <TextBlock Text="Open" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Command="{Binding SaveCommand}" ToolTip.Tip="Save the profile">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="FloppyDisk" />
-              <TextBlock Text="Save" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Command="{Binding SaveAsCommand}" ToolTip.Tip="Save the profile under a new name">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="FloppyDiskBack" />
-              <TextBlock Text="Save as…" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
+        <!-- Two columns so the About button can sit hard right of the command bar, whatever the
+             commands to its left add up to. -->
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+            <Button Command="{Binding QuickStartCommand}" ToolTip.Tip="Fill the form from six answers">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="MagicWand" />
+                <TextBlock Text="Quick start" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding NewCommand}" ToolTip.Tip="Start a new package">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="FilePlus" />
+                <TextBlock Text="New" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding OpenCommand}" ToolTip.Tip="Open a .msipkg.json profile">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="FolderOpen" />
+                <TextBlock Text="Open" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding SaveCommand}" ToolTip.Tip="Save the profile">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="FloppyDisk" />
+                <TextBlock Text="Save" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding SaveAsCommand}" ToolTip.Tip="Save the profile under a new name">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="FloppyDiskBack" />
+                <TextBlock Text="Save as…" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
 
-          <Rectangle Width="1" Margin="4,2" Fill="{DynamicResource EnigmaBorderBrush}" />
+            <Rectangle Width="1" Margin="4,2" Fill="{DynamicResource EnigmaBorderBrush}" />
 
-          <Button Command="{Binding ValidateCommand}" ToolTip.Tip="Report every problem with the package">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="ShieldCheck" />
-              <TextBlock Text="Validate" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Command="{Binding BuildCommand}" Classes="accent" ToolTip.Tip="Build the MSI">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ei:Icon Kind="Hammer" />
-              <TextBlock Text="Build" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <!-- No Cancel button here: a build runs under a modal overlay, so this one would be
-               unreachable. The overlay card carries the one cancel affordance. -->
+            <Button Command="{Binding ValidateCommand}" ToolTip.Tip="Report every problem with the package">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="ShieldCheck" />
+                <TextBlock Text="Validate" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding BuildCommand}" Classes="accent" ToolTip.Tip="Build the MSI">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ei:Icon Kind="Hammer" />
+                <TextBlock Text="Build" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <!-- No Cancel button here: a build runs under a modal overlay, so this one would be
+                 unreachable. The overlay card carries the one cancel affordance. -->
 
-          <!-- Build is gated on validity, so say why it is disabled instead of leaving it dead. -->
-          <TextBlock Text="Package incomplete — press Validate for details."
-                     VerticalAlignment="Center"
-                     Foreground="{DynamicResource EnigmaWarningBrush}"
-                     IsVisible="{Binding !IsPackageValid}" />
-        </StackPanel>
+            <!-- Build is gated on validity, so say why it is disabled instead of leaving it dead. -->
+            <TextBlock Text="Package incomplete — press Validate for details."
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource EnigmaWarningBrush}"
+                       IsVisible="{Binding !IsPackageValid}" />
+          </StackPanel>
+
+          <Button Grid.Column="1"
+                  Command="{Binding ShowAboutCommand}"
+                  ToolTip.Tip="About Enigma.Msi">
+            <ei:Icon Kind="Info" />
+          </Button>
+        </Grid>
       </Border>
 
       <!-- Form | log -->

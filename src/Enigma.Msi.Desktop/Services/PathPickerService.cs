@@ -24,6 +24,11 @@ public sealed class PathPickerService : IPathPickerService
         new FilePickerFileType("Icon") { Patterns = ["*.ico"] }
     ];
 
+    private static readonly IReadOnlyList<FilePickerFileType> ExecutableFileTypes =
+    [
+        new FilePickerFileType("Executable") { Patterns = ["*.exe"] }
+    ];
+
     private readonly IFileDialogService _fileDialogService;
     private readonly IFolderDialogService _folderDialogService;
 
@@ -73,6 +78,17 @@ public sealed class PathPickerService : IPathPickerService
         IEnumerable<string> paths = await _fileDialogService
             .ShowOpenFileDialogAsync(
                 "Select icon", false, ExistingDirectoryOrEmpty(startLocation), string.Empty, IconFileTypes)
+            .ConfigureAwait(true);
+
+        return paths.FirstOrDefault();
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> PickExecutableAsync(string? startLocation)
+    {
+        IEnumerable<string> paths = await _fileDialogService
+            .ShowOpenFileDialogAsync(
+                "Select executable", false, ExistingDirectoryOrEmpty(startLocation), string.Empty, ExecutableFileTypes)
             .ConfigureAwait(true);
 
         return paths.FirstOrDefault();

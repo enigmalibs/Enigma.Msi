@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ei="https://github.com/josueclement/Enigma.Icons"
+             xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="260"
+             x:Class="Enigma.Msi.Desktop.Views.AboutCard"
+             x:DataType="vm:AboutViewModel"
+             Focusable="True">
+  <StackPanel Spacing="16">
+
+    <!-- Identity: the logo beside the name and what the app is for. -->
+    <StackPanel Orientation="Horizontal" Spacing="14">
+      <Image Source="avares://Enigma.Msi.Desktop/Assets/logo.png"
+             Width="64" Height="64"
+             VerticalAlignment="Top" />
+      <StackPanel VerticalAlignment="Center" Spacing="4">
+        <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Tagline}"
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+      </StackPanel>
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="{Binding Version, StringFormat='Version {0}'}" />
+      <TextBlock Text="{Binding Copyright}"
+                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+      <TextBlock Text="{Binding Author}"
+                 Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+    </StackPanel>
+
+    <Rectangle Height="1" Fill="{DynamicResource EnigmaBorderSubtleBrush}" />
+
+    <!-- Selectable as well as clickable: a machine with no browser association still has to be able to
+         get at the URL, and copying it by hand is that fallback. -->
+    <StackPanel Spacing="8">
+      <SelectableTextBlock Text="{Binding RepositoryUrl}"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+      <Button Command="{Binding OpenRepositoryCommand}"
+              HorizontalAlignment="Left"
+              ToolTip.Tip="Open the repository in your browser">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ei:Icon Kind="GithubLogo" />
+          <TextBlock Text="View on GitHub" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

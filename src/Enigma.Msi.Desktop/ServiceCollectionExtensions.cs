@@ -1,3 +1,4 @@
+using System;
 using Enigma.Avalonia.Desktop.Services;
 using Enigma.Msi.Build;
 using Enigma.Msi.Desktop.Services;
@@ -34,7 +35,7 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Registers the MSI library's services plus this app's three thin seams over the UI framework.
+        /// Registers the MSI library's services plus this app's five thin seams over the UI framework.
         /// </summary>
         /// <remarks>
         /// The library ships no <c>AddEnigmaMsi()</c> extension of its own — registration is the
@@ -49,14 +50,30 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<IPathPickerService, PathPickerService>();
             _ = services.AddSingleton<IUiDispatcher, UiDispatcher>();
             _ = services.AddSingleton<IBuildProgressService, BuildProgressService>();
+            _ = services.AddSingleton<IUrlLauncherService, UrlLauncherService>();
+            _ = services.AddSingleton<IAboutDialogService, AboutDialogService>();
+            _ = services.AddSingleton<IQuickStartDialogService, QuickStartDialogService>();
         }
 
-        /// <summary>Registers the window, the form and their ViewModels.</summary>
+        /// <summary>Registers the windows, the form, the dialog content and their ViewModels.</summary>
+        /// <remarks>
+        /// The splash pair is transient on purpose: it is shown once at startup and closed, and a
+        /// singleton would keep a dead window alive for the life of the process. The quick-start form is
+        /// transient for the opposite reason: it is shown <em>repeatedly</em>, and a shared instance
+        /// would open the second run on the first run's answers — which is why its service takes a
+        /// factory rather than the ViewModel itself.
+        /// </remarks>
         public void AddViewsAndViewModels()
         {
             _ = services.AddSingleton<MainWindow>();
             _ = services.AddSingleton<MainWindowViewModel>();
             _ = services.AddSingleton<PackageEditorViewModel>();
+            _ = services.AddSingleton<AboutViewModel>();
+            _ = services.AddTransient<SplashWindow>();
+            _ = services.AddTransient<SplashViewModel>();
+            _ = services.AddTransient<QuickStartViewModel>();
+            _ = services.AddSingleton<Func<QuickStartViewModel>>(
+                provider => provider.GetRequiredService<QuickStartViewModel>);
         }
     }
 }
