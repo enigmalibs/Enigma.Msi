@@ -161,7 +161,7 @@ Read from the repository at planning time (2026-09-03), and binding on every pha
 
 ## PHASE02 — Splash screen restyle & headless tests
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-2d02-phase02-splash-restyle`
 
 Target: Enigma.MarkdownEditor's `SplashWindow` — read at

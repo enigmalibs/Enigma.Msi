@@ -41,8 +41,8 @@ public partial class App : Application
             services.GetRequiredService<IFileDialogService>().SetStorageProvider(mainWindow.StorageProvider);
             services.GetRequiredService<IFolderDialogService>().SetStorageProvider(mainWindow.StorageProvider);
 
+            // No DataContext: the splash reads its two lines off AppInfo in the markup.
             var splash = services.GetRequiredService<SplashWindow>();
-            splash.DataContext = services.GetRequiredService<SplashViewModel>();
             splash.Dismissed += (_, _) => ShowMainWindow(desktop, mainWindow, splash);
 
             // The lifetime shows whatever MainWindow holds once this method returns, so the splash needs

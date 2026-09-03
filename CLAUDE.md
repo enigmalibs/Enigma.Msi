@@ -73,9 +73,16 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > warning, and one that does not exist is still reported once, by the Problems pane, because the dialog
 > applies string and parse rules only. Its Browse button is the one that is **ungated** — the icon and
 > executable pickers open *at* the release folder, the output folder depends on nothing. 447 tests pass.
-> `PHASE02` (splash restyle + the repository's first headless-Avalonia suite), `PHASE03` (**delete the
-> NuGet packaging** — `build/Enigma.Msi.targets`, the pack target and every claim of publication; the
-> library becomes an in-repo `ProjectReference` consumer at 1.0.0) and `PHASE04` (release 1.3.0) remain.
+> `PHASE02` is done too: the **splash shows the logo, `Enigma.Msi` and `Version X.Y.Z` and nothing else**
+> at 420×260 — the tagline and the author line are off it (both stay in About) — and with two lines left
+> `SplashViewModel` is **deleted**: the markup reads `AppInfo` through `{x:Static}`, so the splash has no
+> ViewModel, no DI registration and no `DataContext`. Its behaviour is untouched (2 s timer, click or key,
+> `App`-owned handover). That is also what brought the repository its **first headless-Avalonia suite** —
+> `SplashWindowTests` over the real markup, with an assembly-level `[AvaloniaTestApplication]` hook
+> building the app's own `App` on `UseHeadless` (the test session sets up no lifetime, so the app's
+> composition never runs). 453 tests pass. `PHASE03` (**delete the NuGet packaging** —
+> `build/Enigma.Msi.targets`, the pack target and every claim of publication; the library becomes an
+> in-repo `ProjectReference` consumer at 1.0.0) and `PHASE04` (release 1.3.0) remain.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
@@ -181,14 +188,16 @@ missing rather than shipping a nupkg whose every `BuildAsync` call would fail.
   project mirrors that TFM. This is a documented deviation from the house `net10.0` app default.
 - **`src/Enigma.Msi.Desktop`** is `net10.0` `WinExe` (Avalonia; plain TFM, no `-windows` suffix — the
   app's Windows-only nature comes from what it drives, not from its TFM). Its UI stack is a **coupled
-  set** pinned together: Avalonia **12.1.1** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`),
-  `Enigma.Avalonia.Desktop` **1.0.0** and `Enigma.Icons.Avalonia` **1.0.0** — the latter two are built
-  against Avalonia 12.1.x, so bump all four or none. `AvaloniaUI.DiagnosticsSupport` is Debug-only via a
-  conditional `IncludeAssets`/`PrivateAssets`. Beware two API details: `Enigma.Avalonia.Desktop`'s
-  editors derive from `TextBox`, whose `Watermark` Avalonia 12 obsoletes — use `PlaceholderText`, or the
-  XAML compiler's `AVLN5001` fails the zero-warnings build; and its picker services' path-returning
-  overloads are C# 14 `extension` members, so they cannot be substituted in a test (which is why the app
-  puts its own `IPathPickerService` in front of them).
+  set** pinned together: Avalonia **12.1.1** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`, and the
+  test-side `.Headless`/`.Headless.XUnit`), `Enigma.Avalonia.Desktop` **1.0.0** and
+  `Enigma.Icons.Avalonia` **1.0.0** — the latter two are built against Avalonia 12.1.x, so bump the whole
+  set or none of it. The two headless packages are pinned in the *same* `ItemGroup` as the rest for that
+  reason, though only the desktop test suite consumes them. `AvaloniaUI.DiagnosticsSupport` is
+  Debug-only via a conditional `IncludeAssets`/`PrivateAssets`. Beware two API details:
+  `Enigma.Avalonia.Desktop`'s editors derive from `TextBox`, whose `Watermark` Avalonia 12 obsoletes —
+  use `PlaceholderText`, or the XAML compiler's `AVLN5001` fails the zero-warnings build; and its picker
+  services' path-returning overloads are C# 14 `extension` members, so they cannot be substituted in a
+  test (which is why the app puts its own `IPathPickerService` in front of them).
 - `System.Buffers` and **PolySharp** (compile-only, `PrivateAssets=all`) are referenced on
   **netstandard2.0 only** — they are framework-provided or unnecessary on net8.0+, and an
   unconditional reference raises NU1510 and fails the zero-warnings build.
@@ -225,6 +234,12 @@ passed through the explicit `--solution` flag, as above.
 
 Tests are **MTP-native**: `xunit.v3` + `coverlet.collector`, with **no** `Microsoft.NET.Test.Sdk` and
 no `xunit.runner.visualstudio`.
+
+`tests/Enigma.Msi.Desktop.UnitTests` is the one suite with a UI dependency: `Avalonia.Headless` +
+`Avalonia.Headless.XUnit` give it a windowing platform with no screen behind it, so a test can load real
+markup. `HeadlessTestApp` declares the assembly-wide session, and only `[AvaloniaFact]`/`[AvaloniaTheory]`
+bodies run on it — the plain `[Fact]` ViewModel tests are unaffected. Keep the UI dependency in that
+suite alone.
 
 ## Conventions
 
