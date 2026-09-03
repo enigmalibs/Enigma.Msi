@@ -1,11 +1,19 @@
 # Enigma.Msi — Guides & Samples
 
-Per-category guides for **Enigma.Msi**, a library that builds Windows MSI installers from a single
-declarative model. You describe the package once as an `MsiPackage` — app identity, install scope, the
-folder to package, shortcuts, Control Panel information, compression, managed-UI dialogs — and then hand
-that same object to whichever part of the library you need: `IMsiPackageValidator` to find out what is
-wrong with it, `IMsiBuildService` to build the `.msi`, `MsiPackageJson` to save it as a `.msipkg.json`
-profile. There is deliberately no mirrored DTO layer and no fluent builder chain.
+Per-category guides for **Enigma.Msi**, the library that builds Windows MSI installers from a single
+declarative model. It is the engine behind **Enigma.Msi.Desktop**, the app this repository releases — if
+you are here to *use* the app rather than to write code against the model, [the desktop
+app](desktop-app.md) and the repository [README](../../README.md) are the two pages you want.
+
+You describe the package once as an `MsiPackage` — app identity, install scope, the folder to package,
+shortcuts, Control Panel information, compression, managed-UI dialogs — and then hand that same object to
+whichever part of the library you need: `IMsiPackageValidator` to find out what is wrong with it,
+`IMsiBuildService` to build the `.msi`, `MsiPackageJson` to save it as a `.msipkg.json` profile. There is
+deliberately no mirrored DTO layer and no fluent builder chain — the app, the profile format and the
+worker all consume the very same type.
+
+The library is **not published to any feed**: it lives in this repository and is consumed by
+`ProjectReference`. See the README's *Using it* section.
 
 Nothing here needs a container: `MsiPackageValidator` and `MsiBuildService` are created with `new` and are
 stateless once constructed. Both sit behind `I*` interfaces, so they register just as happily as

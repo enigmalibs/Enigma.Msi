@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Enigma.Avalonia.Desktop.Controls.ContentDialog;
 using Enigma.Avalonia.Desktop.Controls.InfoBar;
 using Enigma.Avalonia.Desktop.Services;
 using Enigma.Msi.Build;
@@ -29,6 +30,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Extension of a saved package profile, including the leading dot.</summary>
     public const string ProfileExtension = ".msipkg.json";
 
+    // The control library's own defaults for a plain message-sized dialog.
+    private const double ConfirmationMinWidth = 320d;
+
+    private const double ConfirmationMaxWidth = 480d;
+
     private readonly IMsiPackageValidator _validator;
     private readonly IMsiBuildService _buildService;
     private readonly IPathPickerService _pathPicker;
@@ -36,9 +42,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IInfoBarService _infoBarService;
     private readonly IUiDispatcher _uiDispatcher;
     private readonly IBuildProgressService _buildProgress;
+    private readonly IAboutDialogService _aboutDialog;
+    private readonly IQuickStartDialogService _quickStartDialog;
     private readonly ILogger<MainWindowViewModel> _logger;
 
     private CancellationTokenSource? _buildCancellation;
+    private bool _startupQuickStartOffered;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Title))]
@@ -61,6 +70,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <param name="infoBarService">Reports the outcome of validate and build.</param>
     /// <param name="uiDispatcher">Marshals streamed log lines onto the UI thread.</param>
     /// <param name="buildProgress">Shows the modal build card while a build runs.</param>
+    /// <param name="aboutDialog">Shows the About dialog.</param>
+    /// <param name="quickStartDialog">Collects the seven answers the quick start fills the form from.</param>
     /// <param name="logger">Records what the user did and what failed.</param>
     /// <exception cref="ArgumentNullException">Any argument is <see langword="null"/>.</exception>
     public MainWindowViewModel(
@@ -72,6 +83,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IInfoBarService infoBarService,
         IUiDispatcher uiDispatcher,
         IBuildProgressService buildProgress,
+        IAboutDialogService aboutDialog,
+        IQuickStartDialogService quickStartDialog,
         ILogger<MainWindowViewModel> logger)
     {
         Package = package ?? throw new ArgumentNullException(nameof(package));
@@ -82,6 +95,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _infoBarService = infoBarService ?? throw new ArgumentNullException(nameof(infoBarService));
         _uiDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
         _buildProgress = buildProgress ?? throw new ArgumentNullException(nameof(buildProgress));
+        _aboutDialog = aboutDialog ?? throw new ArgumentNullException(nameof(aboutDialog));
+        _quickStartDialog = quickStartDialog ?? throw new ArgumentNullException(nameof(quickStartDialog));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         ValidationErrors.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasValidationErrors));
@@ -302,6 +317,83 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Empties the build log.</summary>
     [RelayCommand]
     private void ClearLog() => BuildLog.Clear();
+
+    /// <summary>Shows the About dialog.</summary>
+    [RelayCommand]
+    private Task ShowAboutAsync() => _aboutDialog.ShowAsync();
+
+    /// <summary>
+    /// Asks the seven quick-start questions and fills the form from the answers.
+    /// </summary>
+    [RelayCommand]
+    private async Task QuickStartAsync()
+    {
+        if (await _quickStartDialog.ShowAsync().ConfigureAwait(true) is not { } settings)
+        {
+            return;
+        }
+
+        // Deliberately after the dialog, not before: a quick start the user opens and then cancels must
+        // never have cost them a "replace the package?" prompt.
+        if (Package.HasData && !await ConfirmReplacingThePackageAsync().ConfigureAwait(true))
+        {
+            return;
+        }
+
+        Package.ApplyQuickStart(settings);
+        ValidationErrors.Clear();
+        CurrentFilePath = null;
+        StatusMessage = $"Filled the form for {settings.AppName}.";
+        _logger.LogInformation("Applied the quick start for {AppName}.", settings.AppName);
+    }
+
+    /// <summary>
+    /// Offers the quick start once, when the app opens on nothing.
+    /// </summary>
+    /// <remarks>
+    /// Invoked from the window's <c>Opened</c> event, which is the only honest trigger: a ViewModel has
+    /// no notion of being shown. Once only, and never over work — so it cannot interrupt someone who
+    /// already has a package in front of them.
+    /// </remarks>
+    [RelayCommand]
+    private async Task ShowQuickStartOnStartupAsync()
+    {
+        if (_startupQuickStartOffered || Package.HasData || CurrentFilePath is not null)
+        {
+            return;
+        }
+
+        _startupQuickStartOffered = true;
+
+        // The same path as the toolbar command, which on an empty form never asks for confirmation.
+        await QuickStartAsync().ConfigureAwait(true);
+    }
+
+    private async Task<bool> ConfirmReplacingThePackageAsync()
+    {
+        DialogResult result = await _contentDialogService
+            .ShowAsync(dialog =>
+            {
+                dialog.Title = "Replace the current package?";
+                dialog.Content = "The package in the form will be replaced. Unsaved changes are lost.";
+                dialog.PrimaryButtonText = "Yes";
+                dialog.CloseButtonText = "No";
+                dialog.DefaultButton = DefaultButton.Close;
+
+                // Stated, not inherited: ShowAsync leaves the six size properties as the previously shown
+                // dialog left them, and the quick-start card is a much wider thing than this sentence.
+                dialog.DialogWidth = double.NaN;
+                dialog.DialogHeight = double.NaN;
+                dialog.DialogMinWidth = ConfirmationMinWidth;
+                dialog.DialogMaxWidth = ConfirmationMaxWidth;
+                dialog.DialogMinHeight = 0d;
+                dialog.DialogMaxHeight = double.PositiveInfinity;
+            })
+            .ConfigureAwait(true);
+
+        // Only Yes counts: Escape and a click on the scrim both close with None.
+        return result == DialogResult.Primary;
+    }
 
     private bool CanBuild => !IsBuilding && IsPackageValid;
 

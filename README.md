@@ -1,23 +1,88 @@
 # Enigma.Msi
 
-[![NuGet](https://img.shields.io/nuget/v/Enigma.Msi.svg)](https://www.nuget.org/packages/Enigma.Msi)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 
-Enigma.Msi builds Windows MSI installers from a single declarative model. You describe the package once
-as an `MsiPackage` — app identity, install scope, the folder to package, shortcuts, Control Panel
-information, compression, managed-UI dialogs — and then hand that same object to whichever part of the
-library you need: `IMsiPackageValidator` to find out what is wrong with it, `IMsiBuildService` to build
-the `.msi`, `MsiPackageJson` to save it as a `.msipkg.json` profile. There is deliberately no mirrored
-DTO layer and no fluent builder chain. The actual MSI authoring is done by
-[WixSharp](https://github.com/oleg-shilo/wixsharp) (WiX v4), which is .NET Framework-only — so it runs
-inside a `net472` worker process bundled in this package, and never appears on the public API. Modern
-.NET consumers take no .NET Framework dependency.
+Enigma.Msi builds Windows MSI installers from a single declarative model. This repository ships that as an
+application — **Enigma.Msi.Desktop**, a desktop app where you fill in the installer, see everything that is
+wrong with it, and build it — on top of a library that does the actual work. The app saves what you typed
+as a plain `.msipkg.json` profile, and a headless worker CLI rebuilds the same profile in CI without the
+app or the library.
 
-> **What's new in 1.0** — the first public release: the declarative `MsiPackage` model with validation
-> and `.msipkg.json` profiles, the out-of-process build client, and a headless worker CLI for CI. See
+The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wixsharp) (WiX v4), which is
+.NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
+never appears on the library's public API.
+
+> **What's new in 1.3.0** — the quick start's **output folder is now a question**, the seventh, instead of
+> being derived from the release folder's parent; the **splash screen** is down to the logo, the name and
+> the version; and **the library is no longer a NuGet package** — `Enigma.Msi` is not published to any
+> feed, and the packaging that used to redistribute the worker is gone. See
 > [RELEASENOTES.md](RELEASENOTES.md).
 
-## Features
+## The desktop app
+
+One form, four buttons that matter. You describe the package, press **Validate** to get every problem at
+once, press **Build**, and watch the WiX toolchain's output stream into a log pane while it runs.
+
+- **Quick start** — seven answers (application name, version, manufacturer, release folder, output
+  folder, an `.ico`, the main executable) and the whole form comes back filled in: install path, MSI file
+  name, product icon with the Control Panel section on, and two shortcuts (`%ProgramMenu%` and
+  `%Desktop%`). It produces a package that passes Validate with nothing outstanding, and everything it
+  writes stays editable. It opens from the command bar, and once by itself on an empty form.
+- **The form** — five collapsible sections: *Product* (identity, install scope, compression, the two
+  GUIDs with their regenerate buttons), *Install and output*, *Control Panel information*, *Shortcuts*
+  (one self-removing card per shortcut) and *Managed UI* (the WixUI dialog set and both dialog
+  sequences). The three fields that take variables carry permanent hints listing what may be typed.
+- **Problems** — the validator's output, every violation at once, each with the profile member path that
+  produced it. Build stays disabled while the package is incomplete, and says so.
+- **The build** — a modal card covers the window from the moment Build is pressed, showing an
+  indeterminate bar, the latest log line and **Cancel**; cancelling terminates the worker *and its
+  children*, so no orphaned `wix` processes are left behind.
+- **Profiles** — Open, Save and Save as… over `.msipkg.json`, written with absolute paths so the worker
+  CLI can build them from any working directory.
+- **Splash and About** — an undecorated splash (logo, `Enigma.Msi`, the running version) dismissed by a
+  click, a key or two seconds; and an About dialog behind the icon-only button at the right of the command
+  bar, with the tagline, the copyright, the author and a **View on GitHub** button.
+
+### Requirements
+
+| Requirement | Notes |
+|---|---|
+| Windows | Building an MSI is Windows-only. |
+| The .NET 10 SDK | To build the app from source (`global.json` pins 10.0.100). |
+| The .NET 10 runtime | To run it — the app is published framework-dependent. |
+| The WiX CLI | `dotnet tool install --global wix`. The app reports its absence *before* a build rather than failing during one. |
+
+### Building it from source
+
+There is no download: clone the repository and build it. Both commands run **from the repository root**.
+
+```bash
+git clone https://github.com/enigmalibs/Enigma.Msi.git
+cd Enigma.Msi
+dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r win-x64 --self-contained false
+```
+
+That produces `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish\Enigma.Msi.Desktop.exe` with its
+`worker\` subfolder beside it — the app finds the worker there by itself, with no configuration. For a
+development run, `dotnet run --project src/Enigma.Msi.Desktop` is enough.
+
+The app can also build **its own installer**, which is how this repository releases it:
+
+```bash
+.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.3.0.msipkg.json
+```
+
+The profiles under `msiProfiles/` are ordinary `.msipkg.json` files, so they open in the app itself. See
+[docs/RELEASE.md](docs/RELEASE.md) for the full release runbook.
+
+## The library underneath
+
+`src/Enigma.Msi/` is the engine. You describe the package once as an `MsiPackage` — app identity, install
+scope, the folder to package, shortcuts, Control Panel information, compression, managed-UI dialogs — and
+hand that same object to whichever part of the library you need: `IMsiPackageValidator` to find out what
+is wrong with it, `IMsiBuildService` to build the `.msi`, `MsiPackageJson` to save it as a `.msipkg.json`
+profile. There is deliberately no mirrored DTO layer and no fluent builder chain — the app, the profile
+format and the worker all consume the very same type.
 
 - **The package model** — `MsiPackage` carries product identity (name, version, product and upgrade
   GUIDs, manufacturer), per-machine or per-user `InstallScope`, the source folder to package and the
@@ -31,46 +96,35 @@ inside a `net472` worker process bundled in this package, and never appears on t
 - **Building** — `IMsiBuildService.BuildAsync` runs validation, then the WiX toolchain, and returns an
   `MsiBuildResult`. A pre-flight check reports a missing worker or a missing WiX CLI as data; the build
   log streams line by line through `IProgress<string>`; cancellation terminates the worker *and its
-  children*, so no orphaned `wix` processes are left behind.
+  children*.
 - **Profiles** — `MsiPackageJson` reads and writes `<name>.msipkg.json`, which is exactly the model's
   serialization (no separate on-disk schema), versioned by a `schemaVersion` field.
-- **A headless worker CLI** — the bundled worker also runs on its own:
-  `Enigma.Msi.Worker.exe build <file.msipkg.json>` builds an MSI from a committed profile with no
-  library reference at all. Its exit codes are a contract: `0` success, `1` the operation failed on
-  well-formed input, `2` bad arguments or an unexpected error.
+- **A headless worker CLI** — the worker also runs on its own:
+  `Enigma.Msi.Worker.exe build <file.msipkg.json>` builds an MSI from a committed profile with no library
+  reference at all. Its exit codes are a contract: `0` success, `1` the operation failed on well-formed
+  input, `2` bad arguments or an unexpected error.
 
 ### WixSharp never leaks
 
 The library's `InstallScope`, `CompressionLevel`, `Wui` and `Dialog` enums are WixSharp-free mirrors,
 mapped inside the worker. Reflection-based drift tests assert them against WixSharp's real member sets,
 so a WixSharp upgrade that renames or adds a member fails the build loudly instead of silently
-mis-mapping. The worker itself is discovered on disk at run time and referenced by nothing at compile
-time — the package ships it under `tools/worker/` and copies it into your output automatically.
+mis-mapping. The worker itself is referenced by nothing at compile time and discovered on disk at run
+time; `build/CopyWorkerOutput.targets` puts it in `worker/` beside each host that needs it.
 
-## Installation
+### Using it
 
-```bash
-dotnet add package Enigma.Msi
+**Enigma.Msi is not published to NuGet, or to any other feed.** It is consumed the way the app and the
+worker consume it: clone this repository, add the project to your solution, and reference it directly.
+
+```xml
+<ProjectReference Include="..\Enigma.Msi\src\Enigma.Msi\Enigma.Msi.csproj" />
 ```
 
-Targets **.NET Standard 2.0**, **.NET 8.0**, and **.NET 10.0**; built on **WixSharp_wix4 2.14.1**
-(WiX v4).
-
-### Requirements for building an MSI
-
-The library loads anywhere. **Generating an `.msi` requires Windows and the WiX CLI**, installed as a
-global tool:
-
-```bash
-dotnet tool install --global wix
-```
-
-`IMsiBuildService.CheckPrerequisitesAsync` reports the absence of either the worker or the WiX CLI with
-that exact hint, so a missing toolchain is a message rather than a failed first build.
-
-## Quick start
-
-Describe the package, then build it — the pre-flight check and the streamed log are optional:
+A project that then wants to *build* an MSI also needs the worker in its output — import
+`build/CopyWorkerOutput.targets` and declare the build-order reference it documents. The library
+multi-targets `netstandard2.0`, `net8.0` and `net10.0` (`netstandard2.0` is what lets the `net472` worker
+consume the same model assembly) and builds on **WixSharp_wix4 2.14.1** (WiX v4).
 
 ```csharp
 using System;
@@ -116,7 +170,7 @@ Per-category guides — each with the types and their members in tables, plus co
 verified against the public API — live under `docs/guides/` in the repository, indexed by
 `docs/guides/README.md`. They cover the package model and the `.msipkg.json` format, validation and its
 complete rule set, building an MSI (pre-flight, log streaming, cancellation, worker discovery), the
-headless worker CLI, and the companion Avalonia desktop app that drives the very same model.
+headless worker CLI, and the desktop app in full.
 
 ## License
 

@@ -11,6 +11,12 @@
     <!-- The only suite that substitutes: the app's ViewModels talk to the control library's services
          and to the build client, none of which a unit test may drive for real. -->
     <PackageReference Include="NSubstitute" />
+    <!-- The only suite with a UI dependency: SplashWindowTests loads the real markup, which needs a
+         windowing platform. Avalonia.Headless is one with no screen behind it, and
+         Avalonia.Headless.XUnit runs an [AvaloniaFact] body on that platform's own UI thread. Both are
+         part of the version-coupled Avalonia set pinned in Directory.Packages.props. -->
+    <PackageReference Include="Avalonia.Headless" />
+    <PackageReference Include="Avalonia.Headless.XUnit" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj" />

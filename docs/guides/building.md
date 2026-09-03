@@ -5,7 +5,7 @@ optionally check its prerequisites, then call `BuildAsync` and get back an `MsiB
 the MSI was produced and where it went.
 
 Underneath, the build runs **out of process**. WixSharp is .NET Framework-only, so the code that touches
-it lives in a `net472` worker executable that ships inside the `Enigma.Msi` package and is discovered on
+it lives in a `net472` worker executable that ships beside its host application and is discovered on
 disk at run time. The library writes the package to a request file, runs the worker over it, streams the
 worker's output back line by line, and reads the outcome from a result file. None of that is visible on
 the API — but two of its consequences are, and they are worth knowing before your first build: the worker
@@ -22,7 +22,7 @@ throw: `ArgumentNullException` for a `null` package, and `OperationCanceledExcep
 |---|---|
 | Windows | MSI generation is Windows-only. The library itself loads anywhere; a build does not. |
 | The WiX CLI | `dotnet tool install --global wix`. `CheckPrerequisitesAsync` reports its absence with that exact hint. |
-| The worker on disk | Shipped in the package under `tools/worker/` and copied into your output automatically. See [Worker discovery](#worker-discovery). |
+| The worker on disk | Copied into your output as `worker/` by `build/CopyWorkerOutput.targets`. See [Worker discovery](#worker-discovery). |
 
 The library targets `netstandard2.0`, `net8.0` and `net10.0`.
 
@@ -49,7 +49,8 @@ Task<MsiBuildResult> BuildAsync(
 ```
 
 `MsiBuildService` can be constructed with `new MsiBuildService()` for the common case, or
-`new MsiBuildService(options)` when your layout differs from the one the package produces. The library
+`new MsiBuildService(options)` when your layout differs from the standard one — a `worker` folder beside
+the application. The library
 ships **no** `AddEnigmaMsi()` extension — registration is the consumer's choice:
 
 ```csharp
@@ -223,24 +224,32 @@ When `MsiBuildServiceOptions.WorkerPath` is `null` or blank, the worker is looke
 | `MsiBuildServiceOptions.WorkerFolderName` | `worker` |
 | `MsiBuildServiceOptions.DefaultWixToolPath` | `wix` |
 
-Getting the worker there is automatic. The `Enigma.Msi` package ships it under `tools/worker/` together
-with `build/Enigma.Msi.targets`, which NuGet imports into every consuming project; the targets file copies
-the payload to `$(OutDir)worker/`. It is expressed as `None` items carrying `CopyToOutputDirectory` rather
-than a post-build copy task, so `dotnet publish` picks it up too.
+Getting the worker there is a build step, not a run-time one: `build/CopyWorkerOutput.targets` copies the
+worker project's own output into the host's `$(OutDir)worker/`. A project that hosts the worker imports it
+and declares the build-order reference it documents:
 
-Two MSBuild properties adjust that:
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\..\src\Enigma.Msi.Worker\Enigma.Msi.Worker.csproj"
+                    ReferenceOutputAssembly="false"
+                    SkipGetTargetFrameworkProperties="true"
+                    UndefineProperties="TargetFramework" />
+</ItemGroup>
+<Import Project="..\..\build\CopyWorkerOutput.targets" />
+```
+
+All three `ProjectReference` attributes are load-bearing; the targets file documents why each one is
+there. Both the build and the publish pipeline are hooked, so `dotnet publish` gets the worker too — an
+`AfterTargets="Build"` copy alone lands in `$(OutDir)` and never reaches `$(PublishDir)`.
+
+A project that references the model but never builds an MSI simply does not import the file; there is
+nothing to opt out of. Two MSBuild properties adjust the copy, and both must be set **before** the
+`Import`:
 
 | Property | Effect |
 |---|---|
-| `IncludeEnigmaMsiWorker` | Set to `false` to skip the copy entirely — for a project that references the model but never builds an MSI. |
+| `EnigmaMsiWorkerSourceDir` | Where to copy from. Defaults to `src/Enigma.Msi.Worker/bin/$(Configuration)/net472/` in this repository. |
 | `EnigmaMsiWorkerFolderName` | Renames the destination folder. If you set it, you must also set `MsiBuildServiceOptions.WorkerPath` to match, because discovery looks in `worker/`. |
-
-```xml
-<PropertyGroup>
-  <!-- This project only reads and writes .msipkg.json profiles; it never builds an MSI. -->
-  <IncludeEnigmaMsiWorker>false</IncludeEnigmaMsiWorker>
-</PropertyGroup>
-```
 
 When discovery fails, the failure message says where it looked, and it distinguishes the two cases: a
 configured path that is wrong is a wrong setting, an empty default location is a missing deployment step.

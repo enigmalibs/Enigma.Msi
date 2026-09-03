@@ -8,13 +8,16 @@ Vulnerability reports are taken seriously and handled with priority.
 
 ## Supported versions
 
-Security fixes are provided for the latest released version. Enigma.Msi follows
-[Semantic Versioning](https://semver.org/), and users are encouraged to stay current with the newest
-release.
+Security fixes are provided for the latest released version of each artifact. The two version
+independently — the **Enigma.Msi.Desktop** application (released as an MSI) and the **Enigma.Msi** library
+it is built on (consumed in-repo by `ProjectReference`, not published to any feed) — so they are listed
+separately. Both follow [Semantic Versioning](https://semver.org/), and users are encouraged to stay
+current with the newest release.
 
-| Version | Supported          |
-|---------|--------------------|
-| 1.0.x   | :white_check_mark: |
+| Artifact                              | Version | Supported          |
+|---------------------------------------|---------|--------------------|
+| Enigma.Msi.Desktop (application, MSI) | 1.2.x   | :white_check_mark: |
+| Enigma.Msi (library, in-repo)         | 1.0.x   | :white_check_mark: |
 
 ## Reporting a vulnerability
 
@@ -42,7 +45,7 @@ This keeps the report private between you and the maintainers while it is triage
 
 Reports concerning the public API surface of the **Enigma.Msi** library, the `.msipkg.json` profile
 handling, the bundled **Enigma.Msi.Worker** executable (including how it is discovered, launched and
-handed its request file), the packaging plumbing that redistributes it, and the **Enigma.Msi.Desktop**
-application are in scope. Because Enigma.Msi builds on **WixSharp** and the **WiX Toolset**, issues
-rooted in those underlying projects should also be reported upstream to WixSharp and the WiX Toolset
-respectively.
+handed its request file), the MSBuild plumbing that copies it next to its hosts, and the
+**Enigma.Msi.Desktop** application are in scope. Because Enigma.Msi builds on **WixSharp** and the **WiX
+Toolset**, issues rooted in those underlying projects should also be reported upstream to WixSharp and the
+WiX Toolset respectively.

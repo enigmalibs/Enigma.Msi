@@ -102,17 +102,18 @@ place — or make every path in the profile absolute, which is what the desktop 
 
 | Context | Path |
 |---|---|
-| Inside the `Enigma.Msi` nupkg | `tools/worker/Enigma.Msi.Worker.exe` |
-| A project referencing the package | `$(OutDir)worker\Enigma.Msi.Worker.exe` — put there automatically |
+| The worker project's own build output | `src/Enigma.Msi.Worker/bin/Release/net472/Enigma.Msi.Worker.exe` |
+| A project that imports `build/CopyWorkerOutput.targets` | `$(OutDir)worker\Enigma.Msi.Worker.exe` — put there by the build |
 | Beside the desktop app | `worker\Enigma.Msi.Worker.exe` |
 
-For a CI job that has no .NET project at all, unpacking the nupkg is enough: a `.nupkg` is a zip, and
-`tools/worker/` is self-contained.
+For a CI job that has no .NET project of its own, that `bin/Release/net472/` folder is self-contained:
+build the worker once and copy it wherever the job needs it. There is no package to unpack — `Enigma.Msi`
+is not published to any feed.
 
 ```powershell
-# Get the worker without building anything that references it.
-nuget install Enigma.Msi -Version 1.0.0 -OutputDirectory packages -ExcludeVersion
-.\packages\Enigma.Msi\tools\worker\Enigma.Msi.Worker.exe build .\Widget.msipkg.json
+# Build the worker on its own, then run it against a profile.
+dotnet build .\src\Enigma.Msi.Worker\Enigma.Msi.Worker.csproj -c Release
+.\src\Enigma.Msi.Worker\bin\Release\net472\Enigma.Msi.Worker.exe build .\Widget.msipkg.json
 ```
 
 ### In a CI job

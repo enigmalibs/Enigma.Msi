@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:services="using:Enigma.Msi.Desktop.Services"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="260"
+        x:Class="Enigma.Msi.Desktop.Views.SplashWindow"
+        Title="Enigma.Msi"
+        Width="420" Height="260"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource EnigmaSurfaceBrush}">
+
+  <!-- No x:DataType and no DataContext: there is nothing to bind to. What the splash shows is fixed
+       for the life of the process, so it is read straight off AppInfo with x:Static rather than
+       through a ViewModel that would exist to forward two constants. -->
+
+  <!-- Undecorated windows have no frame of their own, so the border is the window's only edge. -->
+  <Border BorderThickness="1" BorderBrush="{DynamicResource EnigmaBorderSubtleBrush}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+
+      <Image Source="avares://Enigma.Msi.Desktop/Assets/logo.png"
+             Width="96" Height="96"
+             HorizontalAlignment="Center" />
+
+      <TextBlock Text="{x:Static services:AppInfo.Name}"
+                 FontSize="18" FontWeight="SemiBold"
+                 HorizontalAlignment="Center" />
+
+      <!-- The version, and nothing else. A progress or status line would spend its two seconds
+           flickering through stages nobody can read. -->
+      <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+        <TextBlock Text="Version"
+                   Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+        <TextBlock Text="{x:Static services:AppInfo.Version}"
+                   Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
+      </StackPanel>
+
+    </StackPanel>
+  </Border>
+</Window>

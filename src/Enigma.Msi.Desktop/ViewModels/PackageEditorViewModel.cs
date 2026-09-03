@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -37,6 +39,30 @@ public sealed partial class PackageEditorViewModel : ObservableObject
 {
     /// <summary>The version a new package starts at.</summary>
     public const string DefaultVersion = "1.0.0";
+
+    /// <summary>The install-path root the quick start puts the application folder under.</summary>
+    public const string ProgramFilesToken = "%ProgramFiles%";
+
+    /// <summary>
+    /// The MSI file name the quick start falls back to when nothing of the application name survives
+    /// sanitization.
+    /// </summary>
+    public const string FallbackMsiFilename = "package";
+
+    // MSI paths are Windows paths whatever the machine building them: '\' is written literally rather
+    // than through Path.Combine, which would emit '/' on a non-Windows host.
+    private const char WindowsSeparator = '\\';
+
+    private const string MsiExtension = ".msi";
+
+    private const string InstallDirToken = "[INSTALLDIR]";
+
+    // Stated here rather than borrowed from ShortcutViewModel.DefaultShortcutPath: what a new row
+    // defaults to and where the quick start puts the Start-menu shortcut are two separate decisions
+    // that merely agree today.
+    private const string ProgramMenuShortcutPath = "%ProgramMenu%";
+
+    private const string DesktopShortcutPath = "%Desktop%";
 
     private readonly IPathPickerService _pathPicker;
 
@@ -126,6 +152,32 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     /// <summary>Whether any shortcut is defined — drives the list's empty-state hint.</summary>
     public bool HasShortcuts => Shortcuts.Count > 0;
 
+    /// <summary>
+    /// Whether the form holds anything a quick start would throw away — what the window asks before
+    /// replacing the package.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Version"/>, <see cref="ProductId"/> and <see cref="UpgradeCode"/> are deliberately not
+    /// counted: <see cref="Reset"/> fills all three, so an untouched new package would otherwise look
+    /// like unsaved work and every quick start would open with a needless confirmation. The Control
+    /// Panel <em>fields</em> count; the toggle over them does not, for the same reason — it too is on
+    /// from the start.
+    /// </remarks>
+    public bool HasData
+        => !string.IsNullOrWhiteSpace(AppName)
+           || !string.IsNullOrWhiteSpace(Manufacturer)
+           || !string.IsNullOrWhiteSpace(InstallPath)
+           || !string.IsNullOrWhiteSpace(ReleasePath)
+           || !string.IsNullOrWhiteSpace(OutputPath)
+           || !string.IsNullOrWhiteSpace(MsiFilename)
+           || !string.IsNullOrWhiteSpace(ProductIcon)
+           || !string.IsNullOrWhiteSpace(Comments)
+           || !string.IsNullOrWhiteSpace(Contact)
+           || !string.IsNullOrWhiteSpace(HelpLink)
+           || !string.IsNullOrWhiteSpace(UrlInfoAbout)
+           || Shortcuts.Count > 0
+           || Ui.IsCustomized;
+
     /// <summary>The optional managed-UI block.</summary>
     public UiSettingsViewModel Ui { get; } = new();
 
@@ -151,7 +203,13 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         ReleasePath = string.Empty;
         OutputPath = string.Empty;
         MsiFilename = string.Empty;
-        HasControlPanelInfo = false;
+
+        // On for a *new* package, because the section costs nothing to carry — it has no in-memory
+        // validation rule at all, and every field in it is optional — while an installed product with
+        // no Control Panel entry is what "off" actually produces. LoadFrom is the other half of this:
+        // it keeps deriving the toggle from the profile, so opening a package that carries no section
+        // still shows it off.
+        HasControlPanelInfo = true;
         ProductIcon = string.Empty;
         Comments = string.Empty;
         Contact = string.Empty;
@@ -159,6 +217,47 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         UrlInfoAbout = string.Empty;
         Shortcuts.Clear();
         Ui.LoadFrom(null);
+    }
+
+    /// <summary>
+    /// Replaces the package with one derived from the quick start's seven answers.
+    /// </summary>
+    /// <param name="settings">The validated answers.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// <see cref="Reset"/> first — so the result is a genuinely new package with fresh identifiers, not
+    /// seven fields overwritten inside whatever was there — then the entered values plus everything
+    /// derivable from them: the install path, the MSI file name, the product icon and the two shortcuts.
+    /// The output folder is entered rather than derived. What comes out is intended to pass every
+    /// validation rule with no further typing, which is the whole point of the dialog.
+    /// </remarks>
+    public void ApplyQuickStart(QuickStartSettings settings)
+    {
+        if (settings is null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
+        Reset();
+
+        string appName = settings.AppName.Trim();
+
+        AppName = settings.AppName;
+        Version = settings.Version;
+        Manufacturer = settings.Manufacturer;
+        ReleasePath = settings.ReleasePath;
+        OutputPath = settings.OutputPath;
+
+        InstallPath = ProgramFilesToken + WindowsSeparator + appName;
+        MsiFilename = ToMsiFilename(appName);
+
+        HasControlPanelInfo = true;
+        ProductIcon = settings.IconPath;
+
+        // Through the collection, so the per-row subscription bookkeeping in OnShortcutsChanged wires
+        // these two exactly as it wires a row the user added by hand.
+        AddQuickStartShortcut(ProgramMenuShortcutPath, appName, settings);
+        AddQuickStartShortcut(DesktopShortcutPath, appName, settings);
     }
 
     /// <summary>Shows <paramref name="package"/> in the form, replacing whatever was there.</summary>
@@ -347,6 +446,40 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     private void OnShortcutPropertyChanged(object? sender, PropertyChangedEventArgs e) => RaiseChanged();
 
     private void RaiseChanged() => Changed?.Invoke(this, EventArgs.Empty);
+
+    private void AddQuickStartShortcut(string shortcutPath, string appName, QuickStartSettings settings)
+        => Shortcuts.Add(new ShortcutViewModel
+        {
+            ShortcutPath = shortcutPath,
+            ShortcutName = appName,
+            TargetPath = InstallDirToken + WindowsSeparator + settings.ExecutableRelativePath,
+            IconPath = settings.IconPath
+        });
+
+    // Shaped for the validator's rule on output.msiFilename: a plain file name, no invalid characters,
+    // no .msi extension — the extension is the installer's to add.
+    private static string ToMsiFilename(string appName)
+    {
+        char[] invalid = Path.GetInvalidFileNameChars();
+        var builder = new StringBuilder(appName.Length);
+
+        foreach (char character in appName)
+        {
+            if (Array.IndexOf(invalid, character) < 0)
+            {
+                _ = builder.Append(character);
+            }
+        }
+
+        string name = builder.ToString().Trim();
+
+        if (name.EndsWith(MsiExtension, StringComparison.OrdinalIgnoreCase))
+        {
+            name = name[..^MsiExtension.Length].Trim();
+        }
+
+        return name.Length == 0 ? FallbackMsiFilename : name;
+    }
 
     private static void AddGuidError(List<MsiValidationError> errors, string path, string value)
     {
