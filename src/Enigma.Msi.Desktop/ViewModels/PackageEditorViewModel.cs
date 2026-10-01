@@ -4,9 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -43,17 +41,9 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     /// <summary>The install-path root the quick start puts the application folder under.</summary>
     public const string ProgramFilesToken = "%ProgramFiles%";
 
-    /// <summary>
-    /// The MSI file name the quick start falls back to when nothing of the application name survives
-    /// sanitization.
-    /// </summary>
-    public const string FallbackMsiFilename = "package";
-
     // MSI paths are Windows paths whatever the machine building them: '\' is written literally rather
     // than through Path.Combine, which would emit '/' on a non-Windows host.
     private const char WindowsSeparator = '\\';
-
-    private const string MsiExtension = ".msi";
 
     private const string InstallDirToken = "[INSTALLDIR]";
 
@@ -220,15 +210,16 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Replaces the package with one derived from the quick start's seven answers.
+    /// Replaces the package with one derived from the quick start's eight answers.
     /// </summary>
     /// <param name="settings">The validated answers.</param>
     /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
     /// <remarks>
     /// <see cref="Reset"/> first — so the result is a genuinely new package with fresh identifiers, not
-    /// seven fields overwritten inside whatever was there — then the entered values plus everything
-    /// derivable from them: the install path, the MSI file name, the product icon and the two shortcuts.
-    /// The output folder is entered rather than derived. What comes out is intended to pass every
+    /// eight fields overwritten inside whatever was there — then the entered values plus everything
+    /// derivable from them: the install path, the product icon and the two shortcuts. The output folder
+    /// and the MSI file name are answers rather than derivations here — the dialog itself derives the
+    /// latter, where the user can see it and change it. What comes out is intended to pass every
     /// validation rule with no further typing, which is the whole point of the dialog.
     /// </remarks>
     public void ApplyQuickStart(QuickStartSettings settings)
@@ -249,7 +240,7 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         OutputPath = settings.OutputPath;
 
         InstallPath = ProgramFilesToken + WindowsSeparator + appName;
-        MsiFilename = ToMsiFilename(appName);
+        MsiFilename = settings.MsiFilename;
 
         HasControlPanelInfo = true;
         ProductIcon = settings.IconPath;
@@ -455,31 +446,6 @@ public sealed partial class PackageEditorViewModel : ObservableObject
             TargetPath = InstallDirToken + WindowsSeparator + settings.ExecutableRelativePath,
             IconPath = settings.IconPath
         });
-
-    // Shaped for the validator's rule on output.msiFilename: a plain file name, no invalid characters,
-    // no .msi extension — the extension is the installer's to add.
-    private static string ToMsiFilename(string appName)
-    {
-        char[] invalid = Path.GetInvalidFileNameChars();
-        var builder = new StringBuilder(appName.Length);
-
-        foreach (char character in appName)
-        {
-            if (Array.IndexOf(invalid, character) < 0)
-            {
-                _ = builder.Append(character);
-            }
-        }
-
-        string name = builder.ToString().Trim();
-
-        if (name.EndsWith(MsiExtension, StringComparison.OrdinalIgnoreCase))
-        {
-            name = name[..^MsiExtension.Length].Trim();
-        }
-
-        return name.Length == 0 ? FallbackMsiFilename : name;
-    }
 
     private static void AddGuidError(List<MsiValidationError> errors, string path, string value)
     {

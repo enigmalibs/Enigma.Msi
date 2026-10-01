@@ -564,7 +564,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         _ = _quickStartDialog.DidNotReceive().ShowAsync();
     }
 
-    // The headline promise of the whole feature: six answers in, a buildable package out. Run against
+    // The headline promise of the whole feature: eight answers in, a buildable package out. Run against
     // real folders so the *environment* rules are exercised too — those are the ones the derivations
     // exist to satisfy, and the only ones that can tell whether the output folder landed somewhere that
     // exists.
@@ -771,11 +771,12 @@ public sealed class MainWindowViewModelTests : IDisposable
         return package;
     }
 
-    // Seven answers the dialog would have validated before handing them over — the relative executable
+    // Eight answers the dialog would have validated before handing them over — the relative executable
     // path is what crosses the seam, not the absolute one.
     private static QuickStartSettings CreateSettings() => new(
         "Widget",
         "2.1.0",
+        "Widget.2.1.0",
         "Contoso AG",
         Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "payload", "release"),
         Path.Combine(Path.GetPathRoot(Path.GetTempPath())!, "payload"),
@@ -795,7 +796,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         string output = Path.Combine(_tempDirectory, "payload");
 
         return new QuickStartSettings(
-            "Widget", "2.1.0", "Contoso AG", release, output, icon, @"bin\Widget.exe");
+            "Widget", "2.1.0", "Widget.2.1.0", "Contoso AG", release, output, icon, @"bin\Widget.exe");
     }
 
     private string TempPath(string fileName)

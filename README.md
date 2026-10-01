@@ -23,11 +23,13 @@ never appears on the library's public API.
 One form, four buttons that matter. You describe the package, press **Validate** to get every problem at
 once, press **Build**, and watch the WiX toolchain's output stream into a log pane while it runs.
 
-- **Quick start** — seven answers (application name, version, manufacturer, release folder, output
-  folder, an `.ico`, the main executable) and the whole form comes back filled in: install path, MSI file
-  name, product icon with the Control Panel section on, and two shortcuts (`%ProgramMenu%` and
-  `%Desktop%`). It produces a package that passes Validate with nothing outstanding, and everything it
-  writes stays editable. It opens from the command bar, and once by itself on an empty form.
+- **Quick start** — eight answers (application name, version, MSI file name, manufacturer, release
+  folder, output folder, an `.ico`, the main executable) and the whole form comes back filled in: install
+  path, product icon with the Control Panel section on, and two shortcuts (`%ProgramMenu%` and
+  `%Desktop%`). The MSI file name fills itself in from the name and the version as you type them
+  (`Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`) until you type one of your own. It produces a package
+  that passes Validate with nothing outstanding, and everything it writes stays editable. It opens from
+  the command bar, and once by itself on an empty form.
 - **The form** — five collapsible sections: *Product* (identity, install scope, compression, the two
   GUIDs with their regenerate buttons), *Install and output*, *Control Panel information*, *Shortcuts*
   (one self-removing card per shortcut) and *Managed UI* (the WixUI dialog set and both dialog
