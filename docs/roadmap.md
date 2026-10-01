@@ -28,3 +28,6 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | - PHASE02    | Splash screen restyle & headless tests                      | DONE   | (in FEATURE-2D02.md)      |
 | - PHASE03    | Drop NuGet packaging & publication                          | DONE   | (in FEATURE-2D02.md)      |
 | - PHASE04    | Release prep: desktop app 1.3.0                             | DONE   | (in FEATURE-2D02.md)      |
+| FEATURE-1DEF | Desktop app 1.4.0: quick-start MSI name                     | TODO   | docs/plan/FEATURE-1DEF.md |
+| - PHASE01    | Quick start: derived MSI file name                          | TODO   | (in FEATURE-1DEF.md)      |
+| - PHASE02    | Release prep: desktop app 1.4.0                             | TODO   | (in FEATURE-1DEF.md)      |
