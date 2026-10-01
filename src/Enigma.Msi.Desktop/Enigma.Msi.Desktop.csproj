@@ -8,7 +8,7 @@
          first release and parted here. This value is what
          msiProfiles/Enigma.Msi.Desktop.<version>.msipkg.json mirrors — bump both together, and clone the
          profile per the rule in docs/RELEASE.md. -->
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
   </PropertyGroup>

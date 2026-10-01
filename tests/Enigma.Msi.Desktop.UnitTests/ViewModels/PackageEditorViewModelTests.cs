@@ -386,6 +386,7 @@ public sealed class PackageEditorViewModelTests
 
         Assert.Equal("Widget", viewModel.AppName);
         Assert.Equal("2.1.0", viewModel.Version);
+        Assert.Equal("Widget.2.1.0", viewModel.MsiFilename);
         Assert.Equal("Contoso AG", viewModel.Manufacturer);
         Assert.Equal(settings.ReleasePath, viewModel.ReleasePath);
         Assert.Equal(settings.OutputPath, viewModel.OutputPath);
@@ -428,48 +429,17 @@ public sealed class PackageEditorViewModelTests
     }
 
     [Fact]
-    public void ApplyQuickStart_NamesTheMsiAfterTheApplication()
+    public void ApplyQuickStart_TakesTheMsiFileNameAsAnswered_WithoutDerivingItFromTheApplicationName()
     {
         PackageEditorViewModel viewModel = CreateViewModel();
 
-        viewModel.ApplyQuickStart(CreateSettings());
+        viewModel.ApplyQuickStart(CreateSettings() with { MsiFilename = "Contoso-Widget-Setup" });
 
-        Assert.Equal("Widget", viewModel.MsiFilename);
-    }
-
-    [Fact]
-    public void ApplyQuickStart_SanitizesTheMsiFileName()
-    {
-        PackageEditorViewModel viewModel = CreateViewModel();
-
-        // '/' is an invalid file-name character on every platform this suite runs on, so the expectation
-        // does not depend on the host.
-        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "Contoso/Widget" });
-
-        Assert.Equal("ContosoWidget", viewModel.MsiFilename);
+        // The dialog derives the name where the user can see it; nothing here works it out a second time.
+        Assert.Equal("Contoso-Widget-Setup", viewModel.MsiFilename);
         Assert.DoesNotContain(
             new MsiPackageValidator().Validate(viewModel.ToPackage()).Errors,
             error => error.Path == "output.msiFilename");
-    }
-
-    [Fact]
-    public void ApplyQuickStart_StripsATrailingMsiExtensionFromTheFileName()
-    {
-        PackageEditorViewModel viewModel = CreateViewModel();
-
-        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "Widget.MSI" });
-
-        Assert.Equal("Widget", viewModel.MsiFilename);
-    }
-
-    [Fact]
-    public void ApplyQuickStart_FallsBackToAFileNameWhenNothingSurvivesSanitization()
-    {
-        PackageEditorViewModel viewModel = CreateViewModel();
-
-        viewModel.ApplyQuickStart(CreateSettings() with { AppName = "///" });
-
-        Assert.Equal(PackageEditorViewModel.FallbackMsiFilename, viewModel.MsiFilename);
     }
 
     [Fact]
@@ -583,6 +553,7 @@ public sealed class PackageEditorViewModelTests
     private static QuickStartSettings CreateSettings() => new(
         "Widget",
         "2.1.0",
+        "Widget.2.1.0",
         "Contoso AG",
         Path.Combine(Root, "payload", "release"),
         Path.Combine(Root, "drops"),

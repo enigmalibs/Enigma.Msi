@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,7 +9,7 @@ using Enigma.Msi.Desktop.Services;
 namespace Enigma.Msi.Desktop.ViewModels;
 
 /// <summary>
-/// The quick start's form: seven answers, and the rules that decide when they add up to a package.
+/// The quick start's form: eight answers, and the rules that decide when they add up to a package.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -16,6 +18,11 @@ namespace Enigma.Msi.Desktop.ViewModels;
 /// release folder, so their browse buttons stay disabled until that folder is known. The output folder
 /// sits next to the release folder because that is where it is thought about, not because it depends on
 /// it — it is deliberately <em>not</em> derived from it any more, so its own browse button is ungated.
+/// </para>
+/// <para>
+/// The MSI file name is the one answer that arrives pre-filled. It follows the application name and the
+/// version as they are typed — see <see cref="MsiFilename"/> — and stops following the moment the user
+/// types a name of their own, so a deliberate answer is never overwritten.
 /// </para>
 /// <para>
 /// <see cref="CanApply"/> applies string and parse rules only, and never touches the disk. That mirrors
@@ -30,9 +37,25 @@ public sealed partial class QuickStartViewModel : ObservableObject
     public const string ExecutableOutsideReleaseFolderMessage =
         "The executable must be inside the release folder — it is what [INSTALLDIR] becomes after installation.";
 
+    /// <summary>What the dialog says when the MSI file name holds a character a file name cannot.</summary>
+    public const string MsiFilenameInvalidCharactersMessage =
+        "The MSI file name must be a plain file name — no folder separators, and no characters a file name cannot hold.";
+
+    /// <summary>What the dialog says when the MSI file name carries its own extension.</summary>
+    public const string MsiFilenameExtensionMessage =
+        "Leave the .msi extension off — the build appends it.";
+
     private const char WindowsSeparator = '\\';
 
+    private const char MsiFilenameSeparator = '.';
+
+    private const string MsiExtension = ".msi";
+
     private readonly IPathPickerService _pathPicker;
+
+    // What the MSI file name was last derived as. Blank to start with, which is also what an empty
+    // application name derives — so the field and this agree before anything has been typed.
+    private string _derivedMsiFilename = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanApply))]
@@ -41,6 +64,19 @@ public sealed partial class QuickStartViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanApply))]
     private string _version = PackageEditorViewModel.DefaultVersion;
+
+    /// <summary>
+    /// The <c>.msi</c> file's base name, without the extension. Derived from <see cref="AppName"/> and
+    /// <see cref="Version"/> — spaces become dots and the version is appended, so <c>Enigma Msi</c> at
+    /// <c>1.4.0</c> gives <c>Enigma.Msi.1.4.0</c> — and kept in step with both for as long as it still holds
+    /// what was last derived. A name typed by hand is left alone from then on; emptying the field hands it
+    /// back to the derivation at the next edit of either.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanApply))]
+    [NotifyPropertyChangedFor(nameof(MsiFilenameError))]
+    [NotifyPropertyChangedFor(nameof(HasMsiFilenameError))]
+    private string _msiFilename = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanApply))]
@@ -122,18 +158,51 @@ public sealed partial class QuickStartViewModel : ObservableObject
     public bool HasExecutableError => ExecutableError is not null;
 
     /// <summary>
-    /// Whether the seven answers add up to a package: all present, the version parsing, and the
-    /// executable inside the release folder.
+    /// The problem with the MSI file name, or <see langword="null"/> while there is none. These are the
+    /// validator's own two rules on <c>output.msiFilename</c> — both are string rules, so the dialog can
+    /// apply them without touching the disk. Blank is not reported, for the same reason as
+    /// <see cref="ExecutableError"/>.
+    /// </summary>
+    public string? MsiFilenameError
+    {
+        get
+        {
+            string filename = MsiFilename.Trim();
+
+            if (filename.Length == 0)
+            {
+                return null;
+            }
+
+            if (filename.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return MsiFilenameInvalidCharactersMessage;
+            }
+
+            return filename.EndsWith(MsiExtension, StringComparison.OrdinalIgnoreCase)
+                ? MsiFilenameExtensionMessage
+                : null;
+        }
+    }
+
+    /// <summary>Whether <see cref="MsiFilenameError"/> has something to say — what shows the message.</summary>
+    public bool HasMsiFilenameError => MsiFilenameError is not null;
+
+    /// <summary>
+    /// Whether the eight answers add up to a package: all present, the version parsing, the MSI file name
+    /// a plain extension-less file name, and the executable inside the release folder.
     /// </summary>
     public bool CanApply
         => !string.IsNullOrWhiteSpace(AppName)
            && !string.IsNullOrWhiteSpace(Version)
+           && !string.IsNullOrWhiteSpace(MsiFilename)
            && !string.IsNullOrWhiteSpace(Manufacturer)
            && !string.IsNullOrWhiteSpace(ReleasePath)
            && !string.IsNullOrWhiteSpace(OutputPath)
            && !string.IsNullOrWhiteSpace(IconPath)
            && !string.IsNullOrWhiteSpace(ExecutablePath)
            && System.Version.TryParse(Version, out _)
+           && MsiFilenameError is null
            && ExecutableRelativePath is not null;
 
     /// <summary>Materializes the answers.</summary>
@@ -144,11 +213,32 @@ public sealed partial class QuickStartViewModel : ObservableObject
     public QuickStartSettings ToSettings() => new(
         AppName.Trim(),
         Version.Trim(),
+        MsiFilename.Trim(),
         Manufacturer.Trim(),
         ReleasePath.Trim(),
         OutputPath.Trim(),
         IconPath.Trim(),
         ExecutableRelativePath ?? string.Empty);
+
+    partial void OnAppNameChanged(string value) => FollowDerivedMsiFilename();
+
+    partial void OnVersionChanged(string value) => FollowDerivedMsiFilename();
+
+    // The field follows the derivation only while it still shows what the derivation last produced (or
+    // nothing at all): that is the whole difference between "not edited yet" and "edited by hand", and it
+    // needs no flag to keep in sync with what the user does.
+    private void FollowDerivedMsiFilename()
+    {
+        string derived = ToMsiFilename(AppName, Version);
+
+        if (string.IsNullOrWhiteSpace(MsiFilename)
+            || string.Equals(MsiFilename, _derivedMsiFilename, StringComparison.Ordinal))
+        {
+            MsiFilename = derived;
+        }
+
+        _derivedMsiFilename = derived;
+    }
 
     [RelayCommand]
     private async Task BrowseReleasePathAsync()
@@ -198,4 +288,54 @@ public sealed partial class QuickStartViewModel : ObservableObject
     // folding it into '\' is all the normalization a comparison of two entered paths needs.
     private static string NormalizeSeparators(string path)
         => path.Replace('/', WindowsSeparator).TrimEnd(WindowsSeparator);
+
+    // Shaped for the validator's rule on output.msiFilename — a plain file name, no invalid characters, no
+    // .msi extension — so a derived name never needs correcting. Blank while the application name yields
+    // nothing, rather than a bare version: the dialog would otherwise open on "1.0.0".
+    private static string ToMsiFilename(string appName, string version)
+    {
+        string name = ToFilenameSegment(appName);
+
+        if (name.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        string suffix = ToFilenameSegment(version);
+        string filename = suffix.Length == 0 ? name : name + MsiFilenameSeparator + suffix;
+
+        return filename.EndsWith(MsiExtension, StringComparison.OrdinalIgnoreCase)
+            ? filename[..^MsiExtension.Length]
+            : filename;
+    }
+
+    // Characters a file name cannot hold are dropped, and every run of whitespace between two kept
+    // characters becomes a single dot — "Enigma  Msi" gives "Enigma.Msi", not "Enigma..Msi" — while
+    // leading and trailing whitespace simply goes.
+    private static string ToFilenameSegment(string text)
+    {
+        char[] invalid = Path.GetInvalidFileNameChars();
+        var builder = new StringBuilder(text.Length);
+        bool separatorPending = false;
+
+        foreach (char character in text)
+        {
+            if (char.IsWhiteSpace(character))
+            {
+                separatorPending = builder.Length > 0;
+            }
+            else if (Array.IndexOf(invalid, character) < 0)
+            {
+                if (separatorPending)
+                {
+                    _ = builder.Append(MsiFilenameSeparator);
+                    separatorPending = false;
+                }
+
+                _ = builder.Append(character);
+            }
+        }
+
+        return builder.ToString();
+    }
 }

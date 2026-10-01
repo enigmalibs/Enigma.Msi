@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Enigma.Msi.Desktop.Services;
@@ -9,8 +10,9 @@ using Xunit;
 namespace Enigma.Msi.Desktop.UnitTests.ViewModels;
 
 /// <summary>
-/// Covers the quick start's form: the Apply gate, the relative-path derivation that a shortcut target
-/// needs, and the four browse commands over the substituted picker.
+/// Covers the quick start's form: the Apply gate, the MSI file name derived from the name and the
+/// version, the relative-path derivation that a shortcut target needs, and the four browse commands over
+/// the substituted picker.
 /// </summary>
 public sealed class QuickStartViewModelTests
 {
@@ -36,7 +38,7 @@ public sealed class QuickStartViewModelTests
     }
 
     [Fact]
-    public void CanApply_IsTrueOnceAllSevenAnswersAreThere()
+    public void CanApply_IsTrueOnceAllEightAnswersAreThere()
     {
         QuickStartViewModel viewModel = CreateCompleteViewModel();
 
@@ -48,6 +50,7 @@ public sealed class QuickStartViewModelTests
     {
         Assert.False(WithoutAnswer(viewModel => viewModel.AppName = "  "));
         Assert.False(WithoutAnswer(viewModel => viewModel.Version = string.Empty));
+        Assert.False(WithoutAnswer(viewModel => viewModel.MsiFilename = "  "));
         Assert.False(WithoutAnswer(viewModel => viewModel.Manufacturer = string.Empty));
         Assert.False(WithoutAnswer(viewModel => viewModel.ReleasePath = string.Empty));
         Assert.False(WithoutAnswer(viewModel => viewModel.OutputPath = "   "));
@@ -75,6 +78,171 @@ public sealed class QuickStartViewModelTests
 
         viewModel.Manufacturer = "Contoso AG";
         Assert.True(viewModel.CanApply);
+    }
+
+    // ---- the MSI file name --------------------------------------------------------------------
+
+    [Fact]
+    public void MsiFilename_TurnsSpacesIntoDotsAndAppendsTheVersion()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        viewModel.AppName = "Enigma Msi";
+        viewModel.Version = "1.4.0";
+
+        Assert.Equal("Enigma.Msi.1.4.0", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_IsDerivedAsTheNameIsTyped_AgainstTheDefaultVersion()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        viewModel.AppName = "Widget";
+
+        Assert.Equal("Widget." + PackageEditorViewModel.DefaultVersion, viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_FollowsEveryEditOfTheNameAndTheVersion()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+        viewModel.AppName = "Enigma Msi";
+        viewModel.Version = "1.4.0";
+
+        viewModel.Version = "1.4.1";
+        Assert.Equal("Enigma.Msi.1.4.1", viewModel.MsiFilename);
+
+        viewModel.AppName = "Enigma Msi Desktop";
+        Assert.Equal("Enigma.Msi.Desktop.1.4.1", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_IsBlankWhileTheApplicationNameIs()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        Assert.Equal(string.Empty, viewModel.MsiFilename);
+
+        viewModel.AppName = "Widget";
+        viewModel.AppName = "   ";
+
+        // Not a bare "1.0.0": a name the user has not given yet is not something to name a file after.
+        Assert.Equal(string.Empty, viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_CollapsesRunsOfWhitespaceAndDropsTheEnds()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        viewModel.AppName = "  Contoso   Widget\tPro  ";
+        viewModel.Version = " 2.1.0 ";
+
+        Assert.Equal("Contoso.Widget.Pro.2.1.0", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_DropsCharactersAFileNameCannotHold()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        // '/' is an invalid file-name character on every platform this suite runs on, so the expectation
+        // does not depend on the host.
+        viewModel.AppName = "Contoso/Widget";
+        viewModel.Version = "2.1.0";
+
+        Assert.Equal("ContosoWidget.2.1.0", viewModel.MsiFilename);
+        Assert.Null(viewModel.MsiFilenameError);
+    }
+
+    [Fact]
+    public void MsiFilename_StripsATrailingMsiExtensionLeftByAMissingVersion()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        viewModel.AppName = "Widget.MSI";
+        viewModel.Version = string.Empty;
+
+        Assert.Equal("Widget", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_TypedByHand_IsNeverOverwrittenByLaterEdits()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+        viewModel.AppName = "Widget";
+
+        viewModel.MsiFilename = "Contoso-Widget-Setup";
+        viewModel.AppName = "Widget Pro";
+        viewModel.Version = "3.0.0";
+
+        Assert.Equal("Contoso-Widget-Setup", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_EmptiedByHand_FollowsAgainFromTheNextEdit()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+        viewModel.AppName = "Widget";
+        viewModel.MsiFilename = "Custom";
+
+        viewModel.MsiFilename = string.Empty;
+        Assert.Equal(string.Empty, viewModel.MsiFilename);
+
+        viewModel.Version = "2.0.0";
+        Assert.Equal("Widget.2.0.0", viewModel.MsiFilename);
+    }
+
+    [Fact]
+    public void MsiFilename_RaisesChangeNotificationWhenDerived()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        viewModel.AppName = "Widget";
+
+        Assert.Contains(nameof(QuickStartViewModel.MsiFilename), changed);
+        Assert.Contains(nameof(QuickStartViewModel.CanApply), changed);
+    }
+
+    [Fact]
+    public void MsiFilenameError_RejectsAnInvalidCharacter()
+    {
+        QuickStartViewModel viewModel = CreateCompleteViewModel();
+
+        viewModel.MsiFilename = "drops/Widget";
+
+        Assert.Equal(QuickStartViewModel.MsiFilenameInvalidCharactersMessage, viewModel.MsiFilenameError);
+        Assert.True(viewModel.HasMsiFilenameError);
+        Assert.False(viewModel.CanApply);
+    }
+
+    [Fact]
+    public void MsiFilenameError_RejectsTheMsiExtension()
+    {
+        QuickStartViewModel viewModel = CreateCompleteViewModel();
+
+        viewModel.MsiFilename = "Widget.2.1.0.Msi ";
+
+        Assert.Equal(QuickStartViewModel.MsiFilenameExtensionMessage, viewModel.MsiFilenameError);
+        Assert.True(viewModel.HasMsiFilenameError);
+        Assert.False(viewModel.CanApply);
+    }
+
+    [Fact]
+    public void MsiFilenameError_SaysNothingWhileTheFieldIsBlankOrValid()
+    {
+        QuickStartViewModel viewModel = CreateViewModel();
+
+        Assert.Null(viewModel.MsiFilenameError);
+        Assert.False(viewModel.HasMsiFilenameError);
+
+        viewModel.MsiFilename = "Widget-Setup";
+
+        Assert.Null(viewModel.MsiFilenameError);
+        Assert.False(viewModel.HasMsiFilenameError);
     }
 
     // ---- the executable ------------------------------------------------------------------------
@@ -257,6 +425,7 @@ public sealed class QuickStartViewModelTests
         QuickStartViewModel viewModel = CreateCompleteViewModel();
         viewModel.AppName = "  Widget  ";
         viewModel.Version = " 2.1.0 ";
+        viewModel.MsiFilename = " Widget-Setup ";
         viewModel.Manufacturer = " Contoso AG ";
         viewModel.OutputPath = $"  {OutputFolder}  ";
 
@@ -264,9 +433,20 @@ public sealed class QuickStartViewModelTests
 
         Assert.Equal("Widget", settings.AppName);
         Assert.Equal("2.1.0", settings.Version);
+        Assert.Equal("Widget-Setup", settings.MsiFilename);
         Assert.Equal("Contoso AG", settings.Manufacturer);
         Assert.Equal(ReleaseFolder, settings.ReleasePath);
         Assert.Equal(OutputFolder, settings.OutputPath);
+    }
+
+    [Fact]
+    public void ToSettings_CarriesTheDerivedMsiFileName()
+    {
+        QuickStartViewModel viewModel = CreateCompleteViewModel();
+
+        QuickStartSettings settings = viewModel.ToSettings();
+
+        Assert.Equal("Widget.2.1.0", settings.MsiFilename);
     }
 
     [Fact]
