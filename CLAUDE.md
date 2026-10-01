@@ -103,16 +103,22 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > and checked. The library is still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall
 > stays the maintainer's step.
 >
-> **`FEATURE-1DEF` is under way — the app-only 1.4.0.** `PHASE01` is done: the quick start asks **eight**
-> answers, and the new one — **MSI file name**, directly under Version — arrives pre-filled. It is derived
-> live from the application name and the version (invalid file-name characters dropped, each run of
-> whitespace → one `.`, `.` + version appended: `Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`; blank while
-> the name is) and follows both **only while it still holds what was last derived** — a name typed by
-> hand is never overwritten, and emptying the field hands it back. Apply gates on the validator's two
-> string rules for `output.msiFilename`, with an inline warning. `PackageEditorViewModel.ToMsiFilename`
-> and the silent `package` fallback are gone: `ApplyQuickStart` takes `QuickStartSettings.MsiFilename`
-> verbatim. Built on Linux: the desktop suite is 153/153 and the library suite fails only on its
-> documented Windows-only cluster; the Windows total is 464, not yet run there.
+> **`FEATURE-1DEF` is complete (`PHASE01`, `PHASE02`) — the app-only 1.4.0, prepared but not yet built as
+> an MSI.** `PHASE01`: the quick start asks **eight** answers, and the new one — **MSI file name**,
+> directly under Version — arrives pre-filled. It is derived live from the application name and the
+> version (invalid file-name characters dropped, each run of whitespace → one `.`, `.` + version appended:
+> `Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`; blank while the name is) and follows both **only while it
+> still holds what was last derived** — a name typed by hand is never overwritten, and emptying the field
+> hands it back. Apply gates on the validator's two string rules for `output.msiFilename`, with an inline
+> warning. `PackageEditorViewModel.ToMsiFilename` and the silent `package` fallback are gone:
+> `ApplyQuickStart` takes `QuickStartSettings.MsiFilename` verbatim. `PHASE02` was the release prep: the
+> app declares `<Version>1.4.0`, `msiProfiles/Enigma.Msi.Desktop.1.4.0.msipkg.json` is committed (fresh
+> `productId`, `upgradeCode` reused verbatim; it deserializes with zero in-memory errors), and
+> `RELEASENOTES.md` and the README callout lead with 1.4.0. **Both phases ran on Linux**: warning-free
+> build, the desktop suite 153/153, the library suite failing only on its documented Windows-only cluster,
+> and a `win-x64` cross-publish stamping 1.4.0. **Still owed on Windows**: the full 464-test run (worker
+> suite and drift guards included) and the dogfood MSI build. The library is still at 1.0.0, nothing was
+> tagged or pushed.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`

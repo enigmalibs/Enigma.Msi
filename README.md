@@ -12,11 +12,9 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.3.0** — the quick start's **output folder is now a question**, the seventh, instead of
-> being derived from the release folder's parent; the **splash screen** is down to the logo, the name and
-> the version; and **the library is no longer a NuGet package** — `Enigma.Msi` is not published to any
-> feed, and the packaging that used to redistribute the worker is gone. See
-> [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.4.0** — the quick start **shows the MSI file name**, directly under Version, and fills
+> it in as the application name and version are typed (`Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`); type
+> a name of your own and it is left alone. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 
