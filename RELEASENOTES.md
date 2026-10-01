@@ -7,12 +7,47 @@ at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi.Desktop (application, MSI) | **1.3.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.4.0** |
 | Enigma.Msi (library, in-repo) | **1.0.0** |
 
 The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
+
+## 1.4.0 — Enigma.Msi.Desktop
+
+An **application-only release**, and a small one: the quick start shows the MSI file name it is about to
+use, and lets it be changed before Apply rather than after. **The library remains at 1.0.0 and is not
+re-released.** The model, the validator, the build client, the `net472` worker and the `.msipkg.json`
+format (`schemaVersion` 1) are all untouched, so profiles saved by 1.0.0 to 1.3.0 open in 1.4.0 unchanged
+and there is no migration.
+
+### What's new
+
+- **The quick start shows the MSI file name — eight answers, one of them pre-filled.** **MSI file name**
+  sits directly under Version, with the `.msi` unit beside it, and **fills itself in as the application
+  name and the version are typed**: characters a file name cannot hold are dropped, every run of spaces
+  becomes a dot and the version is appended — `Enigma Msi` at `1.4.0` gives **`Enigma.Msi.1.4.0`**. It is
+  an ordinary answer otherwise: **type a name of your own and it is left alone** from then on, whatever
+  happens to the name and the version afterwards; empty the field and it follows them again from their
+  next edit. Apply stays disabled while it is blank, holds an invalid character or ends in `.msi`, and the
+  dialog says which. 1.3.0 derived the name silently, from the application name alone, at Apply — and fell
+  back to `package` when nothing of the name survived; that fallback is gone, because the field is now in
+  plain sight.
+- **What a quick start names the installer has changed** — `Widget` at `2.1.0` now gives `Widget.2.1.0`
+  where 1.3.0 gave `Widget`. **Saved profiles are unaffected:** `msiFilename` has always been a stored
+  field, so whatever a 1.0.0 to 1.3.0 profile carries opens verbatim, and the main form's *MSI file name*
+  field is the same plain field it always was.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format — still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0, 1.1.0, 1.2.0, 1.3.0 and 1.4.0 in **both** directions.
+- **The library's public surface is unchanged** — still 1.0.0, still in-repo by `ProjectReference`, still
+  multi-targeting `netstandard2.0`, `net8.0` and `net10.0`.
+- No dependency moved: every package holds at the version 1.3.0 shipped with.
+- The app still targets **.NET 10.0** (`WinExe`), is published framework-dependent for `win-x64`, and
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
 
 ## 1.3.0 — Enigma.Msi.Desktop
 

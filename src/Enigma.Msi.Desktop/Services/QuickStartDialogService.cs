@@ -63,7 +63,7 @@ public sealed class QuickStartDialogService : IQuickStartDialogService
                     dialog.DefaultButton = DefaultButton.Primary;
                     dialog.IconData = TitleIcon;
 
-                    // Apply stays disabled until the seven answers add up. Bound rather than assigned,
+                    // Apply stays disabled until the eight answers add up. Bound rather than assigned,
                     // because CanApply changes on every keystroke — and disposed below, because the host
                     // is shared and its reset assigns IsPrimaryButtonEnabled instead of clearing it: a
                     // binding left installed would still be gating the *next* dialog's button.

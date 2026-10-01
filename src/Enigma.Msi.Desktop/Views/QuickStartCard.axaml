@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:editors="using:Enigma.Avalonia.Desktop.Controls.Editors"
              xmlns:vm="using:Enigma.Msi.Desktop.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="600"
+             mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="680"
              x:Class="Enigma.Msi.Desktop.Views.QuickStartCard"
              x:DataType="vm:QuickStartViewModel">
   <UserControl.Styles>
@@ -18,7 +18,7 @@
 
   <StackPanel Spacing="12">
 
-    <TextBlock Text="Answer these seven and the whole form is filled in — install path, MSI name, product icon and two shortcuts."
+    <TextBlock Text="Answer these eight and the whole form is filled in — install path, product icon and two shortcuts. The MSI file name fills itself in as you type."
                TextWrapping="Wrap"
                Foreground="{DynamicResource EnigmaForegroundSecondaryBrush}" />
 
@@ -30,6 +30,21 @@
     <editors:TextEditor Title="Version"
                         Text="{Binding Version}"
                         PlaceholderText="1.0.0" />
+
+    <!-- Under the two answers it is derived from, so it visibly changes as they are typed. -->
+    <StackPanel>
+      <editors:TextEditor Title="MSI file name"
+                          Text="{Binding MsiFilename}"
+                          PlaceholderText="Contoso.Widget.1.0.0"
+                          Unit=".msi" />
+      <TextBlock Classes="hint"
+                 Text="Follows the application name and the version — spaces become dots — until you type your own. The build appends .msi." />
+      <TextBlock Text="{Binding MsiFilenameError}"
+                 IsVisible="{Binding HasMsiFilenameError}"
+                 TextWrapping="Wrap"
+                 Margin="0,6,0,0"
+                 Foreground="{DynamicResource EnigmaWarningBrush}" />
+    </StackPanel>
 
     <editors:TextEditor Title="Manufacturer"
                         Text="{Binding Manufacturer}"
