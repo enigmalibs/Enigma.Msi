@@ -1,6 +1,6 @@
 # FEATURE-1DEF — Desktop app 1.4.0: the quick start's MSI file name
 
-**Status:** TODO (multi-phase — 2 phases)
+**Status:** IN PROGRESS (multi-phase — 2 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-1def-phaseNN-<slug>` — one branch per phase, cut from the run-branch tip.
 **Run:** feature/2026-10-01-quickstart-msi-name-release
@@ -91,7 +91,7 @@ Read from the repository at planning time (2026-10-01), and binding on every pha
 
 ## PHASE01 — Quick start: derived MSI file name
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-1def-phase01-quickstart-msi-filename`
 
 1. `src/Enigma.Msi.Desktop/ViewModels/QuickStartSettings.cs` — add `MsiFilename` **after `Version`**, with

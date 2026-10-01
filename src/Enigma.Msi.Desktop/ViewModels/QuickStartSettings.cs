@@ -1,11 +1,15 @@
 namespace Enigma.Msi.Desktop.ViewModels;
 
 /// <summary>
-/// The seven answers the quick start collects, validated and ready to be applied to the form.
+/// The eight answers the quick start collects, validated and ready to be applied to the form.
 /// </summary>
-/// <param name="AppName">The product's name — also the MSI file name, the shortcut names and the last
-/// segment of the install path.</param>
+/// <param name="AppName">The product's name — also the shortcut names and the last segment of the install
+/// path.</param>
 /// <param name="Version">The product version, as text that parses as a <see cref="System.Version"/>.</param>
+/// <param name="MsiFilename">The <c>.msi</c> file's base name, without the extension — the build appends it.
+/// The dialog derives it from <paramref name="AppName"/> and <paramref name="Version"/> until the user types
+/// one of their own, so it crosses the seam as an answer rather than being worked out again on the other
+/// side.</param>
 /// <param name="Manufacturer">The publisher shown by the installer and in Control Panel.</param>
 /// <param name="ReleasePath">The folder whose contents are packaged.</param>
 /// <param name="OutputPath">The folder the built <c>.msi</c> is written to. Stated by the user rather
@@ -20,6 +24,7 @@ namespace Enigma.Msi.Desktop.ViewModels;
 public sealed record QuickStartSettings(
     string AppName,
     string Version,
+    string MsiFilename,
     string Manufacturer,
     string ReleasePath,
     string OutputPath,
