@@ -120,12 +120,14 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > suite and drift guards included) and the dogfood MSI build. The library is still at 1.0.0, nothing was
 > tagged or pushed.
 >
-> **`BUG-7325` is complete — unreleased, no version bump.**
-> The worker's build seeds its `.wixsharp/` folder (see *Project layout*), so an app installed
+> **`BUG-7325` and `FEATURE-1399` are complete — unreleased, no version bump.**
+> `BUG-7325`: the worker's build seeds its `.wixsharp/` folder (see *Project layout*), so an app installed
 > under Program Files can build MSIs. Before, its first build failed creating that folder, and the folder never reached an MSI
 > because nothing created it before first use. Verified on Windows end to end: a worker taken from an
-> MSI's administrative extract built an MSI from a folder it could not create files in. Recorded in
-> `RELEASENOTES.md`'s `(unreleased)` section.
+> MSI's administrative extract built an MSI from a folder it could not create files in. `FEATURE-1399`:
+> **the default compression is `None`**, not `High` — in `MsiPackage` and in the app's new package (startup,
+> *New*, quick start). Saved profiles always state their level, so they are unaffected; the committed
+> `msiProfiles/` keep their explicit `High`. Both are recorded in `RELEASENOTES.md`'s `(unreleased)` section.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`

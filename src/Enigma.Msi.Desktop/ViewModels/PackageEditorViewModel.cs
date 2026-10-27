@@ -75,7 +75,7 @@ public sealed partial class PackageEditorViewModel : ObservableObject
     private InstallScope _scope = InstallScope.PerMachine;
 
     [ObservableProperty]
-    private CompressionLevel _compression = CompressionLevel.High;
+    private CompressionLevel _compression = CompressionLevel.None;
 
     [ObservableProperty]
     private string _installPath = string.Empty;
@@ -188,7 +188,7 @@ public sealed partial class PackageEditorViewModel : ObservableObject
         UpgradeCode = Guid.NewGuid().ToString();
         Manufacturer = string.Empty;
         Scope = InstallScope.PerMachine;
-        Compression = CompressionLevel.High;
+        Compression = CompressionLevel.None;
         InstallPath = string.Empty;
         ReleasePath = string.Empty;
         OutputPath = string.Empty;
