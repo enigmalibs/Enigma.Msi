@@ -12,9 +12,10 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.4.0** — the quick start **shows the MSI file name**, directly under Version, and fills
-> it in as the application name and version are typed (`Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`); type
-> a name of your own and it is left alone. See [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.5.0** — the app **builds MSIs when installed under Program Files**: before, every build
+> from a per-machine install failed with access denied. A new package now builds **uncompressed** by
+> default, which is much faster and gives a larger MSI. Saved profiles keep the level they state. See
+> [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 

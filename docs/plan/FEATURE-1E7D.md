@@ -1,6 +1,6 @@
 # FEATURE-1E7D — Desktop app 1.5.0 release
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE (single-phase)
 **Branch:** `feature/feature-1e7d-release-1-5-0` — cut from the run-branch tip.
 **Run:** vibe/2026-10-22-release-1-5-0
