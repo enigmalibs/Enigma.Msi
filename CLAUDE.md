@@ -103,8 +103,8 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > and checked. The library is still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall
 > stays the maintainer's step.
 >
-> **`FEATURE-1DEF` is complete (`PHASE01`, `PHASE02`) — the app-only 1.4.0, prepared but not yet built as
-> an MSI.** `PHASE01`: the quick start asks **eight** answers, and the new one — **MSI file name**,
+> **`FEATURE-1DEF` is complete (`PHASE01`, `PHASE02`) — the app-only 1.4.0, tagged `1.4.0` on `main`.**
+> `PHASE01`: the quick start asks **eight** answers, and the new one — **MSI file name**,
 > directly under Version — arrives pre-filled. It is derived live from the application name and the
 > version (invalid file-name characters dropped, each run of whitespace → one `.`, `.` + version appended:
 > `Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`; blank while the name is) and follows both **only while it
@@ -116,18 +116,28 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > `productId`, `upgradeCode` reused verbatim; it deserializes with zero in-memory errors), and
 > `RELEASENOTES.md` and the README callout lead with 1.4.0. **Both phases ran on Linux**: warning-free
 > build, the desktop suite 153/153, the library suite failing only on its documented Windows-only cluster,
-> and a `win-x64` cross-publish stamping 1.4.0. **Still owed on Windows**: the full 464-test run (worker
-> suite and drift guards included) and the dogfood MSI build. The library is still at 1.0.0, nothing was
-> tagged or pushed.
+> and a `win-x64` cross-publish stamping 1.4.0. The Windows test run they owed was done afterwards:
+> `BUG-7325`'s baseline passed all **464** tests at `a2fd60c`. The repo records no 1.4.0 dogfood MSI build.
+> The library is still at 1.0.0. The run tagged nothing; the maintainer tagged `1.4.0` later.
 >
-> **`BUG-7325` and `FEATURE-1399` are complete — unreleased, no version bump.**
+> **`BUG-7325` and `FEATURE-1399` are complete — released in the app's 1.5.0 (`FEATURE-1E7D`).**
 > `BUG-7325`: the worker's build seeds its `.wixsharp/` folder (see *Project layout*), so an app installed
 > under Program Files can build MSIs. Before, its first build failed creating that folder, and the folder never reached an MSI
 > because nothing created it before first use. Verified on Windows end to end: a worker taken from an
 > MSI's administrative extract built an MSI from a folder it could not create files in. `FEATURE-1399`:
 > **the default compression is `None`**, not `High` — in `MsiPackage` and in the app's new package (startup,
 > *New*, quick start). Saved profiles always state their level, so they are unaffected; the committed
-> `msiProfiles/` keep their explicit `High`. Both are recorded in `RELEASENOTES.md`'s `(unreleased)` section.
+> `msiProfiles/` keep their explicit `High`. Both are recorded in `RELEASENOTES.md`'s 1.5.0 section.
+>
+> **`FEATURE-1E7D` is complete — the app-only 1.5.0, prepared *and* verified on Windows.** It releases
+> `BUG-7325` and `FEATURE-1399` and adds nothing else. The app declares `<Version>1.5.0`, and
+> `msiProfiles/Enigma.Msi.Desktop.1.5.0.msipkg.json` is committed: fresh `productId`, `upgradeCode` reused
+> verbatim, `compression` still `High`, because the shipped installer's size matters more than one slow
+> build per release. `RELEASENOTES.md` and the README callout lead with 1.5.0, and `SECURITY.md` supports
+> 1.5.x. Verified on Windows: warning-free build, all **471** tests green, and the **dogfood MSI built**.
+> It is `artifacts\Enigma.Msi.Desktop.msi`, 17.29 MB, from WiX 7.0.0. Its Property, Upgrade and Shortcut
+> tables were read back, and its File table holds the six seeded `worker\.wixsharp\` files. The library is
+> still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall stays the maintainer's step.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
