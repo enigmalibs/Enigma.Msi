@@ -120,6 +120,13 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > suite and drift guards included) and the dogfood MSI build. The library is still at 1.0.0, nothing was
 > tagged or pushed.
 >
+> **`BUG-7325` is complete — unreleased, no version bump.**
+> The worker's build seeds its `.wixsharp/` folder (see *Project layout*), so an app installed
+> under Program Files can build MSIs. Before, its first build failed creating that folder, and the folder never reached an MSI
+> because nothing created it before first use. Verified on Windows end to end: a worker taken from an
+> MSI's administrative extract built an MSI from a folder it could not create files in. Recorded in
+> `RELEASENOTES.md`'s `(unreleased)` section.
+>
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
 > instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes
@@ -181,7 +188,7 @@ src/Enigma.Msi.Worker/               net472 console exe — WixSharp translation
 src/Enigma.Msi.Desktop/              Avalonia desktop app — the UI over the same MsiPackage (WinExe, hosts the worker)
 tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
-tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
+tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp drift guards (enums, .wixsharp seed)
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel + headless-Avalonia suite (the only one using NSubstitute or a UI platform)
 msiProfiles/                         Release profiles for MSIs this repo builds of itself (currently the desktop app)
 docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
@@ -203,6 +210,19 @@ RID-suffixed folder and the glob comes up empty — or worse, copies a stale wor
 by adding `RuntimeIdentifier` to `UndefineProperties`: NuGet's restore graph walk ignores
 `UndefineProperties`, so restore resolves the host's RID while the build falls back to the worker's own
 inferred `win-x86`, and it fails with NETSDK1047.
+
+**That output also carries a seeded `.wixsharp/` folder, and it has to.** WixSharp packages the managed
+UI's custom action from `.wixsharp` beside its client assembly — the worker exe — and creates and fills it
+on the first MSI build, which an app installed under Program Files has no right to do: every build failed
+with `UnauthorizedAccessException` until `BUG-7325`. The worker's `SeedWixSharpBuildDir` target now writes
+it at build time with exactly what WixSharp would — the exe and its `.pdb`, `WixSharp.dll`,
+`WixSharp.UI.dll`, `WixToolset.Dtf.WindowsInstaller.dll`, `WixToolset.Mba.Core.dll` — and WixSharp then
+writes nothing, because it skips a copy with its original's length and a last-write time no older than
+the original's. `CopyWorkerOutput.targets`' **recursive** glob carries the folder into every host's
+`worker/` and from a publish into the MSI. Keep the glob recursive and the copy a `Copy` (it preserves
+timestamps); when a WixSharp upgrade trips the target's `<Error>` or the worker suite's
+`WixSharpBuildDirTests`, re-run a real MSI build from a fresh worker output and re-pin the set from what
+it writes.
 
 **`src/Enigma.Msi` itself is not a worker host, and cannot become one.** The worker references the
 library, so a `ProjectReference` back to the worker — even build-order-only — closes a cycle and fails

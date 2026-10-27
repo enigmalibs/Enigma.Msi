@@ -33,4 +33,34 @@
          this is what keeps the model single-sourced instead of mirrored into worker-side DTOs. -->
     <ProjectReference Include="../Enigma.Msi/Enigma.Msi.csproj" />
   </ItemGroup>
+  <!--
+    WixSharp packages the managed UI's custom action from a ".wixsharp" folder beside its client assembly
+    (this exe), which it creates and fills on the first MSI build. Installed under Program Files, the
+    worker's folder is read-only to a standard user, so that first build fails with
+    UnauthorizedAccessException — and, the folder never appearing, so does every later one. Seeding it here
+    makes it part of the worker's output, so build/CopyWorkerOutput.targets carries it into every host's
+    worker/ folder and from a publish into the MSI. WixSharp then writes nothing: it skips any file whose
+    copy has the original's length and a last-write time no older than the original's, and Copy keeps the
+    original's last-write time.
+
+    The set is exactly what WixSharp_wix4 2.14.1 writes on first use: the client assembly with its .pdb,
+    WixSharp itself, the managed UI, and the two WiX assemblies it pulls in. A WixSharp upgrade that changes
+    it must fail loudly — hence the Error below and the worker suite's WixSharpBuildDirTests.
+  -->
+  <Target Name="SeedWixSharpBuildDir" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <_WixSharpBuildDirFile Include="$(OutDir)$(TargetFileName);$(OutDir)WixSharp.dll;$(OutDir)WixSharp.UI.dll;$(OutDir)WixToolset.Dtf.WindowsInstaller.dll;$(OutDir)WixToolset.Mba.Core.dll" />
+      <!-- WixSharp copies the client assembly's symbols along with it, when there are any. -->
+      <_WixSharpBuildDirFile Include="$(OutDir)$(TargetName).pdb" Condition="Exists('$(OutDir)$(TargetName).pdb')" />
+    </ItemGroup>
+
+    <Error Condition="!Exists('%(_WixSharpBuildDirFile.FullPath)')"
+           Text="'%(_WixSharpBuildDirFile.Filename)%(_WixSharpBuildDirFile.Extension)' is not in the worker's output, so the .wixsharp folder cannot be seeded with it. A WixSharp upgrade has probably changed the assemblies it packages: re-check what its first MSI build writes into .wixsharp, and update this list." />
+
+    <Copy SourceFiles="@(_WixSharpBuildDirFile)"
+          DestinationFolder="$(OutDir).wixsharp"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
 </Project>
