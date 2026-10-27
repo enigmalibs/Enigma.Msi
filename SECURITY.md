@@ -16,7 +16,7 @@ current with the newest release.
 
 | Artifact                              | Version | Supported          |
 |---------------------------------------|---------|--------------------|
-| Enigma.Msi.Desktop (application, MSI) | 1.2.x   | :white_check_mark: |
+| Enigma.Msi.Desktop (application, MSI) | 1.5.x   | :white_check_mark: |
 | Enigma.Msi (library, in-repo)         | 1.0.x   | :white_check_mark: |
 
 ## Reporting a vulnerability

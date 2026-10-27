@@ -5,7 +5,8 @@ namespace Enigma.Msi.UnitTests.Model;
 
 /// <summary>
 /// Pins the model's defaults — they are part of the contract: a freshly created package is editable
-/// (no null sections) and picks the choices the family's profiles use.
+/// (no null sections), picks the choices the family's profiles use, and builds fast — compression is
+/// <see cref="CompressionLevel.None"/>, which a release profile overrides by stating its own level.
 /// </summary>
 public sealed class MsiPackageDefaultsTests
 {
@@ -17,7 +18,7 @@ public sealed class MsiPackageDefaultsTests
         Assert.Equal(1, MsiPackage.CurrentSchemaVersion);
         Assert.Equal(MsiPackage.CurrentSchemaVersion, package.SchemaVersion);
         Assert.Equal(InstallScope.PerMachine, package.Scope);
-        Assert.Equal(CompressionLevel.High, package.Compression);
+        Assert.Equal(CompressionLevel.None, package.Compression);
         Assert.NotNull(package.Install);
         Assert.NotNull(package.Output);
         Assert.Empty(package.Shortcuts);

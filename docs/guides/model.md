@@ -28,7 +28,7 @@ directories, shortcut locations, shortcut targets — carry MSI-style tokens (`%
 | `Scope` | `InstallScope` | `PerMachine` | yes | Per-machine (elevated) or per-user. |
 | `Install` | `InstallSettings` | `new()` | yes | Where the package installs to, and which folder it packages. |
 | `Output` | `OutputSettings` | `new()` | yes | Where the `.msi` is written, and under which name. |
-| `Compression` | `CompressionLevel` | `High` | yes | Cabinet compression level. |
+| `Compression` | `CompressionLevel` | `None` | yes | Cabinet compression level. `None` builds fastest; state `High` for the smallest MSI. |
 | `ControlPanel` | `ControlPanelInfo?` | `null` | no | When `null`, MSI defaults apply. |
 | `Shortcuts` | `List<Shortcut>` | empty list | yes (may be empty) | Must not be `null`; an empty list means "no shortcuts". |
 | `Ui` | `UiSettings?` | `null` | no | When `null`, the build applies `UiSettings.CreateDefault()` — *not* "no UI". |
@@ -99,7 +99,7 @@ WixSharp upgrade that renames or adds a member.
 | Enum | Members | Notes |
 |---|---|---|
 | `InstallScope` | `PerMachine`, `PerUser` | A deliberate subset — WixSharp's `perUserOrMachine` (scope chosen at install time) is out of scope at v1. |
-| `CompressionLevel` | `None`, `Low`, `Medium`, `High`, `MsZip` | `None` is the fastest build and the largest MSI; `High` the reverse, and the default. |
+| `CompressionLevel` | `None`, `Low`, `Medium`, `High`, `MsZip` | `None` is the fastest build and the largest MSI, and the default; `High` the reverse. |
 | `Wui` | `WixUI_Minimal`, `WixUI_InstallDir`, `WixUI_FeatureTree`, `WixUI_Mondo`, `WixUI_Advanced`, `WixUI_ProgressOnly`, `WixUI_Common` | Underscored names mirror WixSharp's `WUI` verbatim, which is why they deviate from house PascalCase. |
 | `Dialog` | `Welcome`, `Licence`, `Features`, `InstallDir`, `SetupType`, `Progress`, `MaintenanceType`, `Exit` | Note the British spelling `Licence` — it matches WixSharp's member name verbatim. |
 
@@ -214,10 +214,11 @@ var package = new MsiPackage
 };
 ```
 
-### A per-user, uncompressed package
+### A per-user, fully compressed package
 
-Per-user installs need no elevation, and `CompressionLevel.None` trades MSI size for build speed —
-useful while iterating on a package locally.
+Per-user installs need no elevation. A package builds uncompressed by default (`CompressionLevel.None`,
+the fastest build); `CompressionLevel.High` trades build time for the smallest MSI — worth it for the
+installer you actually ship.
 
 ```csharp
 using Enigma.Msi.Model;
@@ -226,7 +227,7 @@ var package = new MsiPackage
 {
     AppName = "Contoso Widget",
     Scope = InstallScope.PerUser,
-    Compression = CompressionLevel.None
+    Compression = CompressionLevel.High
 };
 ```
 
@@ -310,7 +311,7 @@ which follows the model's declaration order rather than alphabetical:
     "outputPath": "C:\\src\\Widget\\artifacts",
     "msiFilename": "ContosoWidget-1.2.3"
   },
-  "compression": "High",
+  "compression": "None",
   "controlPanel": {
     "productIcon": "C:\\src\\Widget\\Assets\\widget.ico",
     "comments": "Contoso Widget desktop client.",
@@ -370,7 +371,7 @@ they are `null`, while `shortcuts` is present but empty, because an empty list i
     "outputPath": "C:\\src\\Widget\\artifacts",
     "msiFilename": "ContosoWidget-1.0.0"
   },
-  "compression": "High",
+  "compression": "None",
   "shortcuts": []
 }
 ```

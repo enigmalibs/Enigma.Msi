@@ -102,9 +102,9 @@ git pull
 
 ## 4. Tag the release
 
-The convention here is a **bare** `X.Y.Z` tag — `git tag` shows `1.0.0` and `1.1.0`, no `v` prefix. The
-app-only 1.1.0 was tagged bare, alongside the library's `1.0.0`, so in practice both artifacts share one
-bare-version tag namespace rather than the app getting a prefix (e.g. `desktop/X.Y.Z`). Keeping that is the
+The convention here is a **bare** `X.Y.Z` tag with no `v` prefix, as every existing tag in `git tag`
+shows. The app-only 1.1.0 was tagged bare, alongside the library's `1.0.0`, so in practice both artifacts
+share one bare-version tag namespace rather than the app getting a prefix (e.g. `desktop/X.Y.Z`). Keeping that is the
 path of least surprise; splitting the namespaces is still open. Tag the merge commit and push the tag:
 
 ```bash

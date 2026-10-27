@@ -7,7 +7,7 @@ namespace Enigma.Msi.Model;
 /// </summary>
 public enum CompressionLevel
 {
-    /// <summary>Store the files uncompressed — largest MSI, fastest build.</summary>
+    /// <summary>Store the files uncompressed — largest MSI, fastest build. The library's default.</summary>
     None,
 
     /// <summary>Low compression.</summary>
@@ -16,7 +16,7 @@ public enum CompressionLevel
     /// <summary>Medium compression.</summary>
     Medium,
 
-    /// <summary>Maximum compression — smallest MSI, slowest build. The library's default.</summary>
+    /// <summary>Maximum compression — smallest MSI, slowest build.</summary>
     High,
 
     /// <summary>MSZIP compression.</summary>

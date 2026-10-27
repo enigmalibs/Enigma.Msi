@@ -31,3 +31,6 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-1DEF | Desktop app 1.4.0: quick-start MSI name                     | DONE   | docs/plan/FEATURE-1DEF.md |
 | - PHASE01    | Quick start: derived MSI file name                          | DONE   | (in FEATURE-1DEF.md)      |
 | - PHASE02    | Release prep: desktop app 1.4.0                             | DONE   | (in FEATURE-1DEF.md)      |
+| BUG-7325     | Seed the worker's .wixsharp dir at build                    | DONE   | docs/plan/BUG-7325.md     |
+| FEATURE-1399 | Default compression to None                                 | DONE   | docs/plan/FEATURE-1399.md |
+| FEATURE-1E7D | Desktop app 1.5.0 release                                   | DONE   | docs/plan/FEATURE-1E7D.md |

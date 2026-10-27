@@ -103,8 +103,8 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > and checked. The library is still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall
 > stays the maintainer's step.
 >
-> **`FEATURE-1DEF` is complete (`PHASE01`, `PHASE02`) — the app-only 1.4.0, prepared but not yet built as
-> an MSI.** `PHASE01`: the quick start asks **eight** answers, and the new one — **MSI file name**,
+> **`FEATURE-1DEF` is complete (`PHASE01`, `PHASE02`) — the app-only 1.4.0, tagged `1.4.0` on `main`.**
+> `PHASE01`: the quick start asks **eight** answers, and the new one — **MSI file name**,
 > directly under Version — arrives pre-filled. It is derived live from the application name and the
 > version (invalid file-name characters dropped, each run of whitespace → one `.`, `.` + version appended:
 > `Enigma Msi` at `1.4.0` → `Enigma.Msi.1.4.0`; blank while the name is) and follows both **only while it
@@ -116,9 +116,28 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > `productId`, `upgradeCode` reused verbatim; it deserializes with zero in-memory errors), and
 > `RELEASENOTES.md` and the README callout lead with 1.4.0. **Both phases ran on Linux**: warning-free
 > build, the desktop suite 153/153, the library suite failing only on its documented Windows-only cluster,
-> and a `win-x64` cross-publish stamping 1.4.0. **Still owed on Windows**: the full 464-test run (worker
-> suite and drift guards included) and the dogfood MSI build. The library is still at 1.0.0, nothing was
-> tagged or pushed.
+> and a `win-x64` cross-publish stamping 1.4.0. The Windows test run they owed was done afterwards:
+> `BUG-7325`'s baseline passed all **464** tests at `a2fd60c`. The repo records no 1.4.0 dogfood MSI build.
+> The library is still at 1.0.0. The run tagged nothing; the maintainer tagged `1.4.0` later.
+>
+> **`BUG-7325` and `FEATURE-1399` are complete — released in the app's 1.5.0 (`FEATURE-1E7D`).**
+> `BUG-7325`: the worker's build seeds its `.wixsharp/` folder (see *Project layout*), so an app installed
+> under Program Files can build MSIs. Before, its first build failed creating that folder, and the folder never reached an MSI
+> because nothing created it before first use. Verified on Windows end to end: a worker taken from an
+> MSI's administrative extract built an MSI from a folder it could not create files in. `FEATURE-1399`:
+> **the default compression is `None`**, not `High` — in `MsiPackage` and in the app's new package (startup,
+> *New*, quick start). Saved profiles always state their level, so they are unaffected; the committed
+> `msiProfiles/` keep their explicit `High`. Both are recorded in `RELEASENOTES.md`'s 1.5.0 section.
+>
+> **`FEATURE-1E7D` is complete — the app-only 1.5.0, prepared *and* verified on Windows.** It releases
+> `BUG-7325` and `FEATURE-1399` and adds nothing else. The app declares `<Version>1.5.0`, and
+> `msiProfiles/Enigma.Msi.Desktop.1.5.0.msipkg.json` is committed: fresh `productId`, `upgradeCode` reused
+> verbatim, `compression` still `High`, because the shipped installer's size matters more than one slow
+> build per release. `RELEASENOTES.md` and the README callout lead with 1.5.0, and `SECURITY.md` supports
+> 1.5.x. Verified on Windows: warning-free build, all **471** tests green, and the **dogfood MSI built**.
+> It is `artifacts\Enigma.Msi.Desktop.msi`, 17.29 MB, from WiX 7.0.0. Its Property, Upgrade and Shortcut
+> tables were read back, and its File table holds the six seeded `worker\.wixsharp\` files. The library is
+> still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall stays the maintainer's step.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
@@ -181,7 +200,7 @@ src/Enigma.Msi.Worker/               net472 console exe — WixSharp translation
 src/Enigma.Msi.Desktop/              Avalonia desktop app — the UI over the same MsiPackage (WinExe, hosts the worker)
 tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
-tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp enum drift guards
+tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp drift guards (enums, .wixsharp seed)
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel + headless-Avalonia suite (the only one using NSubstitute or a UI platform)
 msiProfiles/                         Release profiles for MSIs this repo builds of itself (currently the desktop app)
 docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
@@ -203,6 +222,19 @@ RID-suffixed folder and the glob comes up empty — or worse, copies a stale wor
 by adding `RuntimeIdentifier` to `UndefineProperties`: NuGet's restore graph walk ignores
 `UndefineProperties`, so restore resolves the host's RID while the build falls back to the worker's own
 inferred `win-x86`, and it fails with NETSDK1047.
+
+**That output also carries a seeded `.wixsharp/` folder, and it has to.** WixSharp packages the managed
+UI's custom action from `.wixsharp` beside its client assembly — the worker exe — and creates and fills it
+on the first MSI build, which an app installed under Program Files has no right to do: every build failed
+with `UnauthorizedAccessException` until `BUG-7325`. The worker's `SeedWixSharpBuildDir` target now writes
+it at build time with exactly what WixSharp would — the exe and its `.pdb`, `WixSharp.dll`,
+`WixSharp.UI.dll`, `WixToolset.Dtf.WindowsInstaller.dll`, `WixToolset.Mba.Core.dll` — and WixSharp then
+writes nothing, because it skips a copy with its original's length and a last-write time no older than
+the original's. `CopyWorkerOutput.targets`' **recursive** glob carries the folder into every host's
+`worker/` and from a publish into the MSI. Keep the glob recursive and the copy a `Copy` (it preserves
+timestamps); when a WixSharp upgrade trips the target's `<Error>` or the worker suite's
+`WixSharpBuildDirTests`, re-run a real MSI build from a fresh worker output and re-pin the set from what
+it writes.
 
 **`src/Enigma.Msi` itself is not a worker host, and cannot become one.** The worker references the
 library, so a `ProjectReference` back to the worker — even build-order-only — closes a cycle and fails

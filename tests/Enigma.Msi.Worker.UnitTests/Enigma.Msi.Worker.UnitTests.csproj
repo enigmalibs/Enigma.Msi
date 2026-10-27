@@ -19,4 +19,13 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Enigma.Msi.Worker/Enigma.Msi.Worker.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The worker's own output directory — the path build/CopyWorkerOutput.targets copies from by default —
+         stamped into the test assembly for WixSharpBuildDirTests: the worker seeds its .wixsharp folder
+         there, and this project's output only receives the worker's assemblies, not that folder. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>EnigmaMsiWorkerOutputDir</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)../../src/Enigma.Msi.Worker/bin/$(Configuration)/net472/</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

@@ -63,8 +63,11 @@ public sealed class MsiPackage
     /// <summary>Where the generated MSI is written, and under which name. Required.</summary>
     public OutputSettings Output { get; set; } = new();
 
-    /// <summary>Cabinet compression level. Defaults to <see cref="CompressionLevel.High"/>.</summary>
-    public CompressionLevel Compression { get; set; } = CompressionLevel.High;
+    /// <summary>
+    /// Cabinet compression level. Defaults to <see cref="CompressionLevel.None"/>, the fastest build — set
+    /// <see cref="CompressionLevel.High"/> when the size of the MSI matters more than its build time.
+    /// </summary>
+    public CompressionLevel Compression { get; set; } = CompressionLevel.None;
 
     /// <summary>
     /// Optional Control Panel information (icon, comments, contact, links). When
