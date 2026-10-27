@@ -324,6 +324,41 @@ public sealed class PackageEditorViewModelTests
         Assert.Contains("\"controlPanel\": {}", MsiPackageJson.Serialize(viewModel.ToPackage()));
     }
 
+    // ---- compression default -----------------------------------------------------------------
+
+    [Fact]
+    public void NewForm_StartsAtTheModelsCompressionDefault()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        Assert.Equal(CompressionLevel.None, viewModel.Compression);
+        Assert.Equal(new MsiPackage().Compression, viewModel.Compression);
+    }
+
+    [Fact]
+    public void Reset_ReturnsCompressionToTheModelsDefault()
+    {
+        PackageEditorViewModel viewModel = CreateViewModel();
+        viewModel.Compression = CompressionLevel.High;
+
+        viewModel.Reset();
+
+        Assert.Equal(new MsiPackage().Compression, viewModel.Compression);
+    }
+
+    [Fact]
+    public void LoadFrom_KeepsTheProfilesStatedCompression()
+    {
+        MsiPackage package = TestPackages.CreateMinimalValid();
+        package.Compression = CompressionLevel.High;
+        PackageEditorViewModel viewModel = CreateViewModel();
+
+        viewModel.LoadFrom(package);
+
+        Assert.Equal(CompressionLevel.High, viewModel.Compression);
+        Assert.Equal(CompressionLevel.High, viewModel.ToPackage().Compression);
+    }
+
     // ---- has data -----------------------------------------------------------------------------
 
     [Fact]
@@ -506,7 +541,7 @@ public sealed class PackageEditorViewModelTests
         Assert.Equal(string.Empty, viewModel.UrlInfoAbout);
         Assert.False(viewModel.Ui.IsCustomized);
         Assert.Equal(InstallScope.PerMachine, viewModel.Scope);
-        Assert.Equal(CompressionLevel.High, viewModel.Compression);
+        Assert.Equal(CompressionLevel.None, viewModel.Compression);
     }
 
     [Fact]

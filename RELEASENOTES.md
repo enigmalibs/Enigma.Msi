@@ -7,12 +7,54 @@ at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi.Desktop (application, MSI) | **1.4.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.5.0** |
 | Enigma.Msi (library, in-repo) | **1.0.0** |
 
 The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
+
+## 1.5.0 — Enigma.Msi.Desktop
+
+An **application-only release** with one fix and one changed default. The fix: the app builds MSIs when it
+is installed under Program Files. The changed default: a new package builds fast. **The library remains at
+1.0.0 and is not re-released.** Its one change is the default value of `MsiPackage.Compression`, described
+below. The validator, the build client, the worker protocol and the `.msipkg.json` format
+(`schemaVersion` 1) are untouched, so profiles saved by 1.0.0 to 1.4.0 open in 1.5.0 unchanged and there is
+no migration.
+
+### Fixed
+
+- **An app installed under Program Files can build MSIs.** The `net472` worker packages the installer's
+  managed UI from a `worker\.wixsharp\` folder. Until now WixSharp created that folder on the first build.
+  A per-machine install is read-only to a standard user, so every build failed with
+  `UnauthorizedAccessException: Access to the path '…\worker\.wixsharp' is denied.` The folder is now
+  produced when the app is built and ships inside its MSI, so nothing is written beside the worker at run
+  time. Installs of 1.0.0 to 1.4.0 are fixed by installing 1.5.0. Until then, building one MSI with the app
+  run as administrator creates the folder.
+
+### Changed
+
+- **A new package builds uncompressed.** The default cabinet compression is now **`None`** instead of
+  `High`: much faster builds and a larger MSI. It applies to a package started with *New*, at startup or
+  from the quick start, and to `new MsiPackage()` in the library. Choose `High` under *Product* →
+  *Compression* when the installer's size matters more.
+- **Saved profiles are unaffected.** Every profile written by 1.0.0 to 1.4.0 states its compression level,
+  so it opens with the level it was saved with. Only a hand-written `.msipkg.json` that leaves
+  `compression` out changes meaning: it now builds at `None`. The format (`schemaVersion` 1) is unchanged.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format. It is still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0 and 1.5.0 in **both** directions. The one change in meaning is the one under
+  *Changed*: a profile that leaves `compression` out now builds at `None`.
+- **The library's public surface is unchanged.** It is still 1.0.0, still consumed in-repo by
+  `ProjectReference`, and still multi-targets `netstandard2.0`, `net8.0` and `net10.0`. Only the default of
+  `MsiPackage.Compression` moved, from `High` to `None`.
+- The installed app holds six more files, the worker's seeded `.wixsharp\` folder.
+- No dependency moved: every package holds at the version 1.4.0 shipped with.
+- The app still targets **.NET 10.0** (`WinExe`) and is published framework-dependent for `win-x64`. It
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
 
 ## 1.4.0 — Enigma.Msi.Desktop
 
