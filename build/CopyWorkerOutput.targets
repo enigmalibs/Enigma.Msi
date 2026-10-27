@@ -48,6 +48,9 @@
   <!--
     Collected inside a target, not at evaluation time: on a clean build the source directory does not
     exist yet — the ProjectReference that produces it has not run when the project is evaluated.
+    The glob is recursive on purpose: the worker's output carries a seeded .wixsharp/ sub-folder that
+    WixSharp must find in place once the host is installed read-only (see the worker's csproj), so never
+    narrow it to the top level.
   -->
   <Target Name="CollectEnigmaMsiWorkerFiles">
     <ItemGroup>

@@ -14,6 +14,18 @@ The sections below are the record of each release as it was made, and are not re
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
 
+## (unreleased) — Enigma.Msi.Desktop
+
+### Fixed
+
+- **An app installed under Program Files can build MSIs.** The `net472` worker packages the installer's
+  managed UI from a `worker\.wixsharp\` folder that WixSharp, until now, created on the first build — and a
+  per-machine install is read-only to a standard user, so every build failed with
+  `UnauthorizedAccessException: Access to the path '…\worker\.wixsharp' is denied.` The folder is now
+  produced when the app is built and ships inside its MSI, so nothing is written beside the worker at run
+  time. Installs of 1.0.0 to 1.4.0 are fixed by installing the next release; until then, building one MSI
+  with the app run as administrator creates the folder.
+
 ## 1.4.0 — Enigma.Msi.Desktop
 
 An **application-only release**, and a small one: the quick start shows the MSI file name it is about to
