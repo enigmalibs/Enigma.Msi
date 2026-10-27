@@ -67,7 +67,7 @@ public sealed class MsiPackageJsonTests
 
         Assert.Equal(json, MsiPackageJson.Serialize(restored));
         Assert.Equal(InstallScope.PerMachine, restored.Scope);
-        Assert.Equal(CompressionLevel.High, restored.Compression);
+        Assert.Equal(CompressionLevel.None, restored.Compression);
         Assert.Empty(restored.Shortcuts);
         Assert.Null(restored.ControlPanel);
         Assert.Null(restored.Ui);
@@ -153,11 +153,21 @@ public sealed class MsiPackageJsonTests
 
         Assert.Equal(MsiPackage.CurrentSchemaVersion, package.SchemaVersion);
         Assert.Equal(InstallScope.PerMachine, package.Scope);
-        Assert.Equal(CompressionLevel.High, package.Compression);
+        Assert.Equal(CompressionLevel.None, package.Compression);
         Assert.NotNull(package.Install);
         Assert.NotNull(package.Output);
         Assert.Empty(package.Shortcuts);
         Assert.Null(package.Version);
+    }
+
+    [Fact]
+    public void Deserialize_AProfileStatingHighCompression_KeepsIt()
+    {
+        // Every profile saved before the default moved to None states its level — the serializer always
+        // writes it — so the new default must never reach a profile that says "High".
+        MsiPackage package = MsiPackageJson.Deserialize("""{ "appName": "Widget", "compression": "High" }""");
+
+        Assert.Equal(CompressionLevel.High, package.Compression);
     }
 
     [Fact]

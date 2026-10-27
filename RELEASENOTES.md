@@ -16,6 +16,16 @@ no version of it was ever pushed to a feed.
 
 ## (unreleased) — Enigma.Msi.Desktop
 
+### Changed
+
+- **A new package builds uncompressed.** The default cabinet compression is now **`None`** instead of
+  `High`: much faster builds and a larger MSI. It applies to a package started with *New*, at startup or
+  from the quick start, and to `new MsiPackage()` in the library. Choose `High` under *Product* →
+  *Compression* when the installer's size matters more.
+- **Saved profiles are unaffected.** Every profile written by 1.0.0 to 1.4.0 states its compression level,
+  so it opens with the level it was saved with. Only a hand-written `.msipkg.json` that leaves
+  `compression` out changes meaning: it now builds at `None`. The format (`schemaVersion` 1) is unchanged.
+
 ### Fixed
 
 - **An app installed under Program Files can build MSIs.** The `net472` worker packages the installer's

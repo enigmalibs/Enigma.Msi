@@ -1,6 +1,6 @@
 # FEATURE-1399 — Default cabinet compression to `None`
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE (single-phase)
 **Branch:** `feature/feature-1399-compression-none-default` — cut from the run-branch tip.
 **Run:** vibe/2026-10-22-wixsharp-dir-compression
