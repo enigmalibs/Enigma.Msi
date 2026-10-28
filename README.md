@@ -12,10 +12,9 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.5.0** — the app **builds MSIs when installed under Program Files**: before, every build
-> from a per-machine install failed with access denied. A new package now builds **uncompressed** by
-> default, which is much faster and gives a larger MSI. Saved profiles keep the level they state. See
-> [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.6.0** — the app has a **new icon and logo**: on the executable, the window, the
+> shortcuts, the Control Panel entry, the splash and the About dialog. Nothing else changes, and every saved
+> profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 
@@ -70,7 +69,7 @@ development run, `dotnet run --project src/Enigma.Msi.Desktop` is enough.
 The app can also build **its own installer**, which is how this repository releases it:
 
 ```bash
-.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.3.0.msipkg.json
+.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.6.0.msipkg.json
 ```
 
 The profiles under `msiProfiles/` are ordinary `.msipkg.json` files, so they open in the app itself. See
