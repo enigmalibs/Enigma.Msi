@@ -7,12 +7,37 @@ at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi.Desktop (application, MSI) | **1.5.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.6.0** |
 | Enigma.Msi (library, in-repo) | **1.0.0** |
 
 The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
+
+## 1.6.0 — Enigma.Msi.Desktop
+
+An **application-only release** that gives the app a new look: a new icon and a new logo. **The library
+remains at 1.0.0 and is not re-released.** Nothing else changes. The validator, the build client, the
+worker protocol and the `.msipkg.json` format (`schemaVersion` 1) are untouched, so profiles saved by
+1.0.0 to 1.5.0 open in 1.6.0 unchanged and there is no migration.
+
+### Changed
+
+- **A new application icon.** It appears wherever the app shows an icon: the executable, the window and
+  the taskbar, the Start menu and desktop shortcuts, and the Control Panel entry. It has ten sizes from
+  16 to 256 px, up from seven. The new 20, 40 and 96 px sizes keep it sharp at 125 % and 150 % display
+  scaling.
+- **A new logo.** The splash screen and the About dialog show the same artwork.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format. It is still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0 and 1.6.0 in **both** directions.
+- **The library's public surface is unchanged.** It is still 1.0.0, still consumed in-repo by
+  `ProjectReference`, and still multi-targets `netstandard2.0`, `net8.0` and `net10.0`.
+- No dependency moved: every package holds at the version 1.5.0 shipped with.
+- The app still targets **.NET 10.0** (`WinExe`) and is published framework-dependent for `win-x64`. It
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
 
 ## 1.5.0 — Enigma.Msi.Desktop
 

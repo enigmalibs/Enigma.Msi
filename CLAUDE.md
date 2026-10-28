@@ -100,8 +100,8 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > section, and it was **verified on Windows** — warning-free rebuild, all **453** tests green including the
 > 16 WixSharp drift guards (none fired), and the **dogfood MSI built** from the committed profile:
 > `artifacts\Enigma.Msi.Desktop.msi`, 17.25 MB, WiX 7.0.0, its Property/Upgrade/Shortcut tables read back
-> and checked. The library is still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall
-> stays the maintainer's step.
+> and checked. The library is still at 1.0.0. The run tagged and pushed nothing; the maintainer tagged
+> `1.3.0` on `main` later. Install/launch/uninstall stays the maintainer's step.
 >
 > **`FEATURE-1DEF` is complete (`PHASE01`, `PHASE02`) — the app-only 1.4.0, tagged `1.4.0` on `main`.**
 > `PHASE01`: the quick start asks **eight** answers, and the new one — **MSI file name**,
@@ -137,7 +137,25 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 > 1.5.x. Verified on Windows: warning-free build, all **471** tests green, and the **dogfood MSI built**.
 > It is `artifacts\Enigma.Msi.Desktop.msi`, 17.29 MB, from WiX 7.0.0. Its Property, Upgrade and Shortcut
 > tables were read back, and its File table holds the six seeded `worker\.wixsharp\` files. The library is
-> still at 1.0.0, nothing was tagged or pushed, and install/launch/uninstall stays the maintainer's step.
+> still at 1.0.0. The run tagged and pushed nothing; the maintainer tagged `1.5.0` on `main` later.
+> Install/launch/uninstall stays the maintainer's step.
+>
+> **`FEATURE-25EF` is complete (`PHASE01`, `PHASE02`): the app-only 1.6.0, a new icon and logo.**
+> `PHASE01` replaced the artwork in place. `Assets/appicon.ico` is the new icon, with ten PNG frames from 16
+> to 256 px, and `Assets/logo.png` is its 256 px frame. **The file names were kept on purpose.** The
+> csproj, the XAML, `AppInfo.LogoUri` and every committed profile name these paths, so no reference
+> changed. Only those two files came from the maintainer's drop. The artwork's SVG master lives outside
+> this repo (`Branding/Apps`), so regenerate the artwork there and overwrite the two files.
+> `PHASE02` was the release prep. The app declares `<Version>1.6.0`, and
+> `msiProfiles/Enigma.Msi.Desktop.1.6.0.msipkg.json` is committed: fresh `productId`, `upgradeCode`
+> reused verbatim, `compression` still `High`. `RELEASENOTES.md`, the README callout and `SECURITY.md` lead
+> with 1.6.0. **Both phases ran on Linux**:
+> - What ran: a warning-free build, the desktop suite 156/156, the library suite failing only on its
+>   documented Windows-only cluster, and a `win-x64` cross-publish stamping 1.6.0.
+> - Still owed on Windows: the whole suite, including the worker suite and its drift guards, and the
+>   dogfood MSI build.
+>
+> The library is still at 1.0.0. The run tagged and pushed nothing.
 >
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
