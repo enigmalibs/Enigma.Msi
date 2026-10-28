@@ -1,6 +1,6 @@
 # FEATURE-25EF — Desktop app 1.6.0: new icons
 
-**Status:** IN PROGRESS
+**Status:** DONE (multi-phase — 2 phases)
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-25ef-phaseNN-<slug>` — one branch per phase, cut from the run-branch tip.
 **Run:** feature/2026-10-28-new-icons-release
@@ -99,7 +99,7 @@ Read from the repository at planning time (2026-10-28), on `develop` @ `b6c8b1f`
 
 ## PHASE02 — Release prep: desktop app 1.6.0
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-25ef-phase02-release-1-6-0`
 
 Follows `docs/RELEASE.md` §1–§2. **App-only:** no library version change, and there is no pack step.
