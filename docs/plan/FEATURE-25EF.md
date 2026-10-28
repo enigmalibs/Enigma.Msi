@@ -1,6 +1,6 @@
 # FEATURE-25EF — Desktop app 1.6.0: new icons
 
-**Status:** TODO (multi-phase — 2 phases)
+**Status:** IN PROGRESS
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-25ef-phaseNN-<slug>` — one branch per phase, cut from the run-branch tip.
 **Run:** feature/2026-10-28-new-icons-release
@@ -77,7 +77,7 @@ Read from the repository at planning time (2026-10-28), on `develop` @ `b6c8b1f`
 
 ## PHASE01 — Replace the app icon and logo
 
-**Status:** TODO
+**Status:** DONE
 **Branch:** `feature/feature-25ef-phase01-new-icons`
 
 1. Copy `new-icons-remove-when-done/enigma-msi.ico` over `src/Enigma.Msi.Desktop/Assets/appicon.ico`.
