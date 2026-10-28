@@ -34,3 +34,6 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | BUG-7325     | Seed the worker's .wixsharp dir at build                    | DONE   | docs/plan/BUG-7325.md     |
 | FEATURE-1399 | Default compression to None                                 | DONE   | docs/plan/FEATURE-1399.md |
 | FEATURE-1E7D | Desktop app 1.5.0 release                                   | DONE   | docs/plan/FEATURE-1E7D.md |
+| FEATURE-25EF | Desktop app 1.6.0: new icons                                | TODO   | docs/plan/FEATURE-25EF.md |
+| - PHASE01    | Replace the app icon and logo                               | TODO   | (in FEATURE-25EF.md)      |
+| - PHASE02    | Release prep: desktop app 1.6.0                             | TODO   | (in FEATURE-25EF.md)      |
