@@ -14,7 +14,7 @@
        only under netstandard2.0. PolySharp and System.Buffers are the netstandard2.0-support pair
        backing the conditional PackageReferences in src/Enigma.Msi/Enigma.Msi.csproj. -->
   <ItemGroup>
-    <PackageVersion Include="System.Text.Json" Version="10.0.10" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.14" />
     <PackageVersion Include="System.Buffers" Version="4.6.1" />
     <PackageVersion Include="PolySharp" Version="1.16.0" />
   </ItemGroup>
@@ -22,34 +22,34 @@
   <!-- Worker (Enigma.Msi.Worker, net472). WixSharp_wix4 is the metapackage that brings in the actual
        binaries through its WixSharp_wix4.bin dependency — never reference the .bin package directly. -->
   <ItemGroup>
-    <PackageVersion Include="WixSharp_wix4" Version="2.14.1" />
+    <PackageVersion Include="WixSharp_wix4" Version="2.14.2" />
   </ItemGroup>
 
   <!-- Desktop app (Enigma.Msi.Desktop). The Avalonia packages and the two Enigma UI packages are a
-       coupled set: Enigma.Avalonia.Desktop 1.0.0 and Enigma.Icons.Avalonia 1.0.0 are built against
-       Avalonia 12.1.x, so Avalonia is pinned to 12.1.1 to match and all four move together or not at
-       all. Enigma.Avalonia.Desktop also brings Enigma.Core (and, through it, BouncyCastle) and
+       coupled set: Enigma.Avalonia.Desktop 1.3.0 is built against Avalonia 12.1.4 (its nuspec pins it,
+       with CommunityToolkit.Mvvm 8.4.2) and Enigma.Icons.Avalonia 1.0.0 against 12.1.x, so Avalonia is
+       pinned to 12.1.4 to match and all of them move together or not at all. Enigma.Avalonia.Desktop also brings Enigma.Core (and, through it, BouncyCastle) and
        CommunityToolkit.Mvvm transitively; CommunityToolkit.Mvvm is pinned anyway because the app's
        ViewModels reference it directly. -->
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="12.1.1" />
-    <PackageVersion Include="Avalonia.Desktop" Version="12.1.1" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
-    <!-- The headless test harness lives in this block rather than with the test packages below: it is
+    <PackageVersion Include="Avalonia" Version="12.1.4" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <!-- The headless test platform lives in this block rather than with the test packages below: it is
          version-locked to the Avalonia it drives, so it moves with the coupled set and never alone.
-         Avalonia.Headless supplies a windowing and drawing platform with no screen behind it;
-         Avalonia.Headless.XUnit adds [AvaloniaFact]/[AvaloniaTheory], whose 12.1.1 build is built
-         against xunit.v3 — the runner this solution already uses. -->
-    <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
-    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.1" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+         Avalonia.Headless supplies a windowing and drawing platform with no screen behind it. Its
+         xunit adapter, Avalonia.Headless.XUnit, is deliberately absent: 12.1.x is compiled against
+         xunit.v3 3.x and fails discovery under 4.x, so the desktop suite drives the platform through
+         its own HeadlessAvaloniaFixture instead (as Enigma.GitClient does). -->
+    <PackageVersion Include="Avalonia.Headless" Version="12.1.4" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageVersion Include="Enigma.Avalonia.Desktop" Version="1.0.0" />
+    <PackageVersion Include="Enigma.Avalonia.Desktop" Version="1.3.0" />
     <PackageVersion Include="Enigma.Icons.Avalonia" Version="1.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
-    <PackageVersion Include="NLog" Version="6.1.4" />
-    <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+    <PackageVersion Include="NLog" Version="6.2.2" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.2.2" />
   </ItemGroup>
 
   <!-- Tests (MTP-native: xunit.v3 only; coverlet.collector for coverage). No Microsoft.NET.Test.Sdk.
@@ -57,9 +57,9 @@
        omits it (see tests/Enigma.Msi.Worker.UnitTests). NSubstitute is used by the Desktop suite
        alone — the library and worker suites are substitute-free by design. -->
   <ItemGroup>
-    <PackageVersion Include="xunit.v3" Version="3.2.2" />
-    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
-    <PackageVersion Include="NSubstitute" Version="6.1.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
   </ItemGroup>
 
 </Project>

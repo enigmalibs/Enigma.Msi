@@ -1,6 +1,6 @@
 # FEATURE-CED6 — Update NuGet packages to latest
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-ced6-update-packages`
 **Run:** feature/2026-10-29-uniform-enigma-apps
