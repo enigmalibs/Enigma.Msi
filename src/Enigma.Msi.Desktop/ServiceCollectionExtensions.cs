@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Registers the MSI library's services, this app's five thin seams over the UI framework, and the
+        /// Registers the MSI library's services, this app's six thin seams over the UI framework, and the
         /// unhandled-error safety net.
         /// </summary>
         /// <remarks>
@@ -54,6 +54,7 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<IAboutDialogService, AboutDialogService>();
             _ = services.AddSingleton<IQuickStartDialogService, QuickStartDialogService>();
             _ = services.AddSingleton(TimeProvider.System);
+            _ = services.AddSingleton<IUnhandledErrorDialogService, UnhandledErrorDialogService>();
             _ = services.AddSingleton<IUnhandledErrorReporter, UnhandledErrorReporter>();
         }
 

@@ -1,6 +1,6 @@
 # FEATURE-2EEB — Catch unhandled exceptions
 
-**Status:** IN PROGRESS
+**Status:** DONE
 **Type:** FEATURE (multi-phase)
 **Branch (per phase, at build time):** `feature/feature-2eeb-phaseNN-<slug>` — one branch per phase, cut from the run-branch tip.
 **Run:** feature/2026-10-29-uniform-enigma-apps
@@ -84,7 +84,7 @@ application is still running — the safety net every Enigma app carries. The re
 
 ## PHASE02 — The error dialog
 
-**Status:** TODO
+**Status:** DONE
 
 ### Steps
 

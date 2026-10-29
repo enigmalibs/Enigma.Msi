@@ -42,6 +42,8 @@ once, press **Build**, and watch the WiX toolchain's output stream into a log pa
 - **About** — the dialog every Enigma app shares, behind the icon-only button at the right of the command
   bar: the logo, the name, the version, the build revision and the copyright. The app opens straight on the
   main window.
+- **A safety net** — an error nothing else handles no longer closes the app: it is logged and shown in a
+  *Something went wrong* dialog, with the details ready to copy into a bug report.
 
 ### Requirements
 

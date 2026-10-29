@@ -197,6 +197,22 @@ does for you. The long version, if you would rather type it or the quick start's
 7. **Build**, and watch the log.
 8. For the next release: open the profile, bump the version, regenerate **product ID** only, rebuild.
 
+## When something goes wrong
+
+A failure the app knows about — a profile it cannot read, a build that fails — is reported where it
+happens, in the status line, the Problems pane or the build log. Anything else that goes wrong is caught by a
+safety net instead of closing the app: a **Something went wrong** dialog says the app is still running, gives
+the error's message, and keeps the full details — type, message, stack trace — in a collapsed **Details**
+section with a **Copy details** button for a bug report.
+
+- **One dialog at a time.** Errors that arrive while it is open are counted into it (*1 more error
+  occurred.*), never stacked in dialogs of their own; the same error is not shown again for a minute after
+  you close it.
+- **It waits its turn.** If another dialog is open, or a build is running, it appears once that dialog closes
+  or the build ends.
+- **Everything is logged** to `Enigma.Msi.Desktop.log` beside the executable, shown or not — including a
+  failure to start, which no dialog could report.
+
 ## Notes
 
 - **The app is a client, not the builder.** It cannot build an MSI without the worker beside it and the

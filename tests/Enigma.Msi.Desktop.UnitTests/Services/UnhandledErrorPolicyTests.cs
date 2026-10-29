@@ -37,6 +37,42 @@ public sealed class UnhandledErrorPolicyTests
     }
 
     [Fact]
+    public void AFaultTheFinaliserReportsAgain_WrappedInAnAggregate_IsIgnored()
+    {
+        // An async command's fault is rethrown on the dispatcher, then its task is found unobserved and
+        // reported again inside a new AggregateException.
+        UnhandledErrorPolicy policy = new(_time);
+        Exception error = Thrown("boom");
+
+        _ = policy.Offer(error);
+
+        Assert.Equal(UnhandledErrorDecision.Ignore, policy.Offer(new AggregateException(error)));
+        Assert.Equal(0, policy.Pending!.More);
+    }
+
+    [Fact]
+    public void AnErrorAlreadyReportedInsideAnAggregate_IsIgnored_WhenItComesAlone()
+    {
+        UnhandledErrorPolicy policy = new(_time);
+        Exception error = Thrown("boom");
+
+        _ = policy.Offer(new AggregateException(error));
+
+        Assert.Equal(UnhandledErrorDecision.Ignore, policy.Offer(error));
+    }
+
+    [Fact]
+    public void AnAggregateWrappingSomethingNew_IsStillAnError()
+    {
+        UnhandledErrorPolicy policy = new(_time);
+        Exception seen = Thrown("seen");
+
+        _ = policy.Offer(seen);
+
+        Assert.Equal(UnhandledErrorDecision.Merge, policy.Offer(new AggregateException(seen, Thrown("new"))));
+    }
+
+    [Fact]
     public void AnErrorWhileOneWaits_IsCountedIntoIt()
     {
         UnhandledErrorPolicy policy = new(_time);
