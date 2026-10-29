@@ -21,7 +21,7 @@ namespace Enigma.Msi.Worker.UnitTests;
 /// </remarks>
 public sealed class WixSharpBuildDirTests
 {
-    /// <summary>The assemblies WixSharp_wix4 2.14.1 copies into <c>.wixsharp</c> for a managed-UI project.</summary>
+    /// <summary>The assemblies WixSharp_wix4 2.14.1 and 2.14.2 copy into <c>.wixsharp</c> for a managed-UI project.</summary>
     private static readonly string[] IsolatedFiles =
     [
         "Enigma.Msi.Worker.exe",

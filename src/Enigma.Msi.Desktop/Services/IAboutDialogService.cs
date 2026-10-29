@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Enigma.Msi.Desktop.Services;
 
 /// <summary>
-/// Shows the modal About dialog — the app's identity, and the link to its repository.
+/// Shows the modal About dialog — the app's identity and the build that is running.
 /// </summary>
 /// <remarks>
 /// A thin seam over <c>Enigma.Avalonia.Desktop</c>'s <c>IContentDialogService</c>, in the shape of

@@ -22,13 +22,13 @@ namespace Enigma.Msi.Worker.UnitTests.Translation;
 /// </remarks>
 public sealed class WixSharpDriftTests
 {
-    /// <summary>WixSharp's <c>InstallScope</c> members, as of WixSharp_wix4 2.14.1.</summary>
+    /// <summary>WixSharp's <c>InstallScope</c> members, as of WixSharp_wix4 2.14.2.</summary>
     private static readonly string[] WixSharpInstallScopes = ["perMachine", "perUser", "perUserOrMachine"];
 
-    /// <summary>WixSharp's <c>CompressionLevel</c> members, as of WixSharp_wix4 2.14.1.</summary>
+    /// <summary>WixSharp's <c>CompressionLevel</c> members, as of WixSharp_wix4 2.14.2.</summary>
     private static readonly string[] WixSharpCompressionLevels = ["none", "low", "medium", "high", "mszip"];
 
-    /// <summary>WixSharp's <c>WUI</c> members, as of WixSharp_wix4 2.14.1.</summary>
+    /// <summary>WixSharp's <c>WUI</c> members, as of WixSharp_wix4 2.14.2.</summary>
     private static readonly string[] WixSharpWuis =
     [
         "WixUI_Minimal",
@@ -41,7 +41,7 @@ public sealed class WixSharpDriftTests
     ];
 
     /// <summary>
-    /// WixSharp's <c>Dialogs</c> members, as of WixSharp_wix4 2.14.1 — note the British
+    /// WixSharp's <c>Dialogs</c> members, as of WixSharp_wix4 2.14.2 — note the British
     /// <c>Licence</c> spelling, which the mirror reproduces verbatim.
     /// </summary>
     private static readonly string[] WixSharpDialogs =

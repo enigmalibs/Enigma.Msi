@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Enigma.Msi
+GenericName=MSI Installer Builder
+Comment=Declarative Windows MSI builder
+Exec=@EXEC@
+Icon=enigma-msi
+Terminal=false
+Categories=Development;
+Keywords=msi;installer;wix;windows;setup;package;
+StartupNotify=true
+StartupWMClass=Enigma.Msi.Desktop

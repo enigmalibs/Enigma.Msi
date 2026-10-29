@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Enigma.Avalonia.Desktop.Services;
+using Enigma.Msi.Desktop.Services;
 using Enigma.Msi.Desktop.ViewModels;
 using Enigma.Msi.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +13,8 @@ using NLog.Extensions.Logging;
 namespace Enigma.Msi.Desktop;
 
 /// <summary>
-/// The Avalonia application. Resolves the windows from the host built in <see cref="Program"/>, hands the
-/// control library its three hosts and the window's storage provider, and sequences the splash-to-window
-/// handover.
+/// The Avalonia application. Resolves the window from the host built in <see cref="Program"/> and hands the
+/// control library its three hosts and the window's storage provider.
 /// </summary>
 public partial class App : Application
 {
@@ -30,10 +30,17 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Under the desktop lifetime only, so the designer and the headless tests keep their own
+            // exceptions. The platform is up by now, which the dispatcher hook needs.
+            UnhandledExceptionHooks.InstallDispatcher();
+
+            var reporter = services.GetRequiredService<IUnhandledErrorReporter>();
+            UnhandledExceptionHooks.Attach(reporter);
+
             var mainWindow = services.GetRequiredService<MainWindow>();
             mainWindow.DataContext = services.GetRequiredService<MainWindowViewModel>();
 
-            // Before any window is shown: a service whose host is still unregistered throws the
+            // Before the window is shown: a service whose host is still unregistered throws the
             // moment a ViewModel asks it for anything.
             services.GetRequiredService<IContentDialogService>().RegisterHost(mainWindow.HostDialog);
             services.GetRequiredService<IOverlayService>().RegisterHost(mainWindow.HostOverlay);
@@ -41,31 +48,15 @@ public partial class App : Application
             services.GetRequiredService<IFileDialogService>().SetStorageProvider(mainWindow.StorageProvider);
             services.GetRequiredService<IFolderDialogService>().SetStorageProvider(mainWindow.StorageProvider);
 
-            // No DataContext: the splash reads its two lines off AppInfo in the markup.
-            var splash = services.GetRequiredService<SplashWindow>();
-            splash.Dismissed += (_, _) => ShowMainWindow(desktop, mainWindow, splash);
+            // One window: once it has closed, the application is closing, and a cancellation that
+            // arrives late is the shutdown's, not an error.
+            mainWindow.Closed += (_, _) => reporter.ShutdownStarted();
 
-            // The lifetime shows whatever MainWindow holds once this method returns, so the splash needs
-            // no Show() of its own — and being the initial MainWindow is what makes it the *only* thing
-            // on screen, rather than something that appears alongside the real window.
-            desktop.MainWindow = splash;
+            // The lifetime shows the initial MainWindow itself once this method returns.
+            desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    // The order here is load-bearing, though not for the obvious reason: the default ShutdownMode is
-    // OnLastWindowClose — a last-window-standing rule, not a MainWindow-identity one — so the real window
-    // has to be open before the splash closes, or the process exits. Reassigning MainWindow is not enough
-    // on its own either: only the *initial* MainWindow is shown automatically.
-    private static void ShowMainWindow(
-        IClassicDesktopStyleApplicationLifetime desktop,
-        MainWindow mainWindow,
-        SplashWindow splash)
-    {
-        desktop.MainWindow = mainWindow;
-        mainWindow.Show();
-        splash.Close();
     }
 
     private static IServiceProvider BuildDesignerServices()

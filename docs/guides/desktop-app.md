@@ -27,15 +27,6 @@ dotnet run --project src/Enigma.Msi.Desktop
 Or, from a release build, `Enigma.Msi.Desktop.exe` in the output folder — with its `worker\` subfolder
 next to it. The app finds the worker there by itself; no configuration.
 
-## The splash screen
-
-The app opens with a splash: the logo, **Enigma.Msi** and `Version <x.y.z>` — and nothing else. The
-tagline, the copyright and the author line are in the About dialog, which is where there is time to read
-them. It is the only window on screen while it is up — the main window appears when it goes.
-
-It stays for about two seconds, and **any click or key press dismisses it immediately**. There is no
-setting to turn it off, and it behaves the same in Debug and Release.
-
 ## The window
 
 A command bar across the top; below it the package form on the left and two panes on the right —
@@ -56,10 +47,10 @@ line runs along the bottom.
 There is no Cancel button in the command bar: a running build covers the window with a modal progress card,
 and that card carries the one cancel affordance.
 
-At the far right of the same bar sits an **icon-only About button**. It opens a modal dialog reporting the
-logo, the name and tagline, the app version, the copyright, the author and the repository URL — with a
-**View on GitHub** button that opens the repository in your browser. The URL is selectable text as well,
-so it can be copied by hand on a machine with no browser association. Close or Escape dismisses it.
+At the far right of the same bar sits an **icon-only About button**. It opens the About dialog every
+Enigma app shares: the logo, **Enigma.Msi**, `Version <x.y.z>`, the `Build <sha>` the app was cut from
+(selectable, for a bug report; absent from a build that recorded no revision) and the copyright. Close or
+Escape dismisses it.
 
 The title bar shows the open profile (`Enigma.Msi — Widget.msipkg.json`) or `Enigma.Msi — new package`. A
 status line reports the last thing that happened; results also arrive as an info bar.
@@ -205,6 +196,22 @@ does for you. The long version, if you would rather type it or the quick start's
 6. **Save as…** next to your solution, so the profile is in source control.
 7. **Build**, and watch the log.
 8. For the next release: open the profile, bump the version, regenerate **product ID** only, rebuild.
+
+## When something goes wrong
+
+A failure the app knows about — a profile it cannot read, a build that fails — is reported where it
+happens, in the status line, the Problems pane or the build log. Anything else that goes wrong is caught by a
+safety net instead of closing the app: a **Something went wrong** dialog says the app is still running, gives
+the error's message, and keeps the full details — type, message, stack trace — in a collapsed **Details**
+section with a **Copy details** button for a bug report.
+
+- **One dialog at a time.** Errors that arrive while it is open are counted into it (*1 more error
+  occurred.*), never stacked in dialogs of their own; the same error is not shown again for a minute after
+  you close it.
+- **It waits its turn.** If another dialog is open, or a build is running, it appears once that dialog closes
+  or the build ends.
+- **Everything is logged** to `Enigma.Msi.Desktop.log` beside the executable, shown or not — including a
+  failure to start, which no dialog could report.
 
 ## Notes
 

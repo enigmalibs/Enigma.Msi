@@ -24,7 +24,7 @@ throw: `ArgumentNullException` for a `null` package, and `OperationCanceledExcep
 | The WiX CLI | `dotnet tool install --global wix`. `CheckPrerequisitesAsync` reports its absence with that exact hint. |
 | The worker on disk | Copied into your output as `worker/` by `build/CopyWorkerOutput.targets`. See [Worker discovery](#worker-discovery). |
 
-The library targets `netstandard2.0`, `net8.0` and `net10.0`.
+The library targets `netstandard2.0` and `net10.0`.
 
 ## Key types
 
