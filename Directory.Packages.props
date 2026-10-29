@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <!-- Core library (Enigma.Msi). System.Text.Json is the model's serializer, pinned here ahead of
-       PHASE02 which introduces it; it is framework-provided on net8.0+, so the library references it
+       PHASE02 which introduces it; it is framework-provided on net10.0, so the library references it
        only under netstandard2.0. PolySharp and System.Buffers are the netstandard2.0-support pair
        backing the conditional PackageReferences in src/Enigma.Msi/Enigma.Msi.csproj. -->
   <ItemGroup>

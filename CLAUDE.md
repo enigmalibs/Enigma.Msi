@@ -264,9 +264,10 @@ with a `PackEnigmaMsiWorkerPayload` target that built the worker through the `MS
 
 ## Target frameworks & dependencies
 
-- **`src/Enigma.Msi`** multi-targets **`netstandard2.0;net8.0;net10.0`**. `netstandard2.0` is not
+- **`src/Enigma.Msi`** multi-targets **`netstandard2.0;net10.0`**. `netstandard2.0` is not
   legacy caution — it is what lets the `net472` worker consume the *same* model assembly as modern
-  consumers. `net8.0`/`net10.0` are the two currently-supported LTS releases.
+  consumers. `net10.0` is the current LTS release; `net8.0` was dropped ahead of its end of support
+  (`FEATURE-D37E`), and its test suite and stub worker went with it.
 - **`src/Enigma.Msi.Worker`** is **`net472`**, forced by WixSharp being .NET Framework-only; its test
   project mirrors that TFM. This is a documented deviation from the house `net10.0` app default.
 - **`src/Enigma.Msi.Desktop`** is `net10.0` `WinExe` (Avalonia; plain TFM, no `-windows` suffix — the
@@ -282,7 +283,7 @@ with a `PackEnigmaMsiWorkerPayload` target that built the worker through the `MS
   services' path-returning overloads are C# 14 `extension` members, so they cannot be substituted in a
   test (which is why the app puts its own `IPathPickerService` in front of them).
 - `System.Buffers` and **PolySharp** (compile-only, `PrivateAssets=all`) are referenced on
-  **netstandard2.0 only** — they are framework-provided or unnecessary on net8.0+, and an
+  **netstandard2.0 only** — they are framework-provided or unnecessary on net10.0, and an
   unconditional reference raises NU1510 and fails the zero-warnings build.
 - Reference **`WixSharp_wix4`** only — never `WixSharp_wix4.bin`, which is already a dependency of it.
 - All versions live in `Directory.Packages.props` (do not put `Version=` on a `<PackageReference>`).

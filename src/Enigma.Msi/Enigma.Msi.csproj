@@ -4,9 +4,9 @@
     <!-- TFM deviation from the house default (netstandard2.0 alone): netstandard2.0 is required so
          the net472 worker (Enigma.Msi.Worker — WixSharp_wix4 is .NET Framework-only) can consume the
          very same MsiPackage model assembly as modern consumers, keeping one declarative model
-         instead of a mirrored DTO layer. net8.0/net10.0 are the two currently-supported LTS
-         releases, so modern consumers get a first-class target rather than the compatibility one. -->
-    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
+         instead of a mirrored DTO layer. net10.0 is the current LTS release, so modern consumers get a
+         first-class target rather than the compatibility one. -->
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
     <Version>1.0.0</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- This library is consumed in-repo by ProjectReference (the worker, the desktop app, the test
@@ -18,8 +18,8 @@
   <!-- LangVersion / Nullable / ImplicitUsings / TreatWarningsAsErrors are deliberately absent:
        they come from Directory.Build.props and must never be repeated per-project. No Version
        attributes either — versions live in Directory.Packages.props (CPM). -->
-  <!-- System.Buffers (Span/Memory/ArrayPool support) is framework-provided on net8.0+; it is only
-       needed as an explicit package on netstandard2.0. Referencing it on net8.0/net10.0 would raise
+  <!-- System.Buffers (Span/Memory/ArrayPool support) is framework-provided on net10.0; it is only
+       needed as an explicit package on netstandard2.0. Referencing it on net10.0 would raise
        NU1510 and fail the zero-warnings build. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Buffers" />
@@ -29,7 +29,7 @@
     <PackageReference Include="PolySharp" PrivateAssets="all" />
   </ItemGroup>
   <!-- System.Text.Json backs the .msipkg.json profile format and the worker handshake. It ships in
-       the shared framework on net8.0+, so referencing the package there would raise NU1510 and fail
+       the shared framework on net10.0, so referencing the package there would raise NU1510 and fail
        the zero-warnings build; only netstandard2.0 (the target the net472 worker consumes) needs it. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Text.Json" />
