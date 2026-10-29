@@ -272,11 +272,12 @@ with a `PackEnigmaMsiWorkerPayload` target that built the worker through the `MS
   project mirrors that TFM. This is a documented deviation from the house `net10.0` app default.
 - **`src/Enigma.Msi.Desktop`** is `net10.0` `WinExe` (Avalonia; plain TFM, no `-windows` suffix — the
   app's Windows-only nature comes from what it drives, not from its TFM). Its UI stack is a **coupled
-  set** pinned together: Avalonia **12.1.1** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`, and the
-  test-side `.Headless`/`.Headless.XUnit`), `Enigma.Avalonia.Desktop` **1.0.0** and
-  `Enigma.Icons.Avalonia` **1.0.0** — the latter two are built against Avalonia 12.1.x, so bump the whole
-  set or none of it. The two headless packages are pinned in the *same* `ItemGroup` as the rest for that
-  reason, though only the desktop test suite consumes them. `AvaloniaUI.DiagnosticsSupport` is
+  set** pinned together: Avalonia **12.1.4** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`, and the
+  test-side `.Headless`), `Enigma.Avalonia.Desktop` **1.3.0** and `Enigma.Icons.Avalonia` **1.0.0** —
+  the latter two are built against Avalonia 12.1.x (1.3.0's nuspec pins 12.1.4), so bump the whole set or
+  none of it. The headless package is pinned in the *same* `ItemGroup` as the rest for that reason,
+  though only the desktop test suite consumes it. `Avalonia.Headless.XUnit` is deliberately **not** used:
+  its 12.1.x build is compiled against xunit.v3 3.x and fails test discovery under 4.x. `AvaloniaUI.DiagnosticsSupport` is
   Debug-only via a conditional `IncludeAssets`/`PrivateAssets`. Beware two API details:
   `Enigma.Avalonia.Desktop`'s editors derive from `TextBox`, whose `Watermark` Avalonia 12 obsoletes —
   use `PlaceholderText`, or the XAML compiler's `AVLN5001` fails the zero-warnings build; and its picker
@@ -320,11 +321,12 @@ passed through the explicit `--solution` flag, as above.
 Tests are **MTP-native**: `xunit.v3` + `coverlet.collector`, with **no** `Microsoft.NET.Test.Sdk` and
 no `xunit.runner.visualstudio`.
 
-`tests/Enigma.Msi.Desktop.UnitTests` is the one suite with a UI dependency: `Avalonia.Headless` +
-`Avalonia.Headless.XUnit` give it a windowing platform with no screen behind it, so a test can load real
-markup. `HeadlessTestApp` declares the assembly-wide session, and only `[AvaloniaFact]`/`[AvaloniaTheory]`
-bodies run on it — the plain `[Fact]` ViewModel tests are unaffected. Keep the UI dependency in that
-suite alone.
+`tests/Enigma.Msi.Desktop.UnitTests` is the one suite with a UI dependency: `Avalonia.Headless` gives
+it a windowing platform with no screen behind it, so a test can load real markup. `HeadlessAvaloniaFixture`
+sets the app's real `App` up once on a dedicated UI thread, and a view test joins
+`[Collection(HeadlessCollection.Name)]`, takes the fixture and runs its body through `headless.Run(...)` —
+the plain `[Fact]` ViewModel tests are unaffected. It is Enigma.GitClient's fixture, and it replaces
+`Avalonia.Headless.XUnit` (see above). Keep the UI dependency in that suite alone.
 
 ## Conventions
 
