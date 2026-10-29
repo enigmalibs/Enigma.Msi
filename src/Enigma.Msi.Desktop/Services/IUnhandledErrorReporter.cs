@@ -3,8 +3,8 @@ using System;
 namespace Enigma.Msi.Desktop.Services;
 
 /// <summary>
-/// The safety net: every exception nothing else caught ends up here and is logged, in full, with where
-/// it was caught.
+/// The safety net: every exception nothing else caught ends up here, is logged, and is shown in a dialog
+/// that says the application is still running.
 /// </summary>
 /// <remarks>
 /// A safety net, not the error handling: a failure the application knows about — a profile that cannot
@@ -13,7 +13,7 @@ namespace Enigma.Msi.Desktop.Services;
 /// </remarks>
 public interface IUnhandledErrorReporter
 {
-    /// <summary>Logs an exception, from any thread.</summary>
+    /// <summary>Logs an exception and shows it, from any thread.</summary>
     /// <param name="exception">The exception.</param>
     /// <param name="source">Where it was caught.</param>
     /// <exception cref="ArgumentNullException"><paramref name="exception"/> is <see langword="null"/>.</exception>

@@ -98,8 +98,9 @@ public sealed class UnhandledErrorPolicy
         }
 
         // The same exception can reach two hooks: an awaited fault rethrown on the dispatcher whose task
-        // the finaliser also finds unobserved.
-        if (!_offered.TryAdd(exception, Seen))
+        // the finaliser also finds unobserved — and then it comes back wrapped in an AggregateException
+        // of its own.
+        if (!MarkOffered(exception))
         {
             return UnhandledErrorDecision.Ignore;
         }
@@ -207,6 +208,27 @@ public sealed class UnhandledErrorPolicy
         Append(details, exception, 0);
 
         return details.ToString().TrimEnd();
+    }
+
+    // Remembers an exception and, for an aggregate, everything it wraps; false when nothing new arrived —
+    // the exception itself was offered before, or every exception inside it was.
+    private bool MarkOffered(Exception exception)
+    {
+        bool isNew = _offered.TryAdd(exception, Seen);
+
+        if (exception is not AggregateException { InnerExceptions.Count: > 0 } aggregate)
+        {
+            return isNew;
+        }
+
+        bool wrapsNew = false;
+
+        foreach (Exception inner in aggregate.InnerExceptions)
+        {
+            wrapsNew |= _offered.TryAdd(inner, Seen);
+        }
+
+        return isNew && wrapsNew;
     }
 
     private bool AllIgnored(AggregateException aggregate)
