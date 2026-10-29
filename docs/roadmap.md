@@ -40,7 +40,7 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-D37E | Drop the net8.0 targets                                     | DONE   | docs/plan/FEATURE-D37E.md |
 | FEATURE-CED6 | Update NuGet packages to latest                             | DONE   | docs/plan/FEATURE-CED6.md |
 | FEATURE-5E0B | Remove the splash screen                                    | DONE   | docs/plan/FEATURE-5E0B.md |
-| FEATURE-394B | Uniform About dialog                                        | TODO   | docs/plan/FEATURE-394B.md |
+| FEATURE-394B | Uniform About dialog                                        | DONE   | docs/plan/FEATURE-394B.md |
 | FEATURE-C7BF | App icon in the output directory                            | TODO   | docs/plan/FEATURE-C7BF.md |
 | FEATURE-2EEB | Catch unhandled exceptions                                  | TODO   | docs/plan/FEATURE-2EEB.md |
 | - PHASE01    | Hooks, policy and logging                                   | TODO   | (in FEATURE-2EEB.md)      |

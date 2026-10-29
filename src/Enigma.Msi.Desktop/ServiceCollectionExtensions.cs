@@ -50,7 +50,6 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<IPathPickerService, PathPickerService>();
             _ = services.AddSingleton<IUiDispatcher, UiDispatcher>();
             _ = services.AddSingleton<IBuildProgressService, BuildProgressService>();
-            _ = services.AddSingleton<IUrlLauncherService, UrlLauncherService>();
             _ = services.AddSingleton<IAboutDialogService, AboutDialogService>();
             _ = services.AddSingleton<IQuickStartDialogService, QuickStartDialogService>();
         }
@@ -66,7 +65,6 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<MainWindow>();
             _ = services.AddSingleton<MainWindowViewModel>();
             _ = services.AddSingleton<PackageEditorViewModel>();
-            _ = services.AddSingleton<AboutViewModel>();
             _ = services.AddTransient<QuickStartViewModel>();
             _ = services.AddSingleton<Func<QuickStartViewModel>>(
                 provider => provider.GetRequiredService<QuickStartViewModel>);

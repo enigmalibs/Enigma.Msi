@@ -1,60 +1,58 @@
 using System;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Enigma.Msi.Desktop.Services;
-using Microsoft.Extensions.Logging;
 
 namespace Enigma.Msi.Desktop.ViewModels;
 
 /// <summary>
-/// The About dialog: the app's identity, plus the one thing it can do — open the repository.
+/// What the About dialog says: which product this is, and which build of it is running. The same shape
+/// as every Enigma app's About dialog.
 /// </summary>
-public sealed partial class AboutViewModel : ObservableObject
+/// <remarks>
+/// Read-only: nothing here changes while the dialog is open. It derives from <see cref="ObservableObject"/>
+/// anyway, so it is the same shape as every other ViewModel in this folder.
+/// </remarks>
+public sealed class AboutViewModel : ObservableObject
 {
-    private readonly IUrlLauncherService _urlLauncher;
-    private readonly ILogger<AboutViewModel> _logger;
-
-    /// <summary>Creates the dialog's ViewModel.</summary>
-    /// <param name="urlLauncher">Opens the repository URL in the machine's browser.</param>
-    /// <param name="logger">Records a launch the shell refused.</param>
-    /// <exception cref="ArgumentNullException">Any argument is <see langword="null"/>.</exception>
-    public AboutViewModel(IUrlLauncherService urlLauncher, ILogger<AboutViewModel> logger)
+    /// <summary>Creates the ViewModel over the running build.</summary>
+    public AboutViewModel()
+        : this(AppInfo.Version, AppInfo.BuildSha, AppInfo.Copyright)
     {
-        _urlLauncher = urlLauncher ?? throw new ArgumentNullException(nameof(urlLauncher));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <summary>The product name.</summary>
-    public string Name => AppInfo.Name;
+    /// <summary>Creates the ViewModel over given values.</summary>
+    /// <param name="version">The version to show.</param>
+    /// <param name="buildSha">The short revision to show, or <see langword="null"/> to show no build line.</param>
+    /// <param name="copyright">The copyright notice, or an empty string to show no copyright line.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="version"/> or <paramref name="copyright"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// The values are arguments rather than read here because <see cref="AppInfo"/> reports the running
+    /// assembly, which a test cannot vary: this is the seam that lets a build with no revision be asserted.
+    /// </remarks>
+    public AboutViewModel(string version, string? buildSha, string copyright)
+    {
+        Version = version ?? throw new ArgumentNullException(nameof(version));
+        BuildSha = buildSha;
+        Copyright = copyright ?? throw new ArgumentNullException(nameof(copyright));
+    }
 
-    /// <summary>The one-line description under the name.</summary>
-    public string Tagline => AppInfo.Tagline;
+    /// <summary>The product's name.</summary>
+    public string DisplayName => AppInfo.Name;
 
-    /// <summary>The running version.</summary>
-    public string Version => AppInfo.Version;
+    /// <summary>The version of the running build.</summary>
+    public string Version { get; }
 
-    /// <summary>The copyright line.</summary>
-    public string Copyright => AppInfo.Copyright;
-
-    /// <summary>Who wrote it.</summary>
-    public string Author => AppInfo.Author;
+    /// <summary>The short commit this build was cut from, or <see langword="null"/> if it recorded none.</summary>
+    public string? BuildSha { get; }
 
     /// <summary>
-    /// The repository's URL. Shown as selectable text as well as behind the button, so it can be copied
-    /// by hand when there is no browser to open it with.
+    /// Whether there is a revision to show: a build with none shows no build line at all, not an empty one.
     /// </summary>
-    public string RepositoryUrl => AppInfo.RepositoryUrl;
+    public bool HasBuildSha => !string.IsNullOrEmpty(BuildSha);
 
-    /// <summary>Opens the repository in the machine's browser.</summary>
-    [RelayCommand]
-    private async Task OpenRepositoryAsync()
-    {
-        // A machine with no http association is not an error to interrupt the user with: the URL is on
-        // screen and selectable, which is the fallback.
-        if (!await _urlLauncher.LaunchAsync(AppInfo.RepositoryUrl).ConfigureAwait(true))
-        {
-            _logger.LogWarning("Could not open {Url} — no browser accepted it.", AppInfo.RepositoryUrl);
-        }
-    }
+    /// <summary>The copyright notice, or an empty string if the assembly carries none.</summary>
+    public string Copyright { get; }
+
+    /// <summary>Whether there is a copyright notice to show.</summary>
+    public bool HasCopyright => Copyright.Length > 0;
 }

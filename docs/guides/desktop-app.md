@@ -47,10 +47,10 @@ line runs along the bottom.
 There is no Cancel button in the command bar: a running build covers the window with a modal progress card,
 and that card carries the one cancel affordance.
 
-At the far right of the same bar sits an **icon-only About button**. It opens a modal dialog reporting the
-logo, the name and tagline, the app version, the copyright, the author and the repository URL — with a
-**View on GitHub** button that opens the repository in your browser. The URL is selectable text as well,
-so it can be copied by hand on a machine with no browser association. Close or Escape dismisses it.
+At the far right of the same bar sits an **icon-only About button**. It opens the About dialog every
+Enigma app shares: the logo, **Enigma.Msi**, `Version <x.y.z>`, the `Build <sha>` the app was cut from
+(selectable, for a bug report; absent from a build that recorded no revision) and the copyright. Close or
+Escape dismisses it.
 
 The title bar shows the open profile (`Enigma.Msi — Widget.msipkg.json`) or `Enigma.Msi — new package`. A
 status line reports the last thing that happened; results also arrive as an info bar.
