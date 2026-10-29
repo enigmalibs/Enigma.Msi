@@ -77,6 +77,20 @@ The app can also build **its own installer**, which is how this repository relea
 The profiles under `msiProfiles/` are ordinary `.msipkg.json` files, so they open in the app itself. See
 [docs/RELEASE.md](docs/RELEASE.md) for the full release runbook.
 
+### On Linux
+
+The app runs on Linux too, where it opens, edits, validates and saves profiles — **building the MSI itself
+still needs Windows**. `packaging/linux/install.sh` builds it from this repository (bundling the .NET
+runtime by default) and installs it for the current user, with no root: the application in
+`~/.local/share/enigma-msi`, an `enigma-msi` command in `~/.local/bin`, a launcher entry and its icons.
+`--from DIR` installs an already-published folder instead, `--framework-dependent` uses an installed
+.NET 10 runtime, and `--help` says the rest. `packaging/linux/uninstall.sh` removes exactly what it wrote.
+
+```bash
+./packaging/linux/install.sh
+./packaging/linux/uninstall.sh
+```
+
 ## The library underneath
 
 `src/Enigma.Msi/` is the engine. You describe the package once as an `MsiPackage` — app identity, install
