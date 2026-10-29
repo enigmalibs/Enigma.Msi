@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Enigma.Avalonia.Desktop.Services;
+using Enigma.Msi.Desktop.Services;
 using Enigma.Msi.Desktop.ViewModels;
 using Enigma.Msi.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,13 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Under the desktop lifetime only, so the designer and the headless tests keep their own
+            // exceptions. The platform is up by now, which the dispatcher hook needs.
+            UnhandledExceptionHooks.InstallDispatcher();
+
+            var reporter = services.GetRequiredService<IUnhandledErrorReporter>();
+            UnhandledExceptionHooks.Attach(reporter);
+
             var mainWindow = services.GetRequiredService<MainWindow>();
             mainWindow.DataContext = services.GetRequiredService<MainWindowViewModel>();
 
@@ -39,6 +47,10 @@ public partial class App : Application
             services.GetRequiredService<IInfoBarService>().RegisterHost(mainWindow.HostInfoBar);
             services.GetRequiredService<IFileDialogService>().SetStorageProvider(mainWindow.StorageProvider);
             services.GetRequiredService<IFolderDialogService>().SetStorageProvider(mainWindow.StorageProvider);
+
+            // One window: once it has closed, the application is closing, and a cancellation that
+            // arrives late is the shutdown's, not an error.
+            mainWindow.Closed += (_, _) => reporter.ShutdownStarted();
 
             // The lifetime shows the initial MainWindow itself once this method returns.
             desktop.MainWindow = mainWindow;

@@ -35,7 +35,8 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Registers the MSI library's services plus this app's five thin seams over the UI framework.
+        /// Registers the MSI library's services, this app's five thin seams over the UI framework, and the
+        /// unhandled-error safety net.
         /// </summary>
         /// <remarks>
         /// The library ships no <c>AddEnigmaMsi()</c> extension of its own — registration is the
@@ -52,6 +53,8 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<IBuildProgressService, BuildProgressService>();
             _ = services.AddSingleton<IAboutDialogService, AboutDialogService>();
             _ = services.AddSingleton<IQuickStartDialogService, QuickStartDialogService>();
+            _ = services.AddSingleton(TimeProvider.System);
+            _ = services.AddSingleton<IUnhandledErrorReporter, UnhandledErrorReporter>();
         }
 
         /// <summary>Registers the window, the form, the dialog content and their ViewModels.</summary>
