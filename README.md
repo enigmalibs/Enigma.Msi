@@ -12,9 +12,10 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.6.0** — the app has a **new icon and logo**: on the executable, the window, the
-> shortcuts, the Control Panel entry, the splash and the About dialog. Nothing else changes, and every saved
-> profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.7.0** — the app opens straight on its window (no splash). It shows the About dialog every
+> Enigma app shares. An unexpected error no longer closes it but shows a *Something went wrong* dialog. It
+> writes `app.ico` beside the executable, and it comes with publish scripts for Windows and Linux and a
+> per-user Linux installer. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 
@@ -39,9 +40,11 @@ once, press **Build**, and watch the WiX toolchain's output stream into a log pa
   children*, so no orphaned `wix` processes are left behind.
 - **Profiles** — Open, Save and Save as… over `.msipkg.json`, written with absolute paths so the worker
   CLI can build them from any working directory.
-- **Splash and About** — an undecorated splash (logo, `Enigma.Msi`, the running version) dismissed by a
-  click, a key or two seconds; and an About dialog behind the icon-only button at the right of the command
-  bar, with the tagline, the copyright, the author and a **View on GitHub** button.
+- **About** — the dialog every Enigma app shares, behind the icon-only button at the right of the command
+  bar: the logo, the name, the version, the build revision and the copyright. The app opens straight on the
+  main window.
+- **A safety net** — an error nothing else handles no longer closes the app: it is logged and shown in a
+  *Something went wrong* dialog, with the details ready to copy into a bug report.
 
 ### Requirements
 
@@ -59,21 +62,39 @@ There is no download: clone the repository and build it. Both commands run **fro
 ```bash
 git clone https://github.com/enigmalibs/Enigma.Msi.git
 cd Enigma.Msi
-dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r win-x64 --self-contained false
+.\packaging\windows\publish.ps1
 ```
 
-That produces `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish\Enigma.Msi.Desktop.exe` with its
-`worker\` subfolder beside it — the app finds the worker there by itself, with no configuration. For a
+`publish.ps1` (or `publish.bat`, beside it) runs
+`dotnet publish src\Enigma.Msi.Desktop -c Release -r win-x64 -p:PublishReadyToRun=true` from wherever it is
+started. That produces `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish\Enigma.Msi.Desktop.exe`
+with its `worker\` subfolder beside it — the app finds the worker there by itself, with no configuration. For a
 development run, `dotnet run --project src/Enigma.Msi.Desktop` is enough.
 
 The app can also build **its own installer**, which is how this repository releases it:
 
 ```bash
-.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.6.0.msipkg.json
+.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.7.0.msipkg.json
 ```
 
 The profiles under `msiProfiles/` are ordinary `.msipkg.json` files, so they open in the app itself. See
 [docs/RELEASE.md](docs/RELEASE.md) for the full release runbook.
+
+### On Linux
+
+The app runs on Linux too, where it opens, edits, validates and saves profiles — **building the MSI itself
+still needs Windows**. `packaging/linux/install.sh` builds it from this repository (bundling the .NET
+runtime by default) and installs it for the current user, with no root: the application in
+`~/.local/share/enigma-msi`, an `enigma-msi` command in `~/.local/bin`, a launcher entry and its icons.
+`--from DIR` installs an already-published folder instead, `--framework-dependent` uses an installed
+.NET 10 runtime, and `--help` says the rest. `packaging/linux/uninstall.sh` removes exactly what it wrote.
+`packaging/linux/publish.sh` only publishes — `dotnet publish … -r linux-x64 -p:PublishReadyToRun=true`, into
+`src/Enigma.Msi.Desktop/bin/Release/net10.0/linux-x64/publish/`.
+
+```bash
+./packaging/linux/install.sh
+./packaging/linux/uninstall.sh
+```
 
 ## The library underneath
 
@@ -123,8 +144,8 @@ worker consume it: clone this repository, add the project to your solution, and 
 
 A project that then wants to *build* an MSI also needs the worker in its output — import
 `build/CopyWorkerOutput.targets` and declare the build-order reference it documents. The library
-multi-targets `netstandard2.0`, `net8.0` and `net10.0` (`netstandard2.0` is what lets the `net472` worker
-consume the same model assembly) and builds on **WixSharp_wix4 2.14.1** (WiX v4).
+multi-targets `netstandard2.0` and `net10.0` (`netstandard2.0` is what lets the `net472` worker
+consume the same model assembly) and builds on **WixSharp_wix4 2.14.2** (WiX v4).
 
 ```csharp
 using System;

@@ -7,12 +7,68 @@ at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi.Desktop (application, MSI) | **1.6.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.7.0** |
 | Enigma.Msi (library, in-repo) | **1.0.0** |
 
 The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
+
+## 1.7.0 — Enigma.Msi.Desktop
+
+An **application-only release** that brings the app to the baseline every Enigma app shares. It starts
+straight on its window, its About dialog is the shared one, an unexpected error no longer closes it, and it
+can be published and installed on Linux. **The library remains at 1.0.0 and is not re-released.** Its one
+change is that it drops its `net8.0` target (see *Compatibility*). The validator, the build client, the
+worker protocol and the `.msipkg.json` format (`schemaVersion` 1) are untouched, so profiles saved by 1.0.0
+to 1.6.0 open in 1.7.0 unchanged and there is no migration.
+
+### Added
+
+- **A safety net for unexpected errors.** An error nothing else handles no longer closes the app. It is
+  logged to `Enigma.Msi.Desktop.log` beside the executable and shown in a **Something went wrong** dialog.
+  The dialog says the app is still running and gives the error's message. A collapsed **Details** section
+  holds the type, message and stack trace for a bug report, with a **Copy details** button.
+  - Several errors in a row share one dialog ("1 more error occurred.").
+  - The same error is not shown again for a minute after you close it.
+  - The dialog waits for any other dialog, or a running build, to finish first.
+  - A failure to start, which no dialog could report, is written to the log.
+- **The icon as a file.** `app.ico` is written beside `Enigma.Msi.Desktop.exe` in the build output, in the
+  publish folder and so in the installed folder. Shortcuts and launchers can point at it.
+- **Publish scripts.** `packaging/windows/publish.ps1` and `publish.bat` publish the app for `win-x64`, and
+  `packaging/linux/publish.sh` for `linux-x64`. Each is a Release, ReadyToRun build that runs on an
+  installed .NET 10 runtime, and each runs from any directory.
+- **Linux install and uninstall.** `packaging/linux/install.sh` installs the app for the current user, with
+  no root, in the XDG directories, with a launcher entry, an `enigma-msi` command and the icon.
+  `uninstall.sh` removes exactly that. On Linux the app opens, edits, validates and saves profiles.
+  **Building the MSI still needs Windows.**
+
+### Changed
+
+- **No splash screen.** The app opens straight on its main window.
+- **The About dialog is the one every Enigma app shares.** It shows the logo, the name, `Version X.Y.Z`,
+  the `Build <sha>` the app was cut from (selectable, for a bug report) and the copyright, with a single
+  **Close**. The tagline, the author line, the repository URL and the **View on GitHub** button are gone.
+- **ReadyToRun.** The installer now packages the ReadyToRun publish, so the app starts faster. Its own
+  assemblies are larger.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format. It is still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0 and 1.7.0 in **both** directions.
+- **The library's public surface is unchanged.** It is still 1.0.0 and still consumed in-repo by
+  `ProjectReference`. It now targets `netstandard2.0` and `net10.0`: **`net8.0` is dropped** ahead of its end
+  of support on 10 November 2026. Every consumer in this repository is `net472` or `net10.0`.
+- **Dependencies moved to their latest versions:**
+  - Avalonia 12.1.4, together with Enigma.Avalonia.Desktop 1.3.0;
+  - Microsoft.Extensions.Hosting and System.Text.Json 10.0.14;
+  - NLog 6.2.2;
+  - WixSharp_wix4 2.14.2.
+
+  On the test side, xunit.v3 is now 4.0.2, coverlet.collector 10.1.0 and NSubstitute 6.2.0.
+  Avalonia.Headless.XUnit, which does not support xunit.v3 4, is replaced by a fixture of the suite's own.
+- The app still targets **.NET 10.0** (`WinExe`) and is published framework-dependent for `win-x64`. It
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
 
 ## 1.6.0 — Enigma.Msi.Desktop
 

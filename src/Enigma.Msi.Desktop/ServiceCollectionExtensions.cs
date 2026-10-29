@@ -35,7 +35,8 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Registers the MSI library's services plus this app's five thin seams over the UI framework.
+        /// Registers the MSI library's services, this app's six thin seams over the UI framework, and the
+        /// unhandled-error safety net.
         /// </summary>
         /// <remarks>
         /// The library ships no <c>AddEnigmaMsi()</c> extension of its own — registration is the
@@ -50,17 +51,16 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<IPathPickerService, PathPickerService>();
             _ = services.AddSingleton<IUiDispatcher, UiDispatcher>();
             _ = services.AddSingleton<IBuildProgressService, BuildProgressService>();
-            _ = services.AddSingleton<IUrlLauncherService, UrlLauncherService>();
             _ = services.AddSingleton<IAboutDialogService, AboutDialogService>();
             _ = services.AddSingleton<IQuickStartDialogService, QuickStartDialogService>();
+            _ = services.AddSingleton(TimeProvider.System);
+            _ = services.AddSingleton<IUnhandledErrorDialogService, UnhandledErrorDialogService>();
+            _ = services.AddSingleton<IUnhandledErrorReporter, UnhandledErrorReporter>();
         }
 
-        /// <summary>Registers the windows, the form, the dialog content and their ViewModels.</summary>
+        /// <summary>Registers the window, the form, the dialog content and their ViewModels.</summary>
         /// <remarks>
-        /// The splash window is transient on purpose: it is shown once at startup and closed, and a
-        /// singleton would keep a dead window alive for the life of the process. It comes without a
-        /// ViewModel — its two lines are read off <c>AppInfo</c> in the markup. The quick-start form is
-        /// transient for the opposite reason: it is shown <em>repeatedly</em>, and a shared instance
+        /// The quick-start form is transient: it is shown <em>repeatedly</em>, and a shared instance
         /// would open the second run on the first run's answers — which is why its service takes a
         /// factory rather than the ViewModel itself.
         /// </remarks>
@@ -69,8 +69,6 @@ public static class ServiceCollectionExtensions
             _ = services.AddSingleton<MainWindow>();
             _ = services.AddSingleton<MainWindowViewModel>();
             _ = services.AddSingleton<PackageEditorViewModel>();
-            _ = services.AddSingleton<AboutViewModel>();
-            _ = services.AddTransient<SplashWindow>();
             _ = services.AddTransient<QuickStartViewModel>();
             _ = services.AddSingleton<Func<QuickStartViewModel>>(
                 provider => provider.GetRequiredService<QuickStartViewModel>);

@@ -8,7 +8,7 @@
          first release and parted here. This value is what
          msiProfiles/Enigma.Msi.Desktop.<version>.msipkg.json mirrors — bump both together, and clone the
          profile per the rule in docs/RELEASE.md. -->
-    <Version>1.6.0</Version>
+    <Version>1.7.0</Version>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -48,6 +48,10 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- The icon as a file beside the executable, so shortcuts, launchers and installers can point at it
+         instead of extracting it from the .exe. Named app.ico, as every Enigma app ships it; the asset
+         keeps its own name, which the XAML and the MSI profiles use. It stays an AvaloniaResource too. -->
+    <None Include="Assets/appicon.ico" TargetPath="app.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- PHASE04's copy target, applied: the net472 worker lands in $(OutDir)worker/ and $(PublishDir)worker/,
        which is exactly where MsiBuildService looks for it. Defaults cover source dir and folder name. -->

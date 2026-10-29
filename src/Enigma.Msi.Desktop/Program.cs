@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Avalonia;
+using Enigma.Msi.Desktop.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,28 @@ internal sealed class Program
 
     [STAThread]
     public static void Main(string[] args)
+    {
+        // First: anything that fails from here on — the host, the platform, a task nobody awaits — reaches
+        // the safety net rather than ending the process unrecorded.
+        UnhandledExceptionHooks.Install();
+
+        try
+        {
+            Run(args);
+        }
+        catch (Exception exception)
+        {
+            // What escapes here is a failure to start or a crash the dispatcher hook could not catch. The
+            // safety net cannot show a dialog without a window, and a WinExe has no console: the log file
+            // is the only place left to say it.
+            UnhandledExceptionHooks.Detach();
+            NLog.LogManager.GetCurrentClassLogger().Fatal(exception, "The application ended on an unhandled exception");
+            NLog.LogManager.Flush();
+            throw;
+        }
+    }
+
+    private static void Run(string[] args)
     {
         AppHost = Host.CreateDefaultBuilder(args)
             .ConfigureServices((_, services) =>
@@ -38,6 +61,9 @@ internal sealed class Program
         AppHost.Start();
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+
+        // Before the container goes: a late report must not log through a disposed logger.
+        UnhandledExceptionHooks.Detach();
 
         // Clearing the Avalonia SynchronizationContext first: StopAsync's continuations would
         // otherwise be posted back to a dispatcher that has already shut down, and deadlock.

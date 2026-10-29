@@ -157,6 +157,37 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 >
 > The library is still at 1.0.0. The run tagged and pushed nothing.
 >
+> **The app-only 1.7.0 is prepared and verified on Windows: the uniform Enigma-app baseline.** It was the
+> `/vibe` run `feature/2026-10-29-uniform-enigma-apps`, eight items:
+> - `FEATURE-D37E` dropped `net8.0`. The library is `netstandard2.0;net10.0`, and its suite and stub worker
+>   are `net10.0`.
+> - `FEATURE-CED6` moved every package to latest: Avalonia 12.1.4 with Enigma.Avalonia.Desktop 1.3.0,
+>   WixSharp 2.14.2 and xunit.v3 4.0.2. `Avalonia.Headless.XUnit` cannot follow xunit 4, so it was replaced
+>   by `HeadlessAvaloniaFixture`.
+> - `FEATURE-5E0B` deleted the splash. `App` assigns the main window directly.
+> - `FEATURE-394B` made About Enigma.GitClient's card. `AppInfo` reads the build sha and the assembly
+>   copyright, and the URL launcher is gone.
+> - `FEATURE-C7BF` writes `Assets/appicon.ico` beside the exe as `app.ico`.
+> - `FEATURE-2EEB` added a safety net:
+>   - `UnhandledExceptionHooks` catches AppDomain, unobserved-task and dispatcher exceptions;
+>   - `UnhandledErrorReporter` logs them and shows them through `UnhandledErrorPolicy`;
+>   - `UnhandledErrorDialogService` waits for the window, any other dialog and the build overlay before
+>     showing anything.
+> - `FEATURE-22F0` added `packaging/linux/install.sh` and `uninstall.sh`.
+> - `FEATURE-C19D` added `packaging/windows/publish.{ps1,bat}` and `packaging/linux/publish.sh`
+>   (ReadyToRun). `docs/RELEASE.md` §2 publishes with `publish.ps1`.
+>
+> `FEATURE-AB6B` released it. The app declares `<Version>1.7.0`, and
+> `msiProfiles/Enigma.Msi.Desktop.1.7.0.msipkg.json` is committed with a fresh `productId` and the
+> `upgradeCode` verbatim. Verification on Windows, which **also closes the debt 1.6.0 left**:
+> - a warning-free build;
+> - all **417** tests, the worker suite and its drift guards included;
+> - the **dogfood MSI built**: `artifacts\Enigma.Msi.Desktop.msi`, 27.73 MB (larger than 1.5.0's 17.29 MB
+>   because of ReadyToRun). It was built with WiX 7.0.0, and its Property, Upgrade, Shortcut and File tables
+>   were read back, `app.ico` and the six `.wixsharp` files included.
+>
+> The library is still at 1.0.0. The run tagged and pushed nothing.
+>
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
 > instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes
@@ -264,25 +295,27 @@ with a `PackEnigmaMsiWorkerPayload` target that built the worker through the `MS
 
 ## Target frameworks & dependencies
 
-- **`src/Enigma.Msi`** multi-targets **`netstandard2.0;net8.0;net10.0`**. `netstandard2.0` is not
+- **`src/Enigma.Msi`** multi-targets **`netstandard2.0;net10.0`**. `netstandard2.0` is not
   legacy caution — it is what lets the `net472` worker consume the *same* model assembly as modern
-  consumers. `net8.0`/`net10.0` are the two currently-supported LTS releases.
+  consumers. `net10.0` is the current LTS release; `net8.0` was dropped ahead of its end of support
+  (`FEATURE-D37E`), and its test suite and stub worker went with it.
 - **`src/Enigma.Msi.Worker`** is **`net472`**, forced by WixSharp being .NET Framework-only; its test
   project mirrors that TFM. This is a documented deviation from the house `net10.0` app default.
 - **`src/Enigma.Msi.Desktop`** is `net10.0` `WinExe` (Avalonia; plain TFM, no `-windows` suffix — the
   app's Windows-only nature comes from what it drives, not from its TFM). Its UI stack is a **coupled
-  set** pinned together: Avalonia **12.1.1** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`, and the
-  test-side `.Headless`/`.Headless.XUnit`), `Enigma.Avalonia.Desktop` **1.0.0** and
-  `Enigma.Icons.Avalonia` **1.0.0** — the latter two are built against Avalonia 12.1.x, so bump the whole
-  set or none of it. The two headless packages are pinned in the *same* `ItemGroup` as the rest for that
-  reason, though only the desktop test suite consumes them. `AvaloniaUI.DiagnosticsSupport` is
+  set** pinned together: Avalonia **12.1.4** (+ `.Desktop`, `.Themes.Fluent`, `.Fonts.Inter`, and the
+  test-side `.Headless`), `Enigma.Avalonia.Desktop` **1.3.0** and `Enigma.Icons.Avalonia` **1.0.0** —
+  the latter two are built against Avalonia 12.1.x (1.3.0's nuspec pins 12.1.4), so bump the whole set or
+  none of it. The headless package is pinned in the *same* `ItemGroup` as the rest for that reason,
+  though only the desktop test suite consumes it. `Avalonia.Headless.XUnit` is deliberately **not** used:
+  its 12.1.x build is compiled against xunit.v3 3.x and fails test discovery under 4.x. `AvaloniaUI.DiagnosticsSupport` is
   Debug-only via a conditional `IncludeAssets`/`PrivateAssets`. Beware two API details:
   `Enigma.Avalonia.Desktop`'s editors derive from `TextBox`, whose `Watermark` Avalonia 12 obsoletes —
   use `PlaceholderText`, or the XAML compiler's `AVLN5001` fails the zero-warnings build; and its picker
   services' path-returning overloads are C# 14 `extension` members, so they cannot be substituted in a
   test (which is why the app puts its own `IPathPickerService` in front of them).
 - `System.Buffers` and **PolySharp** (compile-only, `PrivateAssets=all`) are referenced on
-  **netstandard2.0 only** — they are framework-provided or unnecessary on net8.0+, and an
+  **netstandard2.0 only** — they are framework-provided or unnecessary on net10.0, and an
   unconditional reference raises NU1510 and fails the zero-warnings build.
 - Reference **`WixSharp_wix4`** only — never `WixSharp_wix4.bin`, which is already a dependency of it.
 - All versions live in `Directory.Packages.props` (do not put `Version=` on a `<PackageReference>`).
@@ -319,11 +352,12 @@ passed through the explicit `--solution` flag, as above.
 Tests are **MTP-native**: `xunit.v3` + `coverlet.collector`, with **no** `Microsoft.NET.Test.Sdk` and
 no `xunit.runner.visualstudio`.
 
-`tests/Enigma.Msi.Desktop.UnitTests` is the one suite with a UI dependency: `Avalonia.Headless` +
-`Avalonia.Headless.XUnit` give it a windowing platform with no screen behind it, so a test can load real
-markup. `HeadlessTestApp` declares the assembly-wide session, and only `[AvaloniaFact]`/`[AvaloniaTheory]`
-bodies run on it — the plain `[Fact]` ViewModel tests are unaffected. Keep the UI dependency in that
-suite alone.
+`tests/Enigma.Msi.Desktop.UnitTests` is the one suite with a UI dependency: `Avalonia.Headless` gives
+it a windowing platform with no screen behind it, so a test can load real markup. `HeadlessAvaloniaFixture`
+sets the app's real `App` up once on a dedicated UI thread, and a view test joins
+`[Collection(HeadlessCollection.Name)]`, takes the fixture and runs its body through `headless.Run(...)` —
+the plain `[Fact]` ViewModel tests are unaffected. It is Enigma.GitClient's fixture, and it replaces
+`Avalonia.Headless.XUnit` (see above). Keep the UI dependency in that suite alone.
 
 ## Conventions
 
