@@ -5,8 +5,8 @@ using Xunit;
 namespace Enigma.Msi.Desktop.UnitTests.Services;
 
 /// <summary>
-/// Covers the app's identity: the constants the splash and the About dialog show, and the version read
-/// out of the assembly.
+/// Covers the app's identity: the constants the About dialog shows, and the version read out of the
+/// assembly.
 /// </summary>
 public sealed class AppInfoTests
 {

@@ -4,8 +4,8 @@ using System.Reflection;
 namespace Enigma.Msi.Desktop.Services;
 
 /// <summary>
-/// The app's identity — the strings the splash screen and the About dialog show. One source, so the two
-/// cannot disagree about what this application is called or who wrote it.
+/// The app's identity — the strings the About dialog shows, kept in one place rather than spread through
+/// its markup and ViewModel.
 /// </summary>
 /// <remarks>
 /// Static rather than a service: none of it is substitutable, none of it depends on anything, and every

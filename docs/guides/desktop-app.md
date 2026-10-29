@@ -27,15 +27,6 @@ dotnet run --project src/Enigma.Msi.Desktop
 Or, from a release build, `Enigma.Msi.Desktop.exe` in the output folder — with its `worker\` subfolder
 next to it. The app finds the worker there by itself; no configuration.
 
-## The splash screen
-
-The app opens with a splash: the logo, **Enigma.Msi** and `Version <x.y.z>` — and nothing else. The
-tagline, the copyright and the author line are in the About dialog, which is where there is time to read
-them. It is the only window on screen while it is up — the main window appears when it goes.
-
-It stays for about two seconds, and **any click or key press dismisses it immediately**. There is no
-setting to turn it off, and it behaves the same in Debug and Release.
-
 ## The window
 
 A command bar across the top; below it the package form on the left and two panes on the right —
