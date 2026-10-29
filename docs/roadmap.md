@@ -37,7 +37,7 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-25EF | Desktop app 1.6.0: new icons                                | DONE   | docs/plan/FEATURE-25EF.md |
 | - PHASE01    | Replace the app icon and logo                               | DONE   | (in FEATURE-25EF.md)      |
 | - PHASE02    | Release prep: desktop app 1.6.0                             | DONE   | (in FEATURE-25EF.md)      |
-| FEATURE-D37E | Drop the net8.0 targets                                     | TODO   | docs/plan/FEATURE-D37E.md |
+| FEATURE-D37E | Drop the net8.0 targets                                     | DONE   | docs/plan/FEATURE-D37E.md |
 | FEATURE-CED6 | Update NuGet packages to latest                             | TODO   | docs/plan/FEATURE-CED6.md |
 | FEATURE-5E0B | Remove the splash screen                                    | TODO   | docs/plan/FEATURE-5E0B.md |
 | FEATURE-394B | Uniform About dialog                                        | TODO   | docs/plan/FEATURE-394B.md |

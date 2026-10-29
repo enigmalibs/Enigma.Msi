@@ -1,6 +1,6 @@
 # FEATURE-D37E — Drop the net8.0 targets
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-d37e-drop-net8`
 **Run:** feature/2026-10-29-uniform-enigma-apps

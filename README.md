@@ -123,7 +123,7 @@ worker consume it: clone this repository, add the project to your solution, and 
 
 A project that then wants to *build* an MSI also needs the worker in its output — import
 `build/CopyWorkerOutput.targets` and declare the build-order reference it documents. The library
-multi-targets `netstandard2.0`, `net8.0` and `net10.0` (`netstandard2.0` is what lets the `net472` worker
+multi-targets `netstandard2.0` and `net10.0` (`netstandard2.0` is what lets the `net472` worker
 consume the same model assembly) and builds on **WixSharp_wix4 2.14.1** (WiX v4).
 
 ```csharp
