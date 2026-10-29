@@ -75,6 +75,22 @@ public sealed class HeadlessAvaloniaFixture : IDisposable
         completion.Task.GetAwaiter().GetResult();
     }
 
+    /// <summary>Runs a function on the Avalonia UI thread and returns its result.</summary>
+    /// <typeparam name="TResult">The result type.</typeparam>
+    /// <param name="function">The work to run.</param>
+    /// <returns>The function's result.</returns>
+    public TResult Run<TResult>(Func<TResult> function)
+    {
+        ArgumentNullException.ThrowIfNull(function);
+
+        TResult result = default!;
+
+        // A block body on purpose: an expression-bodied assignment is also a Func<TResult>, and overload
+        // resolution prefers that — this very method — so it would recurse until the stack overflows.
+        Run(() => { result = function(); });
+        return result;
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
