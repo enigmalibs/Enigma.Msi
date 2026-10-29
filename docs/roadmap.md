@@ -37,3 +37,14 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-25EF | Desktop app 1.6.0: new icons                                | DONE   | docs/plan/FEATURE-25EF.md |
 | - PHASE01    | Replace the app icon and logo                               | DONE   | (in FEATURE-25EF.md)      |
 | - PHASE02    | Release prep: desktop app 1.6.0                             | DONE   | (in FEATURE-25EF.md)      |
+| FEATURE-D37E | Drop the net8.0 targets                                     | TODO   | docs/plan/FEATURE-D37E.md |
+| FEATURE-CED6 | Update NuGet packages to latest                             | TODO   | docs/plan/FEATURE-CED6.md |
+| FEATURE-5E0B | Remove the splash screen                                    | TODO   | docs/plan/FEATURE-5E0B.md |
+| FEATURE-394B | Uniform About dialog                                        | TODO   | docs/plan/FEATURE-394B.md |
+| FEATURE-C7BF | App icon in the output directory                            | TODO   | docs/plan/FEATURE-C7BF.md |
+| FEATURE-2EEB | Catch unhandled exceptions                                  | TODO   | docs/plan/FEATURE-2EEB.md |
+| - PHASE01    | Hooks, policy and logging                                   | TODO   | (in FEATURE-2EEB.md)      |
+| - PHASE02    | The error dialog                                            | TODO   | (in FEATURE-2EEB.md)      |
+| FEATURE-22F0 | Linux install and uninstall scripts                         | TODO   | docs/plan/FEATURE-22F0.md |
+| FEATURE-C19D | Publish scripts for Windows and Linux                       | TODO   | docs/plan/FEATURE-C19D.md |
+| FEATURE-AB6B | Desktop app 1.7.0 release                                   | TODO   | docs/plan/FEATURE-AB6B.md |
