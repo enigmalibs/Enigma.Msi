@@ -1,6 +1,6 @@
 # FEATURE-AB6B — Desktop app 1.7.0 release
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-ab6b-release-1-7-0`
 **Run:** feature/2026-10-29-uniform-enigma-apps

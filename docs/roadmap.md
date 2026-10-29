@@ -47,4 +47,4 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | - PHASE02    | The error dialog                                            | DONE   | (in FEATURE-2EEB.md)      |
 | FEATURE-22F0 | Linux install and uninstall scripts                         | DONE   | docs/plan/FEATURE-22F0.md |
 | FEATURE-C19D | Publish scripts for Windows and Linux                       | DONE   | docs/plan/FEATURE-C19D.md |
-| FEATURE-AB6B | Desktop app 1.7.0 release                                   | TODO   | docs/plan/FEATURE-AB6B.md |
+| FEATURE-AB6B | Desktop app 1.7.0 release                                   | DONE   | docs/plan/FEATURE-AB6B.md |

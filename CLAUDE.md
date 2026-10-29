@@ -157,6 +157,37 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 >
 > The library is still at 1.0.0. The run tagged and pushed nothing.
 >
+> **The app-only 1.7.0 is prepared and verified on Windows: the uniform Enigma-app baseline.** It was the
+> `/vibe` run `feature/2026-10-29-uniform-enigma-apps`, eight items:
+> - `FEATURE-D37E` dropped `net8.0`. The library is `netstandard2.0;net10.0`, and its suite and stub worker
+>   are `net10.0`.
+> - `FEATURE-CED6` moved every package to latest: Avalonia 12.1.4 with Enigma.Avalonia.Desktop 1.3.0,
+>   WixSharp 2.14.2 and xunit.v3 4.0.2. `Avalonia.Headless.XUnit` cannot follow xunit 4, so it was replaced
+>   by `HeadlessAvaloniaFixture`.
+> - `FEATURE-5E0B` deleted the splash. `App` assigns the main window directly.
+> - `FEATURE-394B` made About Enigma.GitClient's card. `AppInfo` reads the build sha and the assembly
+>   copyright, and the URL launcher is gone.
+> - `FEATURE-C7BF` writes `Assets/appicon.ico` beside the exe as `app.ico`.
+> - `FEATURE-2EEB` added a safety net:
+>   - `UnhandledExceptionHooks` catches AppDomain, unobserved-task and dispatcher exceptions;
+>   - `UnhandledErrorReporter` logs them and shows them through `UnhandledErrorPolicy`;
+>   - `UnhandledErrorDialogService` waits for the window, any other dialog and the build overlay before
+>     showing anything.
+> - `FEATURE-22F0` added `packaging/linux/install.sh` and `uninstall.sh`.
+> - `FEATURE-C19D` added `packaging/windows/publish.{ps1,bat}` and `packaging/linux/publish.sh`
+>   (ReadyToRun). `docs/RELEASE.md` §2 publishes with `publish.ps1`.
+>
+> `FEATURE-AB6B` released it. The app declares `<Version>1.7.0`, and
+> `msiProfiles/Enigma.Msi.Desktop.1.7.0.msipkg.json` is committed with a fresh `productId` and the
+> `upgradeCode` verbatim. Verification on Windows, which **also closes the debt 1.6.0 left**:
+> - a warning-free build;
+> - all **417** tests, the worker suite and its drift guards included;
+> - the **dogfood MSI built**: `artifacts\Enigma.Msi.Desktop.msi`, 27.73 MB (larger than 1.5.0's 17.29 MB
+>   because of ReadyToRun). It was built with WiX 7.0.0, and its Property, Upgrade, Shortcut and File tables
+>   were read back, `app.ico` and the six `.wixsharp` files included.
+>
+> The library is still at 1.0.0. The run tagged and pushed nothing.
+>
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
 > instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes

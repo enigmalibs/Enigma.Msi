@@ -12,9 +12,10 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.6.0** — the app has a **new icon and logo**: on the executable, the window, the
-> shortcuts, the Control Panel entry, the splash and the About dialog. Nothing else changes, and every saved
-> profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.7.0** — the app opens straight on its window (no splash). It shows the About dialog every
+> Enigma app shares. An unexpected error no longer closes it but shows a *Something went wrong* dialog. It
+> writes `app.ico` beside the executable, and it comes with publish scripts for Windows and Linux and a
+> per-user Linux installer. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 
@@ -73,7 +74,7 @@ development run, `dotnet run --project src/Enigma.Msi.Desktop` is enough.
 The app can also build **its own installer**, which is how this repository releases it:
 
 ```bash
-.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.6.0.msipkg.json
+.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.7.0.msipkg.json
 ```
 
 The profiles under `msiProfiles/` are ordinary `.msipkg.json` files, so they open in the app itself. See

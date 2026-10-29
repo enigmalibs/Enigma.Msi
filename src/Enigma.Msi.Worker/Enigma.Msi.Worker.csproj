@@ -44,7 +44,8 @@
     original's last-write time.
 
     The set is exactly what WixSharp_wix4 2.14.1 writes on first use: the client assembly with its .pdb,
-    WixSharp itself, the managed UI, and the two WiX assemblies it pulls in. A WixSharp upgrade that changes
+    WixSharp itself, the managed UI, and the two WiX assemblies it pulls in. Re-checked for 2.14.2: a real
+    MSI build from a seeded worker wrote nothing into the folder. A WixSharp upgrade that changes
     it must fail loudly — hence the Error below and the worker suite's WixSharpBuildDirTests.
   -->
   <Target Name="SeedWixSharpBuildDir" AfterTargets="CopyFilesToOutputDirectory">
