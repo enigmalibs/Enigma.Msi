@@ -61,11 +61,13 @@ There is no download: clone the repository and build it. Both commands run **fro
 ```bash
 git clone https://github.com/enigmalibs/Enigma.Msi.git
 cd Enigma.Msi
-dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r win-x64 --self-contained false
+.\packaging\windows\publish.ps1
 ```
 
-That produces `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish\Enigma.Msi.Desktop.exe` with its
-`worker\` subfolder beside it — the app finds the worker there by itself, with no configuration. For a
+`publish.ps1` (or `publish.bat`, beside it) runs
+`dotnet publish src\Enigma.Msi.Desktop -c Release -r win-x64 -p:PublishReadyToRun=true` from wherever it is
+started. That produces `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish\Enigma.Msi.Desktop.exe`
+with its `worker\` subfolder beside it — the app finds the worker there by itself, with no configuration. For a
 development run, `dotnet run --project src/Enigma.Msi.Desktop` is enough.
 
 The app can also build **its own installer**, which is how this repository releases it:
@@ -85,6 +87,8 @@ runtime by default) and installs it for the current user, with no root: the appl
 `~/.local/share/enigma-msi`, an `enigma-msi` command in `~/.local/bin`, a launcher entry and its icons.
 `--from DIR` installs an already-published folder instead, `--framework-dependent` uses an installed
 .NET 10 runtime, and `--help` says the rest. `packaging/linux/uninstall.sh` removes exactly what it wrote.
+`packaging/linux/publish.sh` only publishes — `dotnet publish … -r linux-x64 -p:PublishReadyToRun=true`, into
+`src/Enigma.Msi.Desktop/bin/Release/net10.0/linux-x64/publish/`.
 
 ```bash
 ./packaging/linux/install.sh

@@ -47,9 +47,13 @@ Run from the repository root, on the branch that will be merged:
 Two commands, both **from the repository root**:
 
 ```bash
-dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r win-x64 --self-contained false
+.\packaging\windows\publish.ps1
 .\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.X.Y.Z.msipkg.json
 ```
+
+`publish.ps1` runs `dotnet publish src\Enigma.Msi.Desktop -c Release -r win-x64 -p:PublishReadyToRun=true` from
+wherever it is started; `packaging\windows\publish.bat` is the same command for a shell with no PowerShell
+execution policy to satisfy.
 
 - **`artifacts/` has to exist first** — `mkdir artifacts` from the repository root. It is git-ignored, so a
   fresh clone does not have it, and the profile's `output.outputPath` is required to be an *existing*
@@ -61,8 +65,10 @@ dotnet publish src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj -c Release -r wi
   re-point it at `bin\Release\net10.0`: the raw build output carries `runtimes/` for Linux, macOS and
   browser (552 MB of Skia/HarfBuzz natives), which measured a 156 MB MSI installing 580 MB against 17 MB
   installing 44 MB for the publish output.
-- **Framework-dependent by design** (`--self-contained false`): the target machine needs the .NET 10
-  runtime. Flip the flag if that prerequisite ever proves to be friction — it roughly triples the installer.
+- **Framework-dependent by design**: a RID-specific publish is framework-dependent unless told otherwise, so
+  the target machine needs the .NET 10 runtime. Adding `--self-contained` would remove that prerequisite —
+  it roughly triples the installer. **ReadyToRun** precompiles the app's own assemblies so it starts
+  faster, at the cost of larger files.
 - **Requires Windows and the WiX CLI** (`dotnet tool install --global wix`), like any MSI this library
   builds.
 - The worker invoked here is the one `build/CopyWorkerOutput.targets` copied next to the app during the

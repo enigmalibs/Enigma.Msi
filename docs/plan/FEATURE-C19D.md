@@ -1,6 +1,6 @@
 # FEATURE-C19D — Publish scripts for Windows and Linux
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-c19d-publish-scripts`
 **Run:** feature/2026-10-29-uniform-enigma-apps
