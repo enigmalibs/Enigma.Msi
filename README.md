@@ -39,9 +39,9 @@ once, press **Build**, and watch the WiX toolchain's output stream into a log pa
   children*, so no orphaned `wix` processes are left behind.
 - **Profiles** — Open, Save and Save as… over `.msipkg.json`, written with absolute paths so the worker
   CLI can build them from any working directory.
-- **Splash and About** — an undecorated splash (logo, `Enigma.Msi`, the running version) dismissed by a
-  click, a key or two seconds; and an About dialog behind the icon-only button at the right of the command
-  bar, with the tagline, the copyright, the author and a **View on GitHub** button.
+- **About** — an About dialog behind the icon-only button at the right of the command bar, with the
+  tagline, the copyright, the author and a **View on GitHub** button. The app opens straight on the
+  main window.
 
 ### Requirements
 

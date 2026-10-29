@@ -124,5 +124,5 @@ On a test machine, against the MSI from §2:
 - [ ] Installed **over the previous version, it upgrades rather than accumulates** — one Control Panel entry
       at `X.Y.Z`, not two. This is what the reused `upgradeCode` buys, and the only step that actually
       proves it.
-- [ ] The installed app starts, the splash hands over to the main window, and About reports `X.Y.Z`.
+- [ ] The installed app starts on the main window, and About reports `X.Y.Z`.
 - [ ] The GitHub release/tag is present and its notes match `RELEASENOTES.md`.

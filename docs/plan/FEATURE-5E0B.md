@@ -1,6 +1,6 @@
 # FEATURE-5E0B — Remove the splash screen
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-5e0b-remove-splash-screen`
 **Run:** feature/2026-10-29-uniform-enigma-apps
