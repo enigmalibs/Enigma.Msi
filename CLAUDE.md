@@ -188,6 +188,32 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 >
 > The library is still at 1.0.0. The run tagged and pushed nothing.
 >
+> **The app-only 1.8.0 is prepared and verified on Windows: a new icon and a one-command installer.** It
+> was the `/vibe` run `feature/2026-11-03-icons-msi-release`, three items:
+> - `FEATURE-62E1` replaced the artwork with `Branding/Apps/final2/msi`: the same taped cube without the
+>   dark tile. `Assets/appicon.ico`, `Assets/logo.png` and the eight Linux PNGs were overwritten under
+>   their old names.
+> - `FEATURE-3E44` is Enigma.GitClient's installer build, adapted:
+>   - `packaging/windows/Enigma.Msi.Worker/` vendors the **1.7.0 worker** (`a7a1bfb`). It is the same
+>     binaries every Enigma app carries, and it is never installed.
+>   - `packaging/windows/buildmsi.{ps1,bat}` runs `git clean -dxf`, then `publish.ps1`, then writes
+>     `artifacts\Enigma.Msi.X.Y.Z.msi` with its `.msipkg.json`. The product is **"Enigma Msi"**, in
+>     `%ProgramFiles%\Enigma Msi`, with `compression` `None`. The version is the csproj's `<Version>`.
+>   - **The upgrade code is `49589519-f722-4733-af70-81e027756344`**, read from the installed 1.7.0's MSI.
+>     It is not the `3405046f-…` of the committed profiles, which no installed product carries.
+>     `WindowsInstallerIdentityTests` pins it.
+>   - The profile clone rule is retired, and `msiProfiles/` is history.
+> - `FEATURE-5897` released it: `<Version>1.8.0`, with no committed profile.
+>
+> Verification on Windows:
+> - a warning-free build;
+> - all **421** tests;
+> - the MSI built by `buildmsi.bat` in a scratch clone: `Enigma.Msi.1.8.0.msi`, 74.31 MB uncompressed,
+>   WiX 7.0.0. Its Property, Upgrade, Directory, Shortcut and File tables were read back, `app.ico` and
+>   the six `.wixsharp` files included.
+>
+> The library is still at 1.0.0. The run tagged and pushed nothing.
+>
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
 > instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes
@@ -251,7 +277,10 @@ tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
 tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp drift guards (enums, .wixsharp seed)
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel + headless-Avalonia suite (the only one using NSubstitute or a UI platform)
-msiProfiles/                         Release profiles for MSIs this repo builds of itself (currently the desktop app)
+packaging/windows/                   publish.{ps1,bat}, and buildmsi.{ps1,bat}: git clean, publish, build artifacts\Enigma.Msi.X.Y.Z.msi
+packaging/windows/Enigma.Msi.Worker/ The released 1.7.0 worker CLI, vendored: what buildmsi.ps1 builds the MSI with (never installed)
+packaging/linux/                     publish.sh, install.sh / uninstall.sh (per-user XDG install), the launcher entry and icons
+msiProfiles/                         History: the profiles of the 1.0.0–1.7.0 dogfood MSIs (buildmsi.ps1 generates the profile now)
 docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
 docs/RELEASE.md                      The app release runbook: pre-flight, MSI build, merge, tag, verification
 docs/guides/                         Per-category guides + index (repo-only — never packed, so relative links are fine)
