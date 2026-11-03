@@ -1,6 +1,6 @@
 # FEATURE-62E1 — New icon set without the tile
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-62e1-new-icon-set`
 **Run:** feature/2026-11-03-icons-msi-release

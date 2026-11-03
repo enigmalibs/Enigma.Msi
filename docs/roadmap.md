@@ -48,7 +48,7 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | FEATURE-22F0 | Linux install and uninstall scripts                         | DONE   | docs/plan/FEATURE-22F0.md |
 | FEATURE-C19D | Publish scripts for Windows and Linux                       | DONE   | docs/plan/FEATURE-C19D.md |
 | FEATURE-AB6B | Desktop app 1.7.0 release                                   | DONE   | docs/plan/FEATURE-AB6B.md |
-| FEATURE-62E1 | New icon set without the tile                               | TODO   | docs/plan/FEATURE-62E1.md |
+| FEATURE-62E1 | New icon set without the tile                               | DONE   | docs/plan/FEATURE-62E1.md |
 | FEATURE-3E44 | Windows MSI build script                                    | TODO   | docs/plan/FEATURE-3E44.md |
 | - PHASE01    | Vendor the Enigma.Msi worker CLI                            | TODO   | (in FEATURE-3E44.md)      |
 | - PHASE02    | The buildmsi script                                         | TODO   | (in FEATURE-3E44.md)      |
