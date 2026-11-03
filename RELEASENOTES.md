@@ -7,12 +7,72 @@ at 1.0.0 for the first release and part from 1.1.0 onwards. Newest release first
 
 | Artifact | Current version |
 |---|---|
-| Enigma.Msi.Desktop (application, MSI) | **1.7.0** |
+| Enigma.Msi.Desktop (application, MSI) | **1.8.0** |
 | Enigma.Msi (library, in-repo) | **1.0.0** |
 
 The sections below are the record of each release as it was made, and are not rewritten: the earlier ones
 describe the library as a NuGet package, which it no longer is — and, as it turned out, never was, since
 no version of it was ever pushed to a feed.
+
+## 1.8.0 — Enigma.Msi.Desktop
+
+An **application-only release** with a new icon and a one-command Windows installer build. **The library
+remains at 1.0.0 and is not re-released.** Nothing else in the app changes. The validator, the build
+client, the worker protocol and the `.msipkg.json` format (`schemaVersion` 1) are untouched, so profiles
+saved by 1.0.0 to 1.7.0 open in 1.8.0 unchanged, with no migration.
+
+### Added
+
+- **One command builds the installer.** `packaging/windows/buildmsi.ps1` (or `buildmsi.bat` from a cmd
+  prompt) works in three steps:
+  1. It cleans the repository with `git clean -dxf`, which deletes every file git does not track.
+  2. It publishes the app with `publish.ps1`.
+  3. It builds `artifacts\Enigma.Msi.X.Y.Z.msi`, beside the `Enigma.Msi.X.Y.Z.msipkg.json` profile it
+     was built from. `X.Y.Z` is the app's `<Version>`.
+
+  It checks for `git`, the .NET 10 SDK and the WiX CLI before it cleans anything.
+- **A vendored worker.** `packaging/windows/Enigma.Msi.Worker/` holds the worker CLI as released with 1.7.0,
+  the same copy every Enigma app carries. That copy builds the installer. The worker the installer puts
+  beside the app is still the one built from `src/`. The copy's README says where it came from and how to
+  refresh it.
+
+### Changed
+
+- **A new application icon, without the tile.** The taped cube now stands on a transparent background
+  instead of a dark rounded tile. It appears wherever the app shows an icon:
+  - the executable, the window and the taskbar;
+  - the shortcuts and the *Installed apps* entry;
+  - the About dialog;
+  - the Linux launcher.
+
+  It has the same ten sizes as before, 16 to 256 px.
+- **The installer is "Enigma Msi".** That is the MSI's product name, its install folder
+  (`%ProgramFiles%\Enigma Msi`) and its desktop and program-menu shortcuts. The file is
+  `Enigma.Msi.X.Y.Z.msi`. It carries the upgrade code of the installed 1.7.0. Inside the app, the name is
+  still `Enigma.Msi`.
+- **The MSI is uncompressed** (`None`), so it builds in seconds. It is about 74 MB.
+- **No committed profile per release.** The runbook's profile clone rule is retired, because
+  `buildmsi.ps1` writes the profile on every build. `msiProfiles/` keeps the profiles of the 1.0.0 to
+  1.7.0 dogfood MSIs as their record.
+
+### Upgrading from 1.7
+
+- **An Enigma Msi 1.7.0 installed from its MSI is upgraded in place.** *Installed apps* lists one Enigma Msi,
+  at 1.8.0, in the same folder and with the same shortcuts.
+- **An MSI built from a committed `msiProfiles/` profile** carries another upgrade code
+  (`3405046f-527a-439e-a22f-866247dc8314`). Such an install is named "Enigma.Msi.Desktop" and sits in
+  `%ProgramFiles%\Enigma.Msi`. 1.8.0 would install beside it, so uninstall it first.
+
+### Compatibility
+
+- No change to the `.msipkg.json` profile format. It is still **`schemaVersion` 1**. Profiles are
+  interchangeable between 1.0.0 and 1.8.0 in **both** directions.
+- **The library is unchanged.** It is still 1.0.0, consumed in-repo by `ProjectReference`, and targets
+  `netstandard2.0` and `net10.0`.
+- **No dependency moved.** Avalonia 12.1.5 is out, but the Avalonia set stays at 12.1.4 together with
+  Enigma.Avalonia.Desktop 1.3.0, which is built against it.
+- The app still targets **.NET 10.0** (`WinExe`) and is published framework-dependent for `win-x64`. It
+  still requires **Windows and the WiX CLI** (`dotnet tool install --global wix`) to build an MSI.
 
 ## 1.7.0 — Enigma.Msi.Desktop
 

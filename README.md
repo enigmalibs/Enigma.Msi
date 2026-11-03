@@ -12,10 +12,10 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.7.0** — the app opens straight on its window (no splash). It shows the About dialog every
-> Enigma app shares. An unexpected error no longer closes it but shows a *Something went wrong* dialog. It
-> writes `app.ico` beside the executable, and it comes with publish scripts for Windows and Linux and a
-> per-user Linux installer. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.8.0** — a new icon, the same taped cube without its dark tile. The Windows installer is
+> now one command: `packaging\windows\buildmsi.ps1` cleans, publishes and builds
+> `artifacts\Enigma.Msi.X.Y.Z.msi`. That installer is named *Enigma Msi*, and it upgrades an installed
+> 1.7.0. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 
@@ -71,14 +71,19 @@ started. That produces `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publi
 with its `worker\` subfolder beside it — the app finds the worker there by itself, with no configuration. For a
 development run, `dotnet run --project src/Enigma.Msi.Desktop` is enough.
 
-The app can also build **its own installer**, which is how this repository releases it:
+**Its own installer** is built with Enigma.Msi too, which is how this repository releases it:
 
-```bash
-.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.1.7.0.msipkg.json
+```powershell
+.\packaging\windows\buildmsi.ps1        # or buildmsi.bat from a cmd prompt
 ```
 
-The profiles under `msiProfiles/` are ordinary `.msipkg.json` files, so they open in the app itself. See
-[docs/RELEASE.md](docs/RELEASE.md) for the full release runbook.
+It runs `git clean -dxf` first, which deletes every file git does not track, so commit or move anything new
+before running it. Then it publishes, as above, and packages the result into
+`artifacts\Enigma.Msi.X.Y.Z.msi`, beside the `.msipkg.json` profile it was built from. The MSI installs
+**Enigma Msi** for all users in `%ProgramFiles%\Enigma Msi`, with a shortcut on the desktop and one in the
+program menu, and it replaces a version installed from an earlier MSI. The worker that builds it is a
+released copy, kept in `packaging\windows\Enigma.Msi.Worker\`. See [docs/RELEASE.md](docs/RELEASE.md) for
+the full release runbook.
 
 ### On Linux
 
