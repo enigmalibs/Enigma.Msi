@@ -5,9 +5,9 @@
          comes from what it drives (the net472 worker and the WiX CLI), not from its TFM. -->
     <TargetFramework>net10.0</TargetFramework>
     <!-- The app versions independently of the library, which stays at 1.0.0: they coincided for the
-         first release and parted here. This value is what
-         msiProfiles/Enigma.Msi.Desktop.<version>.msipkg.json mirrors — bump both together, and clone the
-         profile per the rule in docs/RELEASE.md. -->
+         first release and parted here. packaging/windows/buildmsi.ps1 reads this element
+         (/Project/PropertyGroup/Version) for the installer's version and file name, so keep it here, and
+         keep it X.Y.Z. -->
     <Version>1.7.0</Version>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>

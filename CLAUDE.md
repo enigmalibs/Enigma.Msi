@@ -251,7 +251,10 @@ tests/Enigma.Msi.UnitTests/          xUnit v3 suite for the library
 tests/Enigma.Msi.StubWorker/         Test asset, not a suite: a console exe speaking the worker protocol, spawned by the tests
 tests/Enigma.Msi.Worker.UnitTests/   net472 suite: mapping + WixSharp drift guards (enums, .wixsharp seed)
 tests/Enigma.Msi.Desktop.UnitTests/  ViewModel + headless-Avalonia suite (the only one using NSubstitute or a UI platform)
-msiProfiles/                         Release profiles for MSIs this repo builds of itself (currently the desktop app)
+packaging/windows/                   publish.{ps1,bat}, and buildmsi.{ps1,bat}: git clean, publish, build artifacts\Enigma.Msi.X.Y.Z.msi
+packaging/windows/Enigma.Msi.Worker/ The released 1.7.0 worker CLI, vendored: what buildmsi.ps1 builds the MSI with (never installed)
+packaging/linux/                     publish.sh, install.sh / uninstall.sh (per-user XDG install), the launcher entry and icons
+msiProfiles/                         History: the profiles of the 1.0.0–1.7.0 dogfood MSIs (buildmsi.ps1 generates the profile now)
 docs/                                Roadmap, plan and completion records (the dev-workflow tracking artifacts)
 docs/RELEASE.md                      The app release runbook: pre-flight, MSI build, merge, tag, verification
 docs/guides/                         Per-category guides + index (repo-only — never packed, so relative links are fine)

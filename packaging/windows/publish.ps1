@@ -14,7 +14,8 @@
         src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish\
 
     with the MSI worker in its worker\ subfolder, and dotnet's last line names that folder. Start
-    Enigma.Msi.Desktop.exe in it. It is also the folder the MSI profiles under msiProfiles\ package.
+    Enigma.Msi.Desktop.exe in it. It is also the folder buildmsi.ps1, beside this script, packages into
+    the MSI.
 
 .EXAMPLE
     .\packaging\windows\publish.ps1

@@ -1,10 +1,10 @@
 # Release runbook
 
 Reusable checklist for releasing a new **Enigma.Msi.Desktop** version. The app is the only artifact this
-repository releases: it ships as an `.msi` installer, built by this repo's own `net472` worker from a
-committed profile — the dogfood loop. The **Enigma.Msi** library underneath it is not published to NuGet or
-to any other feed; it is consumed in-repo by `ProjectReference`, holds at 1.0.0, and has no release flow of
-its own. There is no `dotnet pack` step anywhere in this document.
+repository releases: it ships as an `.msi` installer, built by `packaging/windows/buildmsi.ps1` with a
+released copy of this repo's own `net472` worker — the dogfood loop. The **Enigma.Msi** library underneath
+it is not published to NuGet or to any other feed; it is consumed in-repo by `ProjectReference`, holds at
+1.0.0, and has no release flow of its own. There is no `dotnet pack` step anywhere in this document.
 
 Replace `X.Y.Z` with the version being released (e.g. `1.3.0`) throughout. The app's version lives in
 `src/Enigma.Msi.Desktop/Enigma.Msi.Desktop.csproj` (`<Version>`) and moves independently of the library's:
@@ -13,7 +13,8 @@ the two coincided at 1.0.0 for the first release and parted at the app's 1.1.0.
 **Nothing in this repository runs an outward-facing command for you.** No step here pushes, tags, uploads or
 publishes on its own — the merge, the tag and wherever the MSI ends up are all the maintainer's, run by hand.
 
-Run every command **from the repository root** — the MSI profile's paths are all repo-root-relative.
+Run the commands **from the repository root**. `buildmsi.ps1` and `publish.ps1` resolve the repository from
+their own location, so they also run from anywhere.
 
 ## 1. Pre-release checks
 
@@ -23,8 +24,6 @@ Run from the repository root, on the branch that will be merged:
 - [ ] `RELEASENOTES.md` has a top `X.Y.Z` section describing the release (newest-first; any `(unreleased)`
       heading renamed to `X.Y.Z`), and its current-version table names the new app version.
 - [ ] `README.md`'s "what's new" callout reflects `X.Y.Z`.
-- [ ] `msiProfiles/Enigma.Msi.Desktop.X.Y.Z.msipkg.json` committed, cloned per [the profile clone
-      rule](#the-profile-clone-rule) below.
 - [ ] Clean, warning-free build across all TFMs:
       ```bash
       dotnet build Enigma.Msi.slnx -c Release
@@ -44,57 +43,68 @@ Run from the repository root, on the branch that will be merged:
 
 ## 2. Build the MSI
 
-Two commands, both **from the repository root**:
+One command, on Windows:
 
-```bash
-.\packaging\windows\publish.ps1
-.\src\Enigma.Msi.Desktop\bin\Release\net10.0\worker\Enigma.Msi.Worker.exe build msiProfiles\Enigma.Msi.Desktop.X.Y.Z.msipkg.json
+```powershell
+.\packaging\windows\buildmsi.ps1
+# Or, from a cmd prompt, with no execution policy involved:
+packaging\windows\buildmsi.bat
 ```
 
-`publish.ps1` runs `dotnet publish src\Enigma.Msi.Desktop -c Release -r win-x64 -p:PublishReadyToRun=true` from
-wherever it is started; `packaging\windows\publish.bat` is the same command for a shell with no PowerShell
-execution policy to satisfy.
-
-- **`artifacts/` has to exist first** — `mkdir artifacts` from the repository root. It is git-ignored, so a
-  fresh clone does not have it, and the profile's `output.outputPath` is required to be an *existing*
-  directory: the worker does not create one. Without it the build stops at validation instead of writing
-  the MSI.
-- **The publish is a hard prerequisite**, not an alternative to the build. The profile's `releasePath` points
-  at `src\Enigma.Msi.Desktop\bin\Release\net10.0\win-x64\publish`, so whatever sits in that directory is
-  what ships. A stale publish silently packages the previous version; a missing one fails validation. Do not
-  re-point it at `bin\Release\net10.0`: the raw build output carries `runtimes/` for Linux, macOS and
-  browser (552 MB of Skia/HarfBuzz natives), which measured a 156 MB MSI installing 580 MB against 17 MB
-  installing 44 MB for the publish output.
+- **It runs `git clean -dxf` first**, which deletes every file git does not track, ignored ones included.
+  Commit or move anything new before running it. Then it publishes with `publish.ps1`, which runs
+  `dotnet publish src\Enigma.Msi.Desktop -c Release -r win-x64 -p:PublishReadyToRun=true`. Last, it
+  packages the publish folder with Enigma.Msi.
+- **It writes** `artifacts\Enigma.Msi.X.Y.Z.msi`, beside the `Enigma.Msi.X.Y.Z.msipkg.json` profile it was
+  built from. `X.Y.Z` is `<Version>` in the csproj. It creates `artifacts\` itself, and `artifacts/` is
+  git-ignored.
+- **Prerequisites**, checked before anything is cleaned: `git`, the .NET 10 SDK and the WiX CLI
+  (`dotnet tool install --global wix`) on the `PATH`. WiX 7 also needs its licence accepted once:
+  `wix eula accept wix7`.
+- **Its exit code** is `0` when the MSI is written. A failing step stops it with that step's exit code
+  and a `buildmsi:` line on stderr. The worker's own codes are `1` for an invalid profile or a failed WiX
+  build, and `2` for bad arguments.
+- **The payload is the publish output**, never the raw `bin\Release\net10.0` build. The raw build carries
+  `runtimes/` for Linux, macOS and browser: 552 MB of Skia/HarfBuzz natives. Measured, that gave a 156 MB
+  MSI installing 580 MB, against 17 MB installing 44 MB for the publish output.
 - **Framework-dependent by design**: a RID-specific publish is framework-dependent unless told otherwise, so
   the target machine needs the .NET 10 runtime. Adding `--self-contained` would remove that prerequisite —
   it roughly triples the installer. **ReadyToRun** precompiles the app's own assemblies so it starts
   faster, at the cost of larger files.
-- **Requires Windows and the WiX CLI** (`dotnet tool install --global wix`), like any MSI this library
-  builds.
-- The worker invoked here is the one `build/CopyWorkerOutput.targets` copied next to the app during the
-  build — the same executable the app itself drives, so the released installer is built by the code being
-  released.
-- The MSI lands in `artifacts\Enigma.Msi.Desktop.msi` (`artifacts/` is git-ignored, so it never pollutes the
-  tree). Worker exit codes are a contract: `0` success, `1` validation or build failure on well-formed
-  input, `2` bad arguments or an unexpected error.
+- **Two workers, on purpose.** The worker that *builds* the MSI is the released copy in
+  `packaging\windows\Enigma.Msi.Worker\`: a change to `src\Enigma.Msi.Worker` cannot break the build of
+  the release that ships it. Its README says where it came from and how to refresh it. The worker that
+  the MSI *installs* is the one the publish builds from `src\`, which `build/CopyWorkerOutput.targets`
+  puts in `worker\` beside the app.
 - **Where the MSI goes afterwards is a per-release decision** — a GitHub release asset alongside the tag is
   the obvious home; nothing in the repo automates it.
 
-### The profile clone rule
+What the MSI installs:
 
-Each version gets its **own committed profile**, `msiProfiles/Enigma.Msi.Desktop.X.Y.Z.msipkg.json`. To make
-the next one, copy the most recent profile and change exactly three things:
-
-| Field | Rule |
+| What | Where |
 |---|---|
-| `upgradeCode` | **Keep verbatim.** It is the app's permanent identity — `3405046f-527a-439e-a22f-866247dc8314`. Change it and Windows Installer treats the new release as an unrelated product: the old version is never upgraded, only accumulated alongside. |
-| `productId` | **Generate a new GUID for every version**, from a real generator — `[guid]::NewGuid()` on Windows, `uuidgen` elsewhere. Never hand-fabricated. |
-| `version` | Set to the app's release `X.Y.Z`, matching `<Version>` in `Enigma.Msi.Desktop.csproj`. |
+| the application, for all users | `%ProgramFiles%\Enigma Msi` (a 32-bit package: `Program Files (x86)` on 64-bit Windows), with the worker in `worker\` |
+| the shortcuts, "Enigma Msi" | the desktop and the program menu |
+| the entry in *Installed apps* | "Enigma Msi", publisher "Josué Clément" |
 
-Everything else — `installPath`, `releasePath`, `scope`, `compression`, `output`, `controlPanel`,
-`shortcuts` — is carried over unchanged, unless the app's TFM moved (then `releasePath` follows it). Older
-profiles are kept as the record of what each release was built from. The profile is the library's own
-`.msipkg.json` format, so it can be opened, edited and validated in the desktop app itself.
+### The Windows installer's identity
+
+There is no committed MSI profile per version. `buildmsi.ps1` writes the profile on every build from the
+csproj's `<Version>` and its own constants, so a release changes nothing for the installer.
+
+- **`upgradeCode`** is `49589519-f722-4733-af70-81e027756344`, written once in `buildmsi.ps1`. It is the
+  code the MSI that installed 1.7.0 carries. It must never change: an MSI with another code installs
+  beside the old version instead of replacing it. `WindowsInstallerIdentityTests` pins it, together with
+  the product name and the executable the shortcuts start.
+- **`productId`** is new for every build.
+- **The product name is "Enigma Msi"**, which is also the install folder's and the shortcuts' name. The
+  app itself still calls itself `Enigma.Msi`.
+- **`compression` is `None`**, so the build is fast.
+
+`msiProfiles/` holds the profiles this repository's dogfood MSIs of 1.0.0 to 1.7.0 were built from,
+under the clone rule this section replaces. Their upgrade code, `3405046f-527a-439e-a22f-866247dc8314`, is
+not the installed 1.7.0's, no installed product carries it, and it is not used again. The profiles stay
+as the record of those builds. They are ordinary `.msipkg.json` files and open in the app.
 
 ## 3. Merge to the default branch
 
@@ -124,11 +134,12 @@ On a test machine, against the MSI from §2:
 
 - [ ] It installs, launches and uninstalls cleanly:
       ```bash
-      msiexec /i artifacts\Enigma.Msi.Desktop.msi
-      msiexec /x artifacts\Enigma.Msi.Desktop.msi
+      msiexec /i artifacts\Enigma.Msi.X.Y.Z.msi
+      msiexec /x artifacts\Enigma.Msi.X.Y.Z.msi
       ```
-- [ ] Installed **over the previous version, it upgrades rather than accumulates** — one Control Panel entry
-      at `X.Y.Z`, not two. This is what the reused `upgradeCode` buys, and the only step that actually
-      proves it.
-- [ ] The installed app starts on the main window, and About reports `X.Y.Z`.
+- [ ] Installed **over the previous version, it upgrades rather than accumulates**. *Installed apps* lists one
+      **Enigma Msi**, at `X.Y.Z`, not two. This is what the fixed upgrade code buys, and this is the only
+      step that actually proves it.
+- [ ] The desktop and program-menu shortcuts, "Enigma Msi", start it on the main window, and About reports
+      `X.Y.Z`.
 - [ ] The GitHub release/tag is present and its notes match `RELEASENOTES.md`.
