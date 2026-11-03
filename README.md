@@ -12,10 +12,10 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.7.0** — the app opens straight on its window (no splash). It shows the About dialog every
-> Enigma app shares. An unexpected error no longer closes it but shows a *Something went wrong* dialog. It
-> writes `app.ico` beside the executable, and it comes with publish scripts for Windows and Linux and a
-> per-user Linux installer. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.8.0** — a new icon, the same taped cube without its dark tile. The Windows installer is
+> now one command: `packaging\windows\buildmsi.ps1` cleans, publishes and builds
+> `artifacts\Enigma.Msi.X.Y.Z.msi`. That installer is named *Enigma Msi*, and it upgrades an installed
+> 1.7.0. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 

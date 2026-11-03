@@ -8,7 +8,7 @@
          first release and parted here. packaging/windows/buildmsi.ps1 reads this element
          (/Project/PropertyGroup/Version) for the installer's version and file name, so keep it here, and
          keep it X.Y.Z. -->
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets/appicon.ico</ApplicationIcon>
   </PropertyGroup>

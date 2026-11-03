@@ -1,6 +1,6 @@
 # FEATURE-5897 — Desktop app 1.8.0 release
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-5897-release-1-8-0`
 **Run:** feature/2026-11-03-icons-msi-release
