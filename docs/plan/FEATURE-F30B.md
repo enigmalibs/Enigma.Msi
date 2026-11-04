@@ -1,6 +1,6 @@
 # FEATURE-F30B — Desktop app 1.9.0 release
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-f30b-release-1-9-0`
 **Run:** feature/2026-11-04-final3-icons-release
