@@ -53,3 +53,5 @@ Single registry of all tracked work items. Details live in `docs/plan/<ID>.md`; 
 | - PHASE01    | Vendor the Enigma.Msi worker CLI                            | DONE   | (in FEATURE-3E44.md)      |
 | - PHASE02    | The buildmsi script                                         | DONE   | (in FEATURE-3E44.md)      |
 | FEATURE-5897 | Desktop app 1.8.0 release                                   | DONE   | docs/plan/FEATURE-5897.md |
+| FEATURE-1AC4 | Frame-filling icon set (final3)                             | TODO   | docs/plan/FEATURE-1AC4.md |
+| FEATURE-F30B | Desktop app 1.9.0 release                                   | TODO   | docs/plan/FEATURE-F30B.md |
