@@ -1,6 +1,6 @@
 # FEATURE-1AC4 — Frame-filling icon set (final3)
 
-**Status:** TODO
+**Status:** DONE
 **Type:** FEATURE
 **Branch:** `feature/feature-1ac4-final3-icon-set`
 **Run:** feature/2026-11-04-final3-icons-release
