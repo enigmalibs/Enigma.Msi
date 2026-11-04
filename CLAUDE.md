@@ -214,6 +214,24 @@ turns it into an `.msi`. A companion Avalonia desktop app drives the same model 
 >
 > The library is still at 1.0.0. The run tagged and pushed nothing.
 >
+> **The app-only 1.9.0 is prepared and verified on Windows: the icon fills its frame.** It was the `/vibe`
+> run `feature/2026-11-04-final3-icons-release`, two items:
+> - `FEATURE-1AC4` replaced the artwork with `Branding/Apps/final3/msi`, overwriting the same ten files
+>   under their old names. It is `final2`'s cube scaled ×1.2727 to span 16 to 240 of 256, with its small
+>   frames drawn on the pixel grid.
+> - `FEATURE-F30B` released it as `<Version>1.9.0`. **`buildmsi.ps1` was not edited.** It has no version
+>   literal: it reads the csproj's `<Version>`, so the bump is the whole of a release's installer change.
+>   The vendored worker stays the 1.7.0 copy, because the worker has not changed since.
+>
+> Verification on Windows:
+> - a warning-free build;
+> - all **421** tests;
+> - the MSI built by `buildmsi.bat` in a scratch clone: `Enigma.Msi.1.9.0.msi`, 74.34 MB uncompressed,
+>   WiX 7.0.0. Its Property, Upgrade, Directory, Shortcut and File tables were read back. Its `app.ico`
+>   is the `final3` icon, and the six `.wixsharp` files are included.
+>
+> The library is still at 1.0.0. The run tagged and pushed nothing.
+>
 > **Two traps the shared `ContentDialog` sets**, both worked around and worth knowing before adding a
 > third dialog: `IContentDialogService` owns **one** host whose reset *assigns* `IsPrimaryButtonEnabled`
 > instead of clearing it — so a binding onto the host must be disposed when the dialog closes, or it goes

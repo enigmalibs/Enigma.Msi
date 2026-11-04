@@ -12,10 +12,10 @@ The MSI authoring itself is done by [WixSharp](https://github.com/oleg-shilo/wix
 .NET Framework-only — so it runs inside a `net472` worker process, discovered on disk at run time, and
 never appears on the library's public API.
 
-> **What's new in 1.8.0** — a new icon, the same taped cube without its dark tile. The Windows installer is
-> now one command: `packaging\windows\buildmsi.ps1` cleans, publishes and builds
-> `artifacts\Enigma.Msi.X.Y.Z.msi`. That installer is named *Enigma Msi*, and it upgrades an installed
-> 1.7.0. Every saved profile opens as before. See [RELEASENOTES.md](RELEASENOTES.md).
+> **What's new in 1.9.0** — the icon fills its frame: the same taped cube, drawn larger and sharper at
+> small sizes, in the taskbar, on the shortcuts, in About and in the Linux launcher. The installer,
+> `artifacts\Enigma.Msi.1.9.0.msi`, upgrades an installed 1.8.0 in place. Every saved profile opens as
+> before. See [RELEASENOTES.md](RELEASENOTES.md).
 
 ## The desktop app
 
